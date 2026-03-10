@@ -14,3 +14,8 @@
 ## Security
 - Passwords are not stored in plain text.
 - Password hashing: PBKDF2WithHmacSHA256 with per-user salt.
+
+## Menu & Cart (MVP)
+- Products are stored in Room and displayed in Menu via RecyclerView.
+- Categories supported: COFFEE and CAKE.
+- Cart is session-only (in-memory) and is cleared on logout.
