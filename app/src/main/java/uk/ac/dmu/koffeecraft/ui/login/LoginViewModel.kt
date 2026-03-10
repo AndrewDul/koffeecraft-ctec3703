@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
-
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
 class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
     data class UiState(
@@ -26,10 +26,14 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
             val result = repo.login(email, password.toCharArray())
 
             _state.value = when (result) {
-                is AuthRepository.LoginResult.AdminSuccess ->
+                is AuthRepository.LoginResult.AdminSuccess -> {
+                    SessionManager.setAdmin()
                     UiState(navigateToAdmin = true)
-                is AuthRepository.LoginResult.CustomerSuccess ->
+                }
+                is AuthRepository.LoginResult.CustomerSuccess -> {
+                    SessionManager.setCustomer(result.customerId)
                     UiState(navigateToMenu = true)
+                }
                 is AuthRepository.LoginResult.Error ->
                     UiState(error = result.message)
             }

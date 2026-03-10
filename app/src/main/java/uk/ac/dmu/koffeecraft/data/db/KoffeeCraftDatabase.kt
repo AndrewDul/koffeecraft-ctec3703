@@ -18,7 +18,9 @@ import uk.ac.dmu.koffeecraft.data.entities.OrderItem
 import uk.ac.dmu.koffeecraft.data.entities.Payment
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
-
+import uk.ac.dmu.koffeecraft.data.dao.OrderDao
+import uk.ac.dmu.koffeecraft.data.dao.OrderItemDao
+import uk.ac.dmu.koffeecraft.data.dao.PaymentDao
 @Database(
     entities = [
         Customer::class,
@@ -36,7 +38,9 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun customerDao(): CustomerDao
     abstract fun adminDao(): AdminDao
     abstract fun productDao(): ProductDao
-
+    abstract fun orderDao(): OrderDao
+    abstract fun orderItemDao(): OrderItemDao
+    abstract fun paymentDao(): PaymentDao
     companion object {
         @Volatile private var INSTANCE: KoffeeCraftDatabase? = null
 

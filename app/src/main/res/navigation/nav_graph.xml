@@ -3,7 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
-
+    <action
+        android:id="@+id/action_global_logout"
+        app:destination="@id/loginFragment"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true" />
     <fragment
         android:id="@+id/loginFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.login.LoginFragment"
@@ -37,10 +41,43 @@
     <fragment
         android:id="@+id/menuFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.menu.MenuFragment"
-        android:label="Menu" />
+        android:label="Menu">
+
+        <action
+            android:id="@+id/action_menu_to_cart"
+            app:destination="@id/cartFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/adminPanelFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.AdminPanelFragment"
         android:label="Admin Panel" />
+    <fragment
+        android:id="@+id/cartFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.cart.CartFragment"
+        android:label="Cart">
+        <action
+            android:id="@+id/action_cart_to_checkout"
+            app:destination="@id/checkoutFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/checkoutFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.checkout.CheckoutFragment"
+        android:label="Checkout">
+        <action
+            android:id="@+id/action_checkout_to_status"
+            app:destination="@id/orderStatusFragment"
+            app:popUpTo="@id/menuFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/orderStatusFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.orderstatus.OrderStatusFragment"
+        android:label="Order Status">
+        <argument
+            android:name="orderId"
+            app:argType="long" />
+    </fragment>
 </navigation>

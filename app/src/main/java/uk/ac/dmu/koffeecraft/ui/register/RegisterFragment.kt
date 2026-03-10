@@ -39,6 +39,9 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                 etPassword.text.toString()
             )
         }
+        view.findViewById<Button>(R.id.btnBackToLogin).setOnClickListener {
+            findNavController().navigateUp()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.state.collect { state ->

@@ -6,13 +6,14 @@ import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class MenuFragment : Fragment(R.layout.fragment_menu) {
 
@@ -36,9 +37,15 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         view.findViewById<Button>(R.id.btnCoffee).setOnClickListener { vm.setCategory("COFFEE") }
         view.findViewById<Button>(R.id.btnCake).setOnClickListener { vm.setCategory("CAKE") }
 
-        // Cart navigation we add in next step (Etap 3.2) once CartFragment is added to nav_graph.
-        // For now we just keep the button ready.
+        view.findViewById<Button>(R.id.btnCart).setOnClickListener {
+            findNavController().navigate(R.id.action_menu_to_cart)
+        }
 
+        view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
+            SessionManager.clear()
+            CartManager.clear()
+            findNavController().navigate(R.id.action_global_logout)
+        }
         vm.start()
 
         viewLifecycleOwner.lifecycleScope.launch {
