@@ -39,6 +39,12 @@
             android:layout_marginStart="8dp"
             android:text="Logout" />
         <Button
+            android:id="@+id/btnMyOrders"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="My Orders" />
+        <Button
             android:id="@+id/btnCart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

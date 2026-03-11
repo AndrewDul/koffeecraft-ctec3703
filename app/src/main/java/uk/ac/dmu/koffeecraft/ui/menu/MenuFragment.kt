@@ -46,6 +46,9 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
             CartManager.clear()
             findNavController().navigate(R.id.action_global_logout)
         }
+        view.findViewById<Button>(R.id.btnMyOrders).setOnClickListener {
+            findNavController().navigate(R.id.action_menu_to_orders)
+        }
         vm.start()
 
         viewLifecycleOwner.lifecycleScope.launch {

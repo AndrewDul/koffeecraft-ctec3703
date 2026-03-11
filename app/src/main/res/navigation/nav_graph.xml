@@ -3,11 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
+
+    <!-- Global logout action -->
     <action
         android:id="@+id/action_global_logout"
         app:destination="@id/loginFragment"
         app:popUpTo="@id/nav_graph"
         app:popUpToInclusive="true" />
+
     <fragment
         android:id="@+id/loginFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.login.LoginFragment"
@@ -46,12 +49,17 @@
         <action
             android:id="@+id/action_menu_to_cart"
             app:destination="@id/cartFragment" />
+
+        <action
+            android:id="@+id/action_menu_to_orders"
+            app:destination="@id/ordersFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/adminPanelFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.AdminPanelFragment"
         android:label="Admin Panel" />
+
     <fragment
         android:id="@+id/cartFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.cart.CartFragment"
@@ -80,4 +88,9 @@
             android:name="orderId"
             app:argType="long" />
     </fragment>
+
+    <fragment
+        android:id="@+id/ordersFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.orders.OrdersFragment"
+        android:label="My Orders" />
 </navigation>

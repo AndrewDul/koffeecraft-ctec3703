@@ -18,4 +18,7 @@ interface OrderDao {
 
     @Query("UPDATE orders SET status = :status WHERE orderId = :orderId")
     suspend fun updateStatus(orderId: Long, status: String)
+
+    @Query("SELECT * FROM orders WHERE customerId = :customerId ORDER BY createdAt DESC")
+    fun observeByCustomer(customerId: Long): Flow<List<Order>>
 }
