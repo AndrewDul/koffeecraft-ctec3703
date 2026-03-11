@@ -4,19 +4,23 @@
 **Issue:** Build failed with AAR metadata errors (some AndroidX dependencies required API 36+).  
 **Fix:** Updated `compileSdk` (and `targetSdk`) to 36 to satisfy dependency requirements.
 
+
 ## 2) Adaptive icon requires API 26+
 **Issue:** Android resource linking failed for `<adaptive-icon>` in `mipmap-anydpi` because adaptive icons require API 26+.  
 **Fix:** Set `minSdk` to 26 (or alternatively, icons could be moved to `mipmap-anydpi-v26`).
+
 
 ## 3) Database Inspector showed "Nothing to show"
 **Issue:** App Inspection → Database Inspector initially displayed no databases.  
 **Fix:** Triggered database creation with a simple DAO query (e.g., count admins/products) during development to ensure the database file is created and visible in App Inspection.
 
-## Notifications not showing (Android 13+)
+
+## 4) Notifications not showing (Android 13+)
 **Cause:** Missing POST_NOTIFICATIONS permission.  
 **Fix:** Add manifest permission and request it at runtime in MainActivity.
 
-## Issue: Order status notifications triggered when viewing past orders
+
+## 5) Issue: Order status notifications triggered when viewing past orders
 **Symptom:** Opening an existing order from "My Orders" triggered status simulation again and produced repeated notifications.
 
 **Cause:** `OrderStatusFragment` always ran the status simulation and notification logic on screen entry. The first Flow emission was treated as a status change.
@@ -27,3 +31,11 @@
 - Notifications are skipped on the first Flow emission to prevent alerts when simply viewing an existing order.
 
 **Result:** Past orders can be viewed without re-simulating status changes or re-sending notifications.
+
+
+## 6) Issue: AdminActivity crash on launch
+**Symptom:** App crashed immediately after opening AdminActivity.
+
+**Cause:** Admin navigation destinations referenced fragments that did not exist yet (missing fragment classes/layouts). Bottom navigation also requires destination IDs to match menu item IDs.
+
+**Fix:** Added minimal admin fragments and layouts for all admin destinations, and ensured `admin_bottom_nav.xml` item IDs match `admin_nav_graph.xml` destination IDs.

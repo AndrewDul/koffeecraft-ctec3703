@@ -34,3 +34,8 @@
 - Customers can leave a 1–5 star rating (RatingBar) and optional comment after an order reaches READY/COLLECTED.
 - Feedback is stored in Room table `feedback` with a unique constraint on `orderId` (one feedback per order).
 - Feedback can be edited later from "My Orders" (existing rating/comment is prefilled and updated via upsert/replace).
+
+## Admin Area
+- Admin UI is separated into a dedicated `AdminActivity` to isolate staff features from the customer flow.
+- Admin uses BottomNavigationView with an admin-only Navigation Graph (`admin_nav_graph.xml`).
+- Admin tabs: Home, Orders, Menu, Feedback, Settings (placeholders at this stage).

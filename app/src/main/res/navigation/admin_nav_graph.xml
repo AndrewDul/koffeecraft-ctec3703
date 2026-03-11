@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/admin_nav_graph"
+    app:startDestination="@id/adminHomeFragment">
+
+    <fragment
+        android:id="@+id/adminHomeFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.home.AdminHomeFragment"
+        android:label="Admin Home" />
+
+    <fragment
+        android:id="@+id/adminOrdersFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.orders.AdminOrdersFragment"
+        android:label="Admin Orders" />
+
+    <fragment
+        android:id="@+id/adminMenuFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.menu.AdminMenuFragment"
+        android:label="Admin Menu" />
+
+    <fragment
+        android:id="@+id/adminFeedbackFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.feedback.AdminFeedbackFragment"
+        android:label="Admin Feedback" />
+
+    <fragment
+        android:id="@+id/adminSettingsFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.settings.AdminSettingsFragment"
+        android:label="Admin Settings" />
+
+</navigation>
