@@ -35,7 +35,7 @@ import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
         Payment::class,
         Feedback::class
     ],
-    version = 3,
+    version = 5,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -100,6 +100,39 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 addColumnIfMissing(db, "products", "imageKey", "TEXT")
             }
         }
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // I rebuild feedback because the old schema stored one feedback per order,
+                // while the new schema stores one feedback per purchased product (orderItem).
+                db.execSQL("DROP INDEX IF EXISTS index_feedback_orderId")
+                db.execSQL("DROP INDEX IF EXISTS index_feedback_customerId")
+                db.execSQL("DROP TABLE IF EXISTS feedback")
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS feedback (
+                feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                orderItemId INTEGER NOT NULL,
+                customerId INTEGER NOT NULL,
+                rating INTEGER NOT NULL,
+                comment TEXT NOT NULL,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_feedback_orderItemId ON feedback(orderItemId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_feedback_customerId ON feedback(customerId)")
+            }
+        }
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                addColumnIfMissing(db, "feedback", "isHidden", "INTEGER NOT NULL DEFAULT 0")
+                addColumnIfMissing(db, "feedback", "isModerated", "INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -108,7 +141,7 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                     KoffeeCraftDatabase::class.java,
                     "koffeecraft.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .addCallback(SeedCallback())
                     .build()
 

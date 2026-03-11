@@ -53,8 +53,11 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
                 tvStatus.text = "Status: $status"
 
                 val canFinish = (status == "READY" || status == "COLLECTED")
+                val canLeaveFeedback = (status == "COLLECTED")
+
                 btnBackToMenu.isEnabled = canFinish
-                btnFeedback.visibility = if (canFinish) View.VISIBLE else View.GONE
+                btnFeedback.visibility = if (canLeaveFeedback) View.VISIBLE else View.GONE
+
 
                 // Start simulation ONLY for brand new order flow (from checkout)
                 if (simulate && !simulationStarted && status == "PLACED") {

@@ -105,4 +105,16 @@
             android:name="orderId"
             app:argType="long" />
     </fragment>
+    <fragment
+        android:id="@+id/productFeedbackFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.feedback.ProductFeedbackFragment"
+        android:label="Product Feedback">
+        <argument
+            android:name="orderId"
+            app:argType="long" />
+        <argument
+            android:name="orderItemId"
+            app:argType="long" />
+    </fragment>
+
 </navigation>

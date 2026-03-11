@@ -76,3 +76,121 @@ The `MaterialButtonToggleGroup` was constrained to itself:
 **Fix**
 ```xml
 app:layout_constraintTop_toBottomOf="@id/toggleCategoryFilter"
+
+
+## 10) Feedback build errors after moving from order-level to product-level feedback
+
+### Problem
+After changing feedback from `orderId` to `orderItemId`, the project stopped compiling.
+
+### Symptoms
+Errors included:
+- unresolved reference to `getByOrderId`
+- unresolved reference to old feedback fields
+- constructor mismatch for `Feedback(orderId = ...)`
+
+### Cause
+The old customer feedback screen still used the previous order-level feedback API and data model.
+
+### Fix
+I replaced the old logic with the new purchased-product feedback flow:
+- feedback now loads purchased products for a specific order
+- a single purchased product is reviewed using `orderItemId`
+- saving feedback uses the new `Feedback(orderItemId, ...)` model
+
+---
+
+## 11) Admin Home dashboard query functions failed to compile
+
+### Problem
+The project failed to compile with errors such as:
+- `Function 'getTopRatedProducts' must have a body`
+- unresolved references from `AdminHomeFragment`
+
+### Cause
+The new DAO query methods were pasted outside `interface FeedbackDao`.
+
+### Fix
+I moved all dashboard query methods inside `interface FeedbackDao` and kept the projection data classes below the interface.
+
+---
+
+## 12) Feedback analytics could not be calculated per product with the old model
+
+### Problem
+The original feedback design stored one review per order.  
+This made it impossible to calculate accurate product-based analytics for Admin Home.
+
+### Cause
+One order can contain multiple purchased products, so one order-level rating cannot be assigned reliably to a single product.
+
+### Fix
+I rebuilt feedback storage so each feedback record belongs to one purchased product using `orderItemId`.
+
+---
+
+## 13)Customer feedback needed to support reviewing multiple purchased products
+
+### Problem
+A single order could contain multiple products, but the original feedback flow allowed only one shared review.
+
+### Fix
+I changed the customer flow so:
+- the customer first sees purchased products from the selected order
+- each product can be reviewed separately
+- after submit, the next unreviewed product opens automatically
+- when all items are reviewed, the app returns to Menu
+
+---
+
+## 14) Feedback button visibility in Order Status
+
+### Problem
+The feedback button was available too early in the order lifecycle.
+
+### Fix
+I restricted feedback access so the button only appears when the order status is `COLLECTED`.
+
+---
+
+## 15) Admin feedback moderation requirements
+
+### Problem
+Admin needed a way to moderate inappropriate comments without losing rating statistics.
+
+### Fix
+I added:
+- `isHidden`
+- `isModerated`
+
+I also implemented:
+- hide comment
+- unhide comment
+
+This keeps the rating in the database while hiding the comment text.
+
+---
+
+## 16) Comment filter behaviour
+
+### Problem
+`Without comment` only returns feedback records that still exist and have no visible comment.
+
+### Current behaviour
+- if a feedback record is deleted, it will not appear in `Without comment`
+- if a feedback has an empty comment, it appears in `Without comment`
+- if a feedback has a hidden comment, it can be treated separately depending on current filter logic
+
+### Note
+This is correct because the admin feedback screen only shows existing feedback records, not products with no feedback record at all.
+
+---
+
+## 17) Admin Home ranking rules
+
+### Problem
+Least-commented products should not be dominated by products with zero comments.
+
+### Fix
+I excluded zero-comment products from the least-commented ranking so the card only shows products that actually have at least one comment.
+
