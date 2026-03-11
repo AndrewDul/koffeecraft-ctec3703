@@ -17,6 +17,7 @@ import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Feedback
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class FeedbackFragment : Fragment(R.layout.fragment_feedback) {
 
@@ -81,7 +82,19 @@ class FeedbackFragment : Fragment(R.layout.fragment_feedback) {
                 db.feedbackDao().upsert(feedback)
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Thanks for your feedback!", Toast.LENGTH_SHORT).show()
+                    val msg = if (comment.isBlank()) {
+                        "Thanks for your rating!"
+                    } else {
+                        "Thanks for your rating and feedback!"
+                    }
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+
+                    NotificationHelper.showOrderNotification(
+                        context = requireContext(),
+                        title = "Thank you!",
+                        message = "Order #$orderId: $msg",
+                        notificationId = 300000 + (orderId % 50000).toInt()
+                    )
                     findNavController().navigateUp()
                 }
             }

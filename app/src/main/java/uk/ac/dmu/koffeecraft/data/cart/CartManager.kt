@@ -26,4 +26,7 @@ object CartManager {
     fun getItems(): List<CartItem> = items.values.toList()
 
     fun total(): Double = items.values.sumOf { it.product.price * it.quantity }
+    fun add(product: Product, quantity: Int) {
+        repeat(quantity) { add(product) }
+    }
 }

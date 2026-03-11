@@ -26,18 +26,16 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         val btnFeedback = view.findViewById<Button>(R.id.btnFeedback)
 
         val orderId = requireArguments().getLong("orderId")
+        val simulate = requireArguments().getBoolean("simulate", false)
+
         tvOrderId.text = "Order #$orderId"
 
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
-        // Disable buttons until READY
         btnBackToMenu.isEnabled = false
         btnFeedback.visibility = View.GONE
 
-        btnBackToMenu.setOnClickListener {
-            findNavController().navigate(R.id.menuFragment)
-        }
-
+        btnBackToMenu.setOnClickListener { findNavController().navigate(R.id.menuFragment) }
         btnFeedback.setOnClickListener {
             findNavController().navigate(
                 R.id.feedbackFragment,
@@ -46,18 +44,39 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         }
 
         var lastStatus: String? = null
+        var firstEmission = true
+        var simulationStarted = false
 
-        // Observe order status from DB
         viewLifecycleOwner.lifecycleScope.launch {
             db.orderDao().observeById(orderId).collect { order ->
                 val status = order?.status ?: "UNKNOWN"
                 tvStatus.text = "Status: $status"
 
-                val isReady = (status == "READY")
-                btnBackToMenu.isEnabled = isReady
-                btnFeedback.visibility = if (isReady) View.VISIBLE else View.GONE
+                val canFinish = (status == "READY" || status == "COLLECTED")
+                btnBackToMenu.isEnabled = canFinish
+                btnFeedback.visibility = if (canFinish) View.VISIBLE else View.GONE
 
-                // Notify only when status changes
+                // Start simulation ONLY for brand new order flow (from checkout)
+                if (simulate && !simulationStarted && status == "PLACED") {
+                    simulationStarted = true
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        delay(2000)
+                        db.orderDao().updateStatus(orderId, "PREPARING")
+                        delay(3000)
+                        db.orderDao().updateStatus(orderId, "READY")
+                        delay(10_000)
+                        db.orderDao().updateStatus(orderId, "COLLECTED")
+                    }
+                }
+
+                // Do NOT notify on first emission (opening old order should not trigger notifications)
+                if (firstEmission) {
+                    firstEmission = false
+                    lastStatus = status
+                    return@collect
+                }
+
+                // Notify only when status actually changes after first emission
                 if (status != lastStatus) {
                     when (status) {
                         "PREPARING" -> NotificationHelper.showOrderNotification(
@@ -72,18 +91,16 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
                             message = "Order #$orderId is ready. You can collect it now.",
                             notificationId = 200000 + (orderId % 50000).toInt()
                         )
+                        "COLLECTED" -> NotificationHelper.showOrderNotification(
+                            context = requireContext(),
+                            title = "Collected",
+                            message = "Order #$orderId has been collected. Enjoy!",
+                            notificationId = 250000 + (orderId % 50000).toInt()
+                        )
                     }
                     lastStatus = status
                 }
             }
-        }
-
-        // Solo MVP: simulate status changes automatically
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            delay(2000)
-            db.orderDao().updateStatus(orderId, "PREPARING")
-            delay(3000)
-            db.orderDao().updateStatus(orderId, "READY")
         }
     }
 }

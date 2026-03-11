@@ -15,3 +15,15 @@
 ## Notifications not showing (Android 13+)
 **Cause:** Missing POST_NOTIFICATIONS permission.  
 **Fix:** Add manifest permission and request it at runtime in MainActivity.
+
+## Issue: Order status notifications triggered when viewing past orders
+**Symptom:** Opening an existing order from "My Orders" triggered status simulation again and produced repeated notifications.
+
+**Cause:** `OrderStatusFragment` always ran the status simulation and notification logic on screen entry. The first Flow emission was treated as a status change.
+
+**Fix:**
+- Added a navigation argument `simulate` (default false). It is set to true only when navigating from Checkout after placing a new order.
+- Status simulation runs only when `simulate=true` and the initial status is `PLACED`.
+- Notifications are skipped on the first Flow emission to prevent alerts when simply viewing an existing order.
+
+**Result:** Past orders can be viewed without re-simulating status changes or re-sending notifications.

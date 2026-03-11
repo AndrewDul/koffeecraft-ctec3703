@@ -10,8 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
@@ -35,17 +38,35 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
             return
         }
 
-        rv.layoutManager = LinearLayoutManager(requireContext())
-        adapter = OrdersAdapter(emptyList()) { order ->
-            // Open OrderStatus for selected order
-            findNavController().navigate(
-                R.id.orderStatusFragment,
-                bundleOf("orderId" to order.orderId)
-            )
-        }
-        rv.adapter = adapter
-
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+
+        rv.layoutManager = LinearLayoutManager(requireContext())
+
+        adapter = OrdersAdapter(
+            items = emptyList(),
+            onOpen = { order ->
+                // Open OrderStatus for selected order (simulate defaults to false)
+                findNavController().navigate(
+                    R.id.orderStatusFragment,
+                    bundleOf("orderId" to order.orderId)
+                )
+            },
+            onOrderAgain = { order ->
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val reorderItems = db.orderItemDao().getReorderItems(order.orderId)
+
+                    // clear current cart then refill
+                    CartManager.clear()
+                    reorderItems.forEach { CartManager.add(it.product, it.quantity) }
+
+                    withContext(Dispatchers.Main) {
+                        findNavController().navigate(R.id.cartFragment)
+                    }
+                }
+            }
+        )
+
+        rv.adapter = adapter
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.orderDao().observeByCustomer(customerId).collect { orders ->

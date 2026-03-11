@@ -26,12 +26,11 @@
 - Notifications are triggered for: Payment confirmed, Order preparing, Order ready for pickup.
 
 ## Orders & Status
-- Orders are stored in Room (`orders`, `order_items`, `payments`).
-- Order status uses a simple 3-step flow: PLACED -> PREPARING -> READY.
-- Local notifications are used for payment confirmation and status updates.
+- Orders are persisted in Room (`orders`, `order_items`, `payments`).
+- Order status lifecycle: PLACED -> PREPARING -> READY -> COLLECTED (COLLECTED is simulated 10s after READY for newly placed orders).
+- Local notifications are used for payment confirmation and status changes. Notifications are only triggered on status transitions (not on initial screen load).
 
 ## Feedback & Ratings
-- Customers can leave a 1–5 star rating (RatingBar) and optional comment after an order reaches READY.
-- Feedback is stored in Room table `feedback` with a unique constraint per `orderId` (one feedback per order).
-- Feedback can be edited later from "My Orders" (prefill existing rating/comment and save changes).
-- Data integrity is enforced via a unique index on `feedback.orderId` and upsert (REPLACE) in `FeedbackDao`.
+- Customers can leave a 1–5 star rating (RatingBar) and optional comment after an order reaches READY/COLLECTED.
+- Feedback is stored in Room table `feedback` with a unique constraint on `orderId` (one feedback per order).
+- Feedback can be edited later from "My Orders" (existing rating/comment is prefilled and updated via upsert/replace).

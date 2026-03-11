@@ -82,7 +82,8 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
                     findNavController().navigate(
                         R.id.action_checkout_to_status,
-                        bundleOf("orderId" to orderId)
+                        bundleOf("orderId" to orderId,"simulate" to true)
+
                     )
                 }
             }
