@@ -30,8 +30,18 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         rv.layoutManager = LinearLayoutManager(requireContext())
 
         adapter = ProductAdapter(emptyList()) { product ->
+            if (!product.isActive) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "This product is currently unavailable.",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@ProductAdapter
+            }
+
             CartManager.add(product)
         }
+
         rv.adapter = adapter
 
         view.findViewById<Button>(R.id.btnCoffee).setOnClickListener { vm.setCategory("COFFEE") }

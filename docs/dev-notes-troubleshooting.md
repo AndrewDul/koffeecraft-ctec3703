@@ -63,3 +63,16 @@
 - Standardized queries to use the existing DB column (`isAvailable`) and mapped Kotlin property via `@ColumnInfo`.
 - Implemented safe migration (`addColumnIfMissing`) to avoid duplicate-column crashes.
 - Uninstalled / cleared app data on emulator to recreate DB and re-seed products.
+
+
+## 9) Admin Menu filter not appearing correctly
+
+**Symptom**
+The category filter in Admin Menu did not appear in the correct place or the layout behaved unexpectedly.
+
+**Cause**
+The `MaterialButtonToggleGroup` was constrained to itself:
+
+**Fix**
+```xml
+app:layout_constraintTop_toBottomOf="@id/toggleCategoryFilter"

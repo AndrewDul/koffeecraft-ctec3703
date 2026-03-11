@@ -41,7 +41,22 @@ class ProductAdapter(
             tvDesc.text = product.description
             tvPrice.text = "£%.2f".format(product.price)
 
-            btnAdd.setOnClickListener { onAddClicked(product) }
+            val isAvailable = product.isActive
+            val contentAlpha = if (isAvailable) 1f else 0.45f
+
+            tvName.alpha = contentAlpha
+            tvDesc.alpha = contentAlpha
+            tvPrice.alpha = contentAlpha
+            btnAdd.alpha = contentAlpha
+
+            btnAdd.isEnabled = isAvailable
+            btnAdd.text = if (isAvailable) "Add" else "Unavailable"
+
+            btnAdd.setOnClickListener {
+                if (product.isActive) {
+                    onAddClicked(product)
+                }
+            }
         }
     }
 }
