@@ -39,3 +39,10 @@
 - Admin UI is separated into a dedicated `AdminActivity` to isolate staff features from the customer flow.
 - Admin uses BottomNavigationView with an admin-only Navigation Graph (`admin_nav_graph.xml`).
 - Admin tabs: Home, Orders, Menu, Feedback, Settings (placeholders at this stage).
+
+
+## Admin Orders & Simulation
+- Admin can enable/disable automatic order status simulation via `SimulationSettings` (persisted in SharedPreferences).
+- When simulation is OFF, staff updates order status manually from Admin Orders using a queue-style workflow.
+- Admin Orders screen supports status filtering (PLACED/PREPARING/READY/COLLECTED) and shows Order ID, customer email, total and timestamp.
+- Status transitions follow: PLACED -> PREPARING -> READY -> COLLECTED. Completed orders do not show the "Next" action.

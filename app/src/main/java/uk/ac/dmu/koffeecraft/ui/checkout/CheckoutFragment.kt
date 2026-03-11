@@ -19,7 +19,7 @@ import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.repository.OrderRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
-
+import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -80,10 +80,11 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                         notificationId = (orderId % Int.MAX_VALUE).toInt()
                     )
 
+                    val simulate = SimulationSettings.isEnabled(requireContext())
+
                     findNavController().navigate(
                         R.id.action_checkout_to_status,
-                        bundleOf("orderId" to orderId,"simulate" to true)
-
+                        bundleOf("orderId" to orderId, "simulate" to simulate)
                     )
                 }
             }

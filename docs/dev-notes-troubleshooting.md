@@ -39,3 +39,9 @@
 **Cause:** Admin navigation destinations referenced fragments that did not exist yet (missing fragment classes/layouts). Bottom navigation also requires destination IDs to match menu item IDs.
 
 **Fix:** Added minimal admin fragments and layouts for all admin destinations, and ensured `admin_bottom_nav.xml` item IDs match `admin_nav_graph.xml` destination IDs.
+
+
+## 7) Admin Orders: Next button shown for COLLECTED
+**Issue:** The "Next" action was visible even for orders with status COLLECTED.
+
+**Fix:** I hid the Next button in the adapter when the order status is COLLECTED to prevent invalid status transitions.
