@@ -24,3 +24,14 @@
 - Uses Android NotificationChannel (API 26+) and NotificationCompat.
 - On Android 13+ the app requests POST_NOTIFICATIONS runtime permission.
 - Notifications are triggered for: Payment confirmed, Order preparing, Order ready for pickup.
+
+## Orders & Status
+- Orders are stored in Room (`orders`, `order_items`, `payments`).
+- Order status uses a simple 3-step flow: PLACED -> PREPARING -> READY.
+- Local notifications are used for payment confirmation and status updates.
+
+## Feedback & Ratings
+- Customers can leave a 1–5 star rating (RatingBar) and optional comment after an order reaches READY.
+- Feedback is stored in Room table `feedback` with a unique constraint per `orderId` (one feedback per order).
+- Feedback can be edited later from "My Orders" (prefill existing rating/comment and save changes).
+- Data integrity is enforced via a unique index on `feedback.orderId` and upsert (REPLACE) in `FeedbackDao`.

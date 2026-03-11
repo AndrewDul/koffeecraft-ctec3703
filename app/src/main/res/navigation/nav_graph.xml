@@ -93,4 +93,12 @@
         android:id="@+id/ordersFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.orders.OrdersFragment"
         android:label="My Orders" />
+    <fragment
+        android:id="@+id/feedbackFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.feedback.FeedbackFragment"
+        android:label="Feedback">
+        <argument
+            android:name="orderId"
+            app:argType="long" />
+    </fragment>
 </navigation>

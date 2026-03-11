@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -22,17 +23,26 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         val tvOrderId = view.findViewById<TextView>(R.id.tvOrderId)
         val tvStatus = view.findViewById<TextView>(R.id.tvStatus)
         val btnBackToMenu = view.findViewById<Button>(R.id.btnBackToMenu)
+        val btnFeedback = view.findViewById<Button>(R.id.btnFeedback)
 
         val orderId = requireArguments().getLong("orderId")
         tvOrderId.text = "Order #$orderId"
 
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
-        // Disable button until READY (optional UX)
+        // Disable buttons until READY
         btnBackToMenu.isEnabled = false
+        btnFeedback.visibility = View.GONE
 
         btnBackToMenu.setOnClickListener {
             findNavController().navigate(R.id.menuFragment)
+        }
+
+        btnFeedback.setOnClickListener {
+            findNavController().navigate(
+                R.id.feedbackFragment,
+                bundleOf("orderId" to orderId)
+            )
         }
 
         var lastStatus: String? = null
@@ -42,7 +52,10 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             db.orderDao().observeById(orderId).collect { order ->
                 val status = order?.status ?: "UNKNOWN"
                 tvStatus.text = "Status: $status"
-                btnBackToMenu.isEnabled = (status == "READY")
+
+                val isReady = (status == "READY")
+                btnBackToMenu.isEnabled = isReady
+                btnFeedback.visibility = if (isReady) View.VISIBLE else View.GONE
 
                 // Notify only when status changes
                 if (status != lastStatus) {

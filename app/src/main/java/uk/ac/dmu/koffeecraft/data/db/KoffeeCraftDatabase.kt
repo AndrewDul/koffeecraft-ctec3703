@@ -21,6 +21,9 @@ import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import uk.ac.dmu.koffeecraft.data.dao.OrderDao
 import uk.ac.dmu.koffeecraft.data.dao.OrderItemDao
 import uk.ac.dmu.koffeecraft.data.dao.PaymentDao
+import androidx.room.migration.Migration
+import uk.ac.dmu.koffeecraft.data.dao.FeedbackDao
+import uk.ac.dmu.koffeecraft.data.entities.Feedback
 @Database(
     entities = [
         Customer::class,
@@ -28,9 +31,10 @@ import uk.ac.dmu.koffeecraft.data.dao.PaymentDao
         Product::class,
         Order::class,
         OrderItem::class,
-        Payment::class
+        Payment::class,
+        Feedback::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -41,16 +45,38 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun orderDao(): OrderDao
     abstract fun orderItemDao(): OrderItemDao
     abstract fun paymentDao(): PaymentDao
+
+    abstract fun feedbackDao(): FeedbackDao
     companion object {
         @Volatile private var INSTANCE: KoffeeCraftDatabase? = null
 
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                orderId INTEGER NOT NULL,
+                customerId INTEGER NOT NULL,
+                rating INTEGER NOT NULL,
+                comment TEXT NOT NULL,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+        """.trimIndent())
+
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_feedback_orderId ON feedback(orderId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_feedback_customerId ON feedback(customerId)")
+            }
+        }
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
+
                     context.applicationContext,
                     KoffeeCraftDatabase::class.java,
                     "koffeecraft.db"
                 )
+                    .addMigrations(MIGRATION_1_2)
                     .addCallback(SeedCallback())
                     .build()
 
@@ -58,6 +84,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 instance
             }
         }
+
+
     }
 
     private class SeedCallback : Callback() {
