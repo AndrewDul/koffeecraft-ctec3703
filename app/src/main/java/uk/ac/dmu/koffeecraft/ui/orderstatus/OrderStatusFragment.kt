@@ -12,6 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
 
@@ -27,22 +28,40 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
 
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
-        // Optional: disable button until READY
+        // Disable button until READY (optional UX)
         btnBackToMenu.isEnabled = false
 
         btnBackToMenu.setOnClickListener {
-            // Go to Menu and clear back stack up to Menu (so user doesn't go back to checkout)
             findNavController().navigate(R.id.menuFragment)
         }
+
+        var lastStatus: String? = null
 
         // Observe order status from DB
         viewLifecycleOwner.lifecycleScope.launch {
             db.orderDao().observeById(orderId).collect { order ->
                 val status = order?.status ?: "UNKNOWN"
                 tvStatus.text = "Status: $status"
-
-                // Enable when READY (optional)
                 btnBackToMenu.isEnabled = (status == "READY")
+
+                // Notify only when status changes
+                if (status != lastStatus) {
+                    when (status) {
+                        "PREPARING" -> NotificationHelper.showOrderNotification(
+                            context = requireContext(),
+                            title = "Order update",
+                            message = "Order #$orderId is now being prepared.",
+                            notificationId = 100000 + (orderId % 50000).toInt()
+                        )
+                        "READY" -> NotificationHelper.showOrderNotification(
+                            context = requireContext(),
+                            title = "Ready for pickup",
+                            message = "Order #$orderId is ready. You can collect it now.",
+                            notificationId = 200000 + (orderId % 50000).toInt()
+                        )
+                    }
+                    lastStatus = status
+                }
             }
         }
 

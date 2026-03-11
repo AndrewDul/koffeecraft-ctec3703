@@ -18,6 +18,7 @@ import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.repository.OrderRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
@@ -70,6 +71,15 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Payment successful (simulated).", Toast.LENGTH_SHORT).show()
+
+                    // Notification: payment confirmation
+                    NotificationHelper.showOrderNotification(
+                        context = requireContext(),
+                        title = "Payment confirmed",
+                        message = "Your order #$orderId has been placed successfully.",
+                        notificationId = (orderId % Int.MAX_VALUE).toInt()
+                    )
+
                     findNavController().navigate(
                         R.id.action_checkout_to_status,
                         bundleOf("orderId" to orderId)

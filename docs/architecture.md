@@ -19,3 +19,8 @@
 - Products are stored in Room and displayed in Menu via RecyclerView.
 - Categories supported: COFFEE and CAKE.
 - Cart is session-only (in-memory) and is cleared on logout.
+
+## Notifications
+- Uses Android NotificationChannel (API 26+) and NotificationCompat.
+- On Android 13+ the app requests POST_NOTIFICATIONS runtime permission.
+- Notifications are triggered for: Payment confirmed, Order preparing, Order ready for pickup.

@@ -11,3 +11,7 @@
 ## 3) Database Inspector showed "Nothing to show"
 **Issue:** App Inspection → Database Inspector initially displayed no databases.  
 **Fix:** Triggered database creation with a simple DAO query (e.g., count admins/products) during development to ensure the database file is created and visible in App Inspection.
+
+## Notifications not showing (Android 13+)
+**Cause:** Missing POST_NOTIFICATIONS permission.  
+**Fix:** Add manifest permission and request it at runtime in MainActivity.
