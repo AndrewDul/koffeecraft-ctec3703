@@ -4,26 +4,27 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.dao.AdminDao
 import uk.ac.dmu.koffeecraft.data.dao.CustomerDao
+import uk.ac.dmu.koffeecraft.data.dao.FeedbackDao
+import uk.ac.dmu.koffeecraft.data.dao.OrderDao
+import uk.ac.dmu.koffeecraft.data.dao.OrderItemDao
+import uk.ac.dmu.koffeecraft.data.dao.PaymentDao
 import uk.ac.dmu.koffeecraft.data.dao.ProductDao
 import uk.ac.dmu.koffeecraft.data.entities.Admin
 import uk.ac.dmu.koffeecraft.data.entities.Customer
+import uk.ac.dmu.koffeecraft.data.entities.Feedback
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.entities.OrderItem
 import uk.ac.dmu.koffeecraft.data.entities.Payment
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
-import uk.ac.dmu.koffeecraft.data.dao.OrderDao
-import uk.ac.dmu.koffeecraft.data.dao.OrderItemDao
-import uk.ac.dmu.koffeecraft.data.dao.PaymentDao
-import androidx.room.migration.Migration
-import uk.ac.dmu.koffeecraft.data.dao.FeedbackDao
-import uk.ac.dmu.koffeecraft.data.entities.Feedback
+
 @Database(
     entities = [
         Customer::class,
@@ -34,7 +35,7 @@ import uk.ac.dmu.koffeecraft.data.entities.Feedback
         Payment::class,
         Feedback::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -45,38 +46,69 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun orderDao(): OrderDao
     abstract fun orderItemDao(): OrderItemDao
     abstract fun paymentDao(): PaymentDao
-
     abstract fun feedbackDao(): FeedbackDao
+
     companion object {
         @Volatile private var INSTANCE: KoffeeCraftDatabase? = null
 
+        private fun addColumnIfMissing(
+            db: SupportSQLiteDatabase,
+            tableName: String,
+            columnName: String,
+            columnDef: String
+        ) {
+            val cursor = db.query("PRAGMA table_info($tableName)")
+            cursor.use {
+                val nameIndex = it.getColumnIndex("name")
+                while (it.moveToNext()) {
+                    val existingName = it.getString(nameIndex)
+                    if (existingName == columnName) return
+                }
+            }
+            db.execSQL("ALTER TABLE $tableName ADD COLUMN $columnName $columnDef")
+        }
+
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("""
-            CREATE TABLE IF NOT EXISTS feedback (
-                feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                orderId INTEGER NOT NULL,
-                customerId INTEGER NOT NULL,
-                rating INTEGER NOT NULL,
-                comment TEXT NOT NULL,
-                createdAt INTEGER NOT NULL,
-                updatedAt INTEGER NOT NULL
-            )
-        """.trimIndent())
-
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS feedback (
+                        feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        orderId INTEGER NOT NULL,
+                        customerId INTEGER NOT NULL,
+                        rating INTEGER NOT NULL,
+                        comment TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_feedback_orderId ON feedback(orderId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_feedback_customerId ON feedback(customerId)")
             }
         }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // I keep the real DB column name: isAvailable (admin enable/disable).
+                addColumnIfMissing(db, "products", "isAvailable", "INTEGER NOT NULL DEFAULT 1")
+
+                // I add a flag for the customer NEW carousel.
+                addColumnIfMissing(db, "products", "isNew", "INTEGER NOT NULL DEFAULT 0")
+
+                // I store a drawable key / identifier for future product images.
+                addColumnIfMissing(db, "products", "imageKey", "TEXT")
+            }
+        }
+
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-
                     context.applicationContext,
                     KoffeeCraftDatabase::class.java,
                     "koffeecraft.db"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .addCallback(SeedCallback())
                     .build()
 
@@ -84,13 +116,12 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 instance
             }
         }
-
-
     }
 
     private class SeedCallback : Callback() {
-        override fun onOpen(db: SupportSQLiteDatabase) {
-            super.onOpen(db)
+
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
 
             CoroutineScope(Dispatchers.IO).launch {
                 val database = INSTANCE ?: return@launch
@@ -123,12 +154,10 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             if (productDao.countProducts() > 0) return
 
             val products = listOf(
-                // 3 COFFEES
                 Product(name = "Espresso", category = "COFFEE", description = "Strong and bold espresso shot.", price = 2.20),
                 Product(name = "Cappuccino", category = "COFFEE", description = "Espresso with steamed milk and foam.", price = 3.40),
                 Product(name = "Latte", category = "COFFEE", description = "Smooth espresso with lots of milk.", price = 3.60),
 
-                // 3 CAKES
                 Product(name = "Cheesecake", category = "CAKE", description = "Classic creamy cheesecake slice.", price = 4.20),
                 Product(name = "Chocolate Brownie", category = "CAKE", description = "Rich chocolate brownie.", price = 3.00),
                 Product(name = "Carrot Cake", category = "CAKE", description = "Moist carrot cake with frosting.", price = 3.80)

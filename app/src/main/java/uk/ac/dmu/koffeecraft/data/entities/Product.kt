@@ -1,6 +1,6 @@
 package uk.ac.dmu.koffeecraft.data.entities
 
-
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,5 +11,14 @@ data class Product(
     val category: String, // "COFFEE" or "CAKE"
     val description: String,
     val price: Double,
-    val isAvailable: Boolean = true
+
+    // I map this Kotlin property to the existing DB column name "isAvailable".
+    @ColumnInfo(name = "isAvailable")
+    val isActive: Boolean = true,
+
+    // I use this flag to drive the customer "NEW" carousel and admin NEW badge.
+    val isNew: Boolean = false,
+
+    // I store a drawable resource key here (e.g., "p_latte"). Null means "use placeholder".
+    val imageKey: String? = null
 )

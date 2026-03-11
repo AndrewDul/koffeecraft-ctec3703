@@ -46,3 +46,10 @@
 - When simulation is OFF, staff updates order status manually from Admin Orders using a queue-style workflow.
 - Admin Orders screen supports status filtering (PLACED/PREPARING/READY/COLLECTED) and shows Order ID, customer email, total and timestamp.
 - Status transitions follow: PLACED -> PREPARING -> READY -> COLLECTED. Completed orders do not show the "Next" action.
+
+## Product Management (Admin-ready)
+- Products include admin-controlled flags:
+    - `isActive` (DB column: `isAvailable`) – product remains visible in customer menu but should be greyed out when disabled.
+    - `isNew` – drives the future customer "NEW" carousel and admin "NEW" badge.
+    - `imageKey` – placeholder for future product images (maps to a drawable key or asset identifier).
+- Admin Menu will manage products via card-style rows (image placeholder, name, price) with actions: Enable/Disable, Edit, Delete.

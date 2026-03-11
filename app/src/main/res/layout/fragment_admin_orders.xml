@@ -13,6 +13,42 @@
         android:textSize="22sp"
         android:textStyle="bold" />
 
+    <!-- Search: Order # or Email -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search by Order # or Email" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!--sorting-->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupSort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipNewest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Newest"
+            app:checkedIconVisible="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipOldest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Oldest"
+            app:checkedIconVisible="false" />
+    </com.google.android.material.chip.ChipGroup>
+
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipGroupStatus"
         android:layout_width="match_parent"
@@ -57,6 +93,7 @@
         android:visibility="gone"
         android:layout_marginTop="12dp"/>
 
+    <!-- IMPORTANT: This is what makes the list scroll correctly -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvAdminOrders"
         android:layout_width="match_parent"

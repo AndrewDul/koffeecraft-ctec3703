@@ -45,3 +45,21 @@
 **Issue:** The "Next" action was visible even for orders with status COLLECTED.
 
 **Fix:** I hid the Next button in the adapter when the order status is COLLECTED to prevent invalid status transitions.
+
+### 8) Room migration mismatch: product active flag (isActive vs isAvailable)
+
+**Symptom**
+- Build failed in KSP/Room and app crashed after log in to admin account.
+- Products disappeared in UI after schema updates.
+
+**Root cause**
+- Column naming inconsistency between:
+    - `Product` entity mapping
+    - Room migration SQL
+    - DAO queries
+- Emulator kept an old database, so seeding didn’t re-run.
+
+**Fix**
+- Standardized queries to use the existing DB column (`isAvailable`) and mapped Kotlin property via `@ColumnInfo`.
+- Implemented safe migration (`addColumnIfMissing`) to avoid duplicate-column crashes.
+- Uninstalled / cleared app data on emulator to recreate DB and re-seed products.
