@@ -12,7 +12,7 @@ data class Customer(
     @PrimaryKey(autoGenerate = true) val customerId: Long = 0,
     val firstName: String,
     val lastName: String,
-    val country: String,
+    val country: String = "",
     val email: String,
     val passwordHash: String,
     val passwordSalt: String,
@@ -21,5 +21,6 @@ data class Customer(
     val termsAccepted: Boolean = false,
     val privacyAccepted: Boolean = false,
     val beansBalance: Int = 0,
+    val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis()
 )

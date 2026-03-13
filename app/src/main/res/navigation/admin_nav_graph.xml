@@ -29,6 +29,10 @@
         android:name="uk.ac.dmu.koffeecraft.ui.admin.settings.AdminSettingsFragment"
         android:label="Admin Settings" />
     <fragment
+        android:id="@+id/adminManageCustomerAccountsFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.accounts.AdminManageCustomerAccountsFragment"
+        android:label="Manage Customer Accounts" />
+    <fragment
         android:id="@+id/adminNotificationsFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.notifications.AdminNotificationsFragment"
         android:label="Admin Notifications" />

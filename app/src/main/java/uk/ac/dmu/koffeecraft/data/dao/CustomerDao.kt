@@ -78,6 +78,34 @@ interface CustomerDao {
         LIMIT 1
     """)
     suspend fun getInboxTargetByOrderId(orderId: Long): CustomerInboxTarget?
+
+    @Query("""
+        SELECT
+            customerId AS customerId,
+            isActive AS isActive
+        FROM customers
+        WHERE customerId = :customerId
+        LIMIT 1
+    """)
+    suspend fun getAccountTargetByCustomerId(customerId: Long): CustomerAccountTarget?
+
+    @Query("""
+        SELECT
+            c.customerId AS customerId,
+            c.isActive AS isActive
+        FROM customers c
+        INNER JOIN orders o ON o.customerId = c.customerId
+        WHERE o.orderId = :orderId
+        LIMIT 1
+    """)
+    suspend fun getAccountTargetByOrderId(orderId: Long): CustomerAccountTarget?
+
+    @Query("""
+        UPDATE customers
+        SET isActive = :isActive
+        WHERE customerId = :customerId
+    """)
+    suspend fun updateActiveStatus(customerId: Long, isActive: Boolean)
 }
 
 data class CustomerInboxTarget(
@@ -87,4 +115,9 @@ data class CustomerInboxTarget(
     val email: String,
     val dateOfBirth: String?,
     val marketingInboxConsent: Boolean
+)
+
+data class CustomerAccountTarget(
+    val customerId: Long,
+    val isActive: Boolean
 )

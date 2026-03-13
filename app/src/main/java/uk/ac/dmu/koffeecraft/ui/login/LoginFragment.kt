@@ -100,6 +100,14 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     salt = customer.passwordSalt,
                     expectedHash = customer.passwordHash
                 )
+                if (!customer.isActive) {
+                    withContext(Dispatchers.Main) {
+                        if (!isAdded) return@withContext
+                        tvError.text = "This account is deactivated. Please contact KoffeeCraft support."
+                        tvError.visibility = View.VISIBLE
+                    }
+                    return@launch
+                }
 
                 withContext(Dispatchers.Main) {
                     if (!isAdded) return@withContext

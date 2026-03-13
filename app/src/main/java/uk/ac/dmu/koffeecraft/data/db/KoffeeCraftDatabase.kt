@@ -41,7 +41,7 @@ import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
         AppNotification::class,
         InboxMessage::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -205,6 +205,11 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 addColumnIfMissing(db, "customers", "beansBalance", "INTEGER NOT NULL DEFAULT 0")
             }
         }
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                addColumnIfMissing(db, "customers", "isActive", "INTEGER NOT NULL DEFAULT 1")
+            }
+        }
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -219,7 +224,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_3_4,
                         MIGRATION_4_5,
                         MIGRATION_5_6,
-                        MIGRATION_6_7
+                        MIGRATION_6_7,
+                        MIGRATION_7_8
                     )
                     .addCallback(SeedCallback())
                     .build()

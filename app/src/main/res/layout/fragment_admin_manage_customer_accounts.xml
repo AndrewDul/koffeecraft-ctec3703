@@ -13,31 +13,28 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/tvSettingsTitle"
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="Manage Customer Accounts"
             android:textColor="#F5EBDD"
             android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvSettingsSubtitle"
+            android:id="@+id/tvSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Manage admin tools, customer accounts, and app controls."
+            android:text="Find a customer by Order ID or Customer ID and manage account status safely."
             android:textColor="#E8DCCF"
             android:textSize="13sp" />
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardManageAccounts"
+            android:id="@+id/cardSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
             app:cardBackgroundColor="#E7D8C7"
             app:cardCornerRadius="22dp"
             app:cardElevation="6dp">
@@ -51,76 +48,50 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Manage Customer Accounts"
+                    android:text="Find account"
                     android:textColor="#2E2018"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <TextView
+                <Spinner
+                    android:id="@+id/spinnerSearchMode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Find, activate, deactivate, or permanently remove customer accounts."
-                    android:textColor="#5B4638"
-                    android:textSize="13sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_spinner_soft" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAppControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#E7D8C7"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="18dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
+                <EditText
+                    android:id="@+id/etSearchValue"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_spinner_soft"
+                    android:hint="Enter value"
+                    android:inputType="number"
+                    android:padding="14dp"
+                    android:textColor="#2E2018"
+                    android:textColorHint="#7A6758" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="App Controls"
-                        android:textColor="#2E2018"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFindAccount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Find account"
+                    android:textAllCaps="false"
+                    android:textColor="#F8F2EA"
+                    app:backgroundTint="#5F7F5B"
+                    app:cornerRadius="22dp" />
 
-                    <TextView
-                        android:id="@+id/tvSimulationStatus"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Simulation mode is ON"
-                        android:textColor="#5B4638"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchAppSimulation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardNotificationsShortcut"
+            android:id="@+id/cardResult"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
+            android:visibility="gone"
             app:cardBackgroundColor="#E7D8C7"
             app:cardCornerRadius="22dp"
             app:cardElevation="6dp">
@@ -134,30 +105,40 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Notifications"
+                    android:text="Selected account"
                     android:textColor="#2E2018"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvAccountResult"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Open the admin notification center."
+                    android:layout_marginTop="10dp"
+                    android:text="Customer #0"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAccountStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Status: Active"
                     android:textColor="#5B4638"
-                    android:textSize="13sp" />
+                    android:textSize="14sp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardInboxShortcut"
+            android:id="@+id/cardWarning"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="#E7D8C7"
+            android:visibility="gone"
+            app:cardBackgroundColor="#D9B6B0"
             app:cardCornerRadius="22dp"
             app:cardElevation="6dp">
 
@@ -170,31 +151,30 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Inbox Tools"
-                    android:textColor="#2E2018"
+                    android:text="Warning"
+                    android:textColor="#5C1313"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Open admin communication tools and templates."
-                    android:textColor="#5B4638"
+                    android:layout_marginTop="6dp"
+                    android:text="Account status changes affect customer access immediately. Permanent deletion cannot be undone."
+                    android:textColor="#5C1313"
                     android:textSize="13sp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardSignOut"
+            android:id="@+id/cardActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="#D8C3B2"
+            android:visibility="gone"
+            app:cardBackgroundColor="#E7D8C7"
             app:cardCornerRadius="22dp"
             app:cardElevation="6dp">
 
@@ -207,20 +187,54 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sign out"
+                    android:text="Account actions"
                     android:textColor="#2E2018"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnActivateAccount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Log out of the admin account."
-                    android:textColor="#5B4638"
-                    android:textSize="13sp" />
+                    android:layout_marginTop="12dp"
+                    android:text="Activate account"
+                    android:textAllCaps="false"
+                    android:textColor="#F8F2EA"
+                    app:backgroundTint="#5F7F5B"
+                    app:cornerRadius="22dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDeactivateAccount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Deactivate account"
+                    android:textAllCaps="false"
+                    android:textColor="#F8F2EA"
+                    app:backgroundTint="#8B6B4A"
+                    app:cornerRadius="22dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDeleteAccount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Delete account"
+                    android:textAllCaps="false"
+                    android:textColor="#F8F2EA"
+                    app:backgroundTint="#A12727"
+                    app:cornerRadius="22dp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tvSearchError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No matching customer found."
+            android:textColor="#F5C7C2"
+            android:visibility="gone" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
