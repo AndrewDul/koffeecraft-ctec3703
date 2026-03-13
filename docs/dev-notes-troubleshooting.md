@@ -377,3 +377,32 @@ The most important issues I fixed were:
 4. Admin Inbox layout was unsafe for long content and the keyboard
 5. Customer notifications were too shallow and lacked order detail
 6. My Orders did not match the expected card-based expandable behaviour
+
+## Welcome and sign-in flow fixes
+
+During this stage, I fixed several issues related to the new authentication entry flow.
+
+### Main problems
+1. **Navigation XML errors**
+   While changing the start destination and adding the Welcome screen, the navigation XML became invalid and caused build failures.
+
+2. **Login verification mismatch**
+   The new Sign in flow initially referenced a password verification method that did not exist in the current security utility.
+
+3. **Session assignment mismatch**
+   The first login version tried to write customer session data in a way that did not match the existing `SessionManager` API.
+
+### How I fixed them
+- I corrected the navigation graph structure and repaired the malformed XML
+- I changed login verification to use the existing password hashing approach already used by the app
+- I updated login session handling to use the existing `SessionManager` methods for:
+  - customer login
+  - admin login
+
+### Result
+The app now:
+- opens on the Welcome screen
+- navigates correctly to Register and Sign in
+- logs in customers and admins correctly
+- returns to Welcome on logout
+

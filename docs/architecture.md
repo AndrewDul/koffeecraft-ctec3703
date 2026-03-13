@@ -556,3 +556,45 @@ This removes unnecessary navigation and gives the user faster access to order in
 - `CartManager.kt`
 - `fragment_menu.xml`
 - `MenuFragment.kt`
+
+## Authentication entry flow redesign
+
+I redesigned the authentication entry flow so the app now opens with a dedicated Welcome screen instead of showing the login form immediately.
+
+### What I added
+I added:
+- a new `WelcomeFragment` as the first entry screen
+- KoffeeCraft branding at the top
+- a premium rounded card layout
+- short reward-focused onboarding text
+- separate actions for:
+  - `Register now`
+  - `Sign in`
+
+### Navigation changes
+I changed the navigation flow so:
+- `welcomeFragment` is now the start destination
+- global logout returns the user to the Welcome screen instead of opening Login directly
+
+### Sign in redesign
+I redesigned the Sign in screen to match the visual style of the Welcome screen.
+
+I added:
+- a premium coffee-themed rounded card layout
+- styled email and password fields
+- password visibility toggle
+- cleaner spacing and hierarchy
+- a direct link to registration
+
+### Visual direction
+I moved the authentication UI away from a plain academic form style and toward a warmer KoffeeCraft identity with:
+- darker coffee-toned background
+- rounded cards
+- softer premium button styling
+- more polished first-use presentation
+
+### Fix-related updates
+During this stage, I also fixed:
+- navigation XML issues after changing the start flow
+- login verification so it matches the existing password hashing implementation
+- session handling so admin and customer login use the existing session model correctly

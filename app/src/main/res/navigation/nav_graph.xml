@@ -2,15 +2,25 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/welcomeFragment">
 
     <!-- Global logout action -->
     <action
         android:id="@+id/action_global_logout"
-        app:destination="@id/loginFragment"
+        app:destination="@id/welcomeFragment"
         app:popUpTo="@id/nav_graph"
         app:popUpToInclusive="true" />
-
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.welcome.WelcomeFragment"
+        android:label="Welcome">
+        <action
+            android:id="@+id/action_welcome_to_register"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_welcome_to_login"
+            app:destination="@id/loginFragment" />
+    </fragment>
     <fragment
         android:id="@+id/loginFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.login.LoginFragment"
