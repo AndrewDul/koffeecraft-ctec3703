@@ -28,15 +28,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
         adapter = CartAdapter(
             items = CartManager.getItems(),
             onPlus = {
-                if (it.isReward) {
-                    CartManager.addReward(
-                        sourceProduct = it.product,
-                        rewardType = it.rewardType ?: "REWARD",
-                        beansCostPerUnit = it.beansCostPerUnit
-                    )
-                } else {
-                    CartManager.add(it.product)
-                }
+                CartManager.addExisting(it)
                 refresh(tvTotal)
             },
             onMinus = {

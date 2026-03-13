@@ -15,7 +15,8 @@ class AdminProductsAdapter(
     private var items: List<Product>,
     private val onToggle: (Product) -> Unit,
     private val onEdit: (Product) -> Unit,
-    private val onDelete: (Product) -> Unit
+    private val onDelete: (Product) -> Unit,
+    private val onDetails: (Product) -> Unit
 ) : RecyclerView.Adapter<AdminProductsAdapter.ProductViewHolder>() {
 
     fun submitList(newItems: List<Product>) {
@@ -38,8 +39,10 @@ class AdminProductsAdapter(
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivImage: ImageView = itemView.findViewById(R.id.ivImage)
         private val tvName: TextView = itemView.findViewById(R.id.tvName)
+        private val tvCategory: TextView = itemView.findViewById(R.id.tvCategory)
         private val tvPrice: TextView = itemView.findViewById(R.id.tvPrice)
         private val tvBadges: TextView = itemView.findViewById(R.id.tvBadges)
+        private val tvTapHint: TextView = itemView.findViewById(R.id.tvTapHint)
         private val btnToggle: ImageButton = itemView.findViewById(R.id.btnToggle)
         private val btnEdit: ImageButton = itemView.findViewById(R.id.btnEdit)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
@@ -48,7 +51,9 @@ class AdminProductsAdapter(
             ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
 
             tvName.text = product.name
-            tvPrice.text = String.format(Locale.UK, "£%.2f", product.price)
+            tvCategory.text = product.category.replaceFirstChar { it.uppercase() }
+            tvPrice.text = String.format(Locale.UK, "From £%.2f", product.price)
+            tvTapHint.text = "Tap to view sizes, extras, allergens, and calories"
 
             val badges = mutableListOf<String>()
             if (product.isNew) badges += "NEW"
@@ -64,8 +69,10 @@ class AdminProductsAdapter(
             val alpha = if (product.isActive) 1f else 0.55f
             ivImage.alpha = alpha
             tvName.alpha = alpha
+            tvCategory.alpha = alpha
             tvPrice.alpha = alpha
             tvBadges.alpha = alpha
+            tvTapHint.alpha = alpha
 
             btnToggle.setImageResource(
                 if (product.isActive) {
@@ -78,6 +85,7 @@ class AdminProductsAdapter(
             btnToggle.contentDescription =
                 if (product.isActive) "Disable product" else "Enable product"
 
+            itemView.setOnClickListener { onDetails(product) }
             btnToggle.setOnClickListener { onToggle(product) }
             btnEdit.setOnClickListener { onEdit(product) }
             btnDelete.setOnClickListener { onDelete(product) }

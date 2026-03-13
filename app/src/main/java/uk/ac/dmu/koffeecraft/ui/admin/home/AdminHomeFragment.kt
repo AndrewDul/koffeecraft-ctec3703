@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.dao.ProductCommentInsight
+import uk.ac.dmu.koffeecraft.data.dao.ProductFavouriteInsight
 import uk.ac.dmu.koffeecraft.data.dao.ProductRatingInsight
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
@@ -24,20 +25,27 @@ class AdminHomeFragment : Fragment(R.layout.fragment_admin_home) {
     private lateinit var lowestRatedAdapter: AdminHomeCarouselAdapter
     private lateinit var mostCommentedAdapter: AdminHomeCarouselAdapter
     private lateinit var leastCommentedAdapter: AdminHomeCarouselAdapter
+    private lateinit var mostFavouritedAdapter: AdminHomeCarouselAdapter
+    private lateinit var leastFavouritedAdapter: AdminHomeCarouselAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val simulationSwitch = view.findViewById<SwitchMaterial>(R.id.switchSimulation)
+
         val pagerBestRated = view.findViewById<ViewPager2>(R.id.pagerBestRated)
         val pagerLowestRated = view.findViewById<ViewPager2>(R.id.pagerLowestRated)
         val pagerMostCommented = view.findViewById<ViewPager2>(R.id.pagerMostCommented)
         val pagerLeastCommented = view.findViewById<ViewPager2>(R.id.pagerLeastCommented)
+        val pagerMostFavourited = view.findViewById<ViewPager2>(R.id.pagerMostFavourited)
+        val pagerLeastFavourited = view.findViewById<ViewPager2>(R.id.pagerLeastFavourited)
 
         val dotsBestRated = view.findViewById<LinearLayout>(R.id.dotsBestRated)
         val dotsLowestRated = view.findViewById<LinearLayout>(R.id.dotsLowestRated)
         val dotsMostCommented = view.findViewById<LinearLayout>(R.id.dotsMostCommented)
         val dotsLeastCommented = view.findViewById<LinearLayout>(R.id.dotsLeastCommented)
+        val dotsMostFavourited = view.findViewById<LinearLayout>(R.id.dotsMostFavourited)
+        val dotsLeastFavourited = view.findViewById<LinearLayout>(R.id.dotsLeastFavourited)
 
         simulationSwitch.isChecked = SimulationSettings.isEnabled(requireContext())
         simulationSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -48,11 +56,15 @@ class AdminHomeFragment : Fragment(R.layout.fragment_admin_home) {
         lowestRatedAdapter = AdminHomeCarouselAdapter(emptyList())
         mostCommentedAdapter = AdminHomeCarouselAdapter(emptyList())
         leastCommentedAdapter = AdminHomeCarouselAdapter(emptyList())
+        mostFavouritedAdapter = AdminHomeCarouselAdapter(emptyList())
+        leastFavouritedAdapter = AdminHomeCarouselAdapter(emptyList())
 
         attachCarousel(pagerBestRated, dotsBestRated, bestRatedAdapter)
         attachCarousel(pagerLowestRated, dotsLowestRated, lowestRatedAdapter)
         attachCarousel(pagerMostCommented, dotsMostCommented, mostCommentedAdapter)
         attachCarousel(pagerLeastCommented, dotsLeastCommented, leastCommentedAdapter)
+        attachCarousel(pagerMostFavourited, dotsMostFavourited, mostFavouritedAdapter)
+        attachCarousel(pagerLeastFavourited, dotsLeastFavourited, leastFavouritedAdapter)
 
         loadDashboard()
     }
@@ -70,17 +82,53 @@ class AdminHomeFragment : Fragment(R.layout.fragment_admin_home) {
             val lowestRated = db.feedbackDao().getLowestRatedProducts()
             val mostCommented = db.feedbackDao().getMostCommentedProducts()
             val leastCommented = db.feedbackDao().getLeastCommentedProducts()
+            val mostFavourited = db.favouriteDao().getTopFavouriteProducts()
+            val leastFavourited = db.favouriteDao().getLowestNonZeroFavouriteProducts()
 
             val bestRatedItems = mapBestRated(bestRated)
             val lowestRatedItems = mapLowestRated(lowestRated)
             val mostCommentedItems = mapMostCommented(mostCommented)
             val leastCommentedItems = mapLeastCommented(leastCommented)
+            val mostFavouritedItems = mapMostFavourited(mostFavourited)
+            val leastFavouritedItems = mapLeastFavourited(leastFavourited)
 
             withContext(Dispatchers.Main) {
-                submitCarousel(bestRatedAdapter, view?.findViewById(R.id.pagerBestRated), view?.findViewById(R.id.dotsBestRated), bestRatedItems)
-                submitCarousel(lowestRatedAdapter, view?.findViewById(R.id.pagerLowestRated), view?.findViewById(R.id.dotsLowestRated), lowestRatedItems)
-                submitCarousel(mostCommentedAdapter, view?.findViewById(R.id.pagerMostCommented), view?.findViewById(R.id.dotsMostCommented), mostCommentedItems)
-                submitCarousel(leastCommentedAdapter, view?.findViewById(R.id.pagerLeastCommented), view?.findViewById(R.id.dotsLeastCommented), leastCommentedItems)
+                submitCarousel(
+                    bestRatedAdapter,
+                    view?.findViewById(R.id.pagerBestRated),
+                    view?.findViewById(R.id.dotsBestRated),
+                    bestRatedItems
+                )
+                submitCarousel(
+                    lowestRatedAdapter,
+                    view?.findViewById(R.id.pagerLowestRated),
+                    view?.findViewById(R.id.dotsLowestRated),
+                    lowestRatedItems
+                )
+                submitCarousel(
+                    mostCommentedAdapter,
+                    view?.findViewById(R.id.pagerMostCommented),
+                    view?.findViewById(R.id.dotsMostCommented),
+                    mostCommentedItems
+                )
+                submitCarousel(
+                    leastCommentedAdapter,
+                    view?.findViewById(R.id.pagerLeastCommented),
+                    view?.findViewById(R.id.dotsLeastCommented),
+                    leastCommentedItems
+                )
+                submitCarousel(
+                    mostFavouritedAdapter,
+                    view?.findViewById(R.id.pagerMostFavourited),
+                    view?.findViewById(R.id.dotsMostFavourited),
+                    mostFavouritedItems
+                )
+                submitCarousel(
+                    leastFavouritedAdapter,
+                    view?.findViewById(R.id.pagerLeastFavourited),
+                    view?.findViewById(R.id.dotsLeastFavourited),
+                    leastFavouritedItems
+                )
             }
         }
     }
@@ -169,6 +217,50 @@ class AdminHomeFragment : Fragment(R.layout.fragment_admin_home) {
                 productName = item.productName,
                 primaryText = "${item.commentCount} comments",
                 secondaryText = "Average rating: ${formatRating(item.averageRating)} / 5"
+            )
+        }
+    }
+
+    private fun mapMostFavourited(items: List<ProductFavouriteInsight>): List<AdminHomeCarouselItem> {
+        if (items.isEmpty()) {
+            return listOf(
+                AdminHomeCarouselItem(
+                    rankLabel = "#",
+                    productName = "No favourites yet",
+                    primaryText = "Waiting for customer likes",
+                    secondaryText = ""
+                )
+            )
+        }
+
+        return items.mapIndexed { index, item ->
+            AdminHomeCarouselItem(
+                rankLabel = "#${index + 1}",
+                productName = item.productName,
+                primaryText = "${item.favouriteCount} hearts",
+                secondaryText = "Most liked products"
+            )
+        }
+    }
+
+    private fun mapLeastFavourited(items: List<ProductFavouriteInsight>): List<AdminHomeCarouselItem> {
+        if (items.isEmpty()) {
+            return listOf(
+                AdminHomeCarouselItem(
+                    rankLabel = "#",
+                    productName = "No non-zero favourites yet",
+                    primaryText = "Waiting for customer likes",
+                    secondaryText = ""
+                )
+            )
+        }
+
+        return items.mapIndexed { index, item ->
+            AdminHomeCarouselItem(
+                rankLabel = "#${index + 1}",
+                productName = item.productName,
+                primaryText = "${item.favouriteCount} hearts",
+                secondaryText = "Lowest liked products above zero"
             )
         }
     }

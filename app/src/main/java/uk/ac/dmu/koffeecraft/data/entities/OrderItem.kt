@@ -13,5 +13,10 @@ data class OrderItem(
     val orderId: Long,
     val productId: Long,
     val quantity: Int,
-    val unitPrice: Double
+    val unitPrice: Double,
+    val selectedOptionLabel: String? = null,
+    val selectedOptionSizeValue: Int? = null,
+    val selectedOptionSizeUnit: String? = null,
+    val selectedAddOnsSummary: String? = null,
+    val estimatedCalories: Int? = null
 )

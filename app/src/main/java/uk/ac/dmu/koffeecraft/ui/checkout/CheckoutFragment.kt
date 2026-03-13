@@ -86,7 +86,7 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                 }
 
                 val items = cartItems.map {
-                    it.product.productId to (it.quantity to it.product.price)
+                    it.product.productId to (it.quantity to it.unitPrice)
                 }
 
                 val orderId = repo.placeOrder(
