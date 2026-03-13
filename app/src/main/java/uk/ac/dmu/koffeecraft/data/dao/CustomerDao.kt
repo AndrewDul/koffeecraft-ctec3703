@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import uk.ac.dmu.koffeecraft.data.entities.Customer
 
 @Dao
@@ -12,8 +13,14 @@ interface CustomerDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(customer: Customer): Long
 
+    @Update
+    suspend fun update(customer: Customer)
+
     @Query("SELECT * FROM customers WHERE email = :email LIMIT 1")
     suspend fun findByEmail(email: String): Customer?
+
+    @Query("SELECT * FROM customers WHERE customerId = :customerId LIMIT 1")
+    suspend fun getById(customerId: Long): Customer?
 
     @Query("""
     SELECT

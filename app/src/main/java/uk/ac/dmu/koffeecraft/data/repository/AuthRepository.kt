@@ -13,17 +13,17 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
     }
 
     sealed class RegisterResult {
-        object Success : RegisterResult()
+        data class Success(val customerId: Long) : RegisterResult()
         data class Error(val message: String) : RegisterResult()
     }
 
     suspend fun login(email: String, password: CharArray): LoginResult {
         val cleanEmail = email.trim().lowercase()
+
         if (cleanEmail.isBlank() || password.isEmpty()) {
             return LoginResult.Error("Email and password are required.")
         }
 
-        // 1) Try admin first
         val admin = db.adminDao().findByEmail(cleanEmail)
         if (admin != null) {
             val ok = PasswordHasher.verify(password, admin.passwordSalt, admin.passwordHash)
@@ -31,13 +31,15 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
             return if (ok) LoginResult.AdminSuccess else LoginResult.Error("Invalid credentials.")
         }
 
-        // 2) Try customer
         val customer = db.customerDao().findByEmail(cleanEmail)
         if (customer != null) {
             val ok = PasswordHasher.verify(password, customer.passwordSalt, customer.passwordHash)
             password.fill('\u0000')
-            return if (ok) LoginResult.CustomerSuccess(customer.customerId)
-            else LoginResult.Error("Invalid credentials.")
+            return if (ok) {
+                LoginResult.CustomerSuccess(customer.customerId)
+            } else {
+                LoginResult.Error("Invalid credentials.")
+            }
         }
 
         password.fill('\u0000')
@@ -47,22 +49,48 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
     suspend fun registerCustomer(
         firstName: String,
         lastName: String,
+        country: String,
+        dateOfBirth: String,
         email: String,
-        password: CharArray
+        password: CharArray,
+        marketingInboxConsent: Boolean,
+        termsAccepted: Boolean,
+        privacyAccepted: Boolean
     ): RegisterResult {
 
         val fn = firstName.trim()
         val ln = lastName.trim()
+        val ct = country.trim()
+        val dob = dateOfBirth.trim()
         val em = email.trim().lowercase()
 
-        if (fn.isBlank() || ln.isBlank() || em.isBlank() || password.isEmpty()) {
-            return RegisterResult.Error("All fields are required.")
+        if (fn.isBlank() || ln.isBlank() || ct.isBlank() || dob.isBlank() || em.isBlank() || password.isEmpty()) {
+            return RegisterResult.Error("All required fields must be completed.")
         }
+
         if (!em.contains("@") || !em.contains(".")) {
             return RegisterResult.Error("Please enter a valid email address.")
         }
-        if (password.size < 8) {
-            return RegisterResult.Error("Password must be at least 8 characters.")
+
+        if (!termsAccepted) {
+            password.fill('\u0000')
+            return RegisterResult.Error("You must accept the Terms of Use.")
+        }
+
+        if (!privacyAccepted) {
+            password.fill('\u0000')
+            return RegisterResult.Error("You must accept the Privacy Statement.")
+        }
+
+        val passwordText = password.concatToString()
+        if (!isPasswordValid(passwordText)) {
+            password.fill('\u0000')
+            return RegisterResult.Error("Password does not meet all required rules.")
+        }
+
+        if (!isValidDateOfBirth(dob)) {
+            password.fill('\u0000')
+            return RegisterResult.Error("Date of birth must use the format YYYY-MM-DD.")
         }
 
         val existing = db.customerDao().findByEmail(em)
@@ -75,16 +103,35 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
         val hash = PasswordHasher.hashPasswordBase64(password, salt)
         password.fill('\u0000')
 
-        db.customerDao().insert(
+        val customerId = db.customerDao().insert(
             Customer(
                 firstName = fn,
                 lastName = ln,
+                country = ct,
                 email = em,
                 passwordHash = hash,
-                passwordSalt = salt
+                passwordSalt = salt,
+                dateOfBirth = dob,
+                marketingInboxConsent = marketingInboxConsent,
+                termsAccepted = termsAccepted,
+                privacyAccepted = privacyAccepted,
+                beansBalance = 0
             )
         )
 
-        return RegisterResult.Success
+        return RegisterResult.Success(customerId)
+    }
+
+    private fun isPasswordValid(password: String): Boolean {
+        return password.any { it.isUpperCase() } &&
+                password.any { it.isLowerCase() } &&
+                password.any { it.isDigit() } &&
+                password.any { !it.isLetterOrDigit() } &&
+                password.length >= 8
+    }
+
+    private fun isValidDateOfBirth(value: String): Boolean {
+        val regex = Regex("""^\d{4}-\d{2}-\d{2}$""")
+        return regex.matches(value)
     }
 }

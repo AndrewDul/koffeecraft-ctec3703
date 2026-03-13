@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -59,23 +59,38 @@ class MainActivity : AppCompatActivity() {
         val btnNotifications = findViewById<ImageButton>(R.id.btnCustomerNotifications)
         val btnSettings = findViewById<ImageButton>(R.id.btnCustomerSettings)
 
+        val bottomMenuDestinations = setOf(
+            R.id.customerHomeFragment,
+            R.id.menuFragment,
+            R.id.ordersFragment,
+            R.id.customerFavouritesFragment,
+            R.id.customerRewardsFragment
+        )
+
         btnCart.setOnClickListener {
-            navController.navigate(R.id.cartFragment)
+            navigateIfNeeded(navController, R.id.cartFragment)
         }
 
         btnInbox.setOnClickListener {
-            navController.navigate(R.id.customerInboxFragment)
+            navigateIfNeeded(navController, R.id.customerInboxFragment)
         }
 
         btnNotifications.setOnClickListener {
-            navController.navigate(R.id.customerNotificationsFragment)
+            navigateIfNeeded(navController, R.id.customerNotificationsFragment)
         }
 
         btnSettings.setOnClickListener {
-            navController.navigate(R.id.customerSettingsFragment)
+            navigateIfNeeded(navController, R.id.customerSettingsFragment)
         }
 
-        bottomNav.setupWithNavController(navController)
+        bottomNav.setOnItemSelectedListener { item ->
+            navigateIfNeeded(navController, item.itemId)
+            true
+        }
+
+        bottomNav.setOnItemReselectedListener {
+            // I intentionally do nothing on reselection.
+        }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val customerShellDestinations = setOf(
@@ -94,6 +109,12 @@ class MainActivity : AppCompatActivity() {
             topBar.visibility = if (showShell) View.VISIBLE else View.GONE
             bottomNav.visibility = if (showShell) View.VISIBLE else View.GONE
 
+            if (destination.id in bottomMenuDestinations) {
+                bottomNav.menu.findItem(destination.id)?.isChecked = true
+            } else {
+                clearBottomSelection(bottomNav)
+            }
+
             if (showShell) {
                 startBadgeObserversIfNeeded()
             }
@@ -103,6 +124,30 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         startBadgeObserversIfNeeded()
+    }
+
+    private fun navigateIfNeeded(navController: androidx.navigation.NavController, destinationId: Int) {
+        if (navController.currentDestination?.id == destinationId) return
+
+        navController.navigate(
+            destinationId,
+            null,
+            navOptions {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            }
+        )
+    }
+
+    private fun clearBottomSelection(bottomNav: BottomNavigationView) {
+        bottomNav.menu.setGroupCheckable(0, false, true)
+        for (i in 0 until bottomNav.menu.size()) {
+            bottomNav.menu.getItem(i).isChecked = false
+        }
+        bottomNav.menu.setGroupCheckable(0, true, true)
     }
 
     private fun startBadgeObserversIfNeeded() {

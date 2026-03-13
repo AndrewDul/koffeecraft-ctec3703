@@ -406,3 +406,42 @@ The app now:
 - logs in customers and admins correctly
 - returns to Welcome on logout
 
+## Registration, onboarding, and navigation fixes
+
+During this stage, I fixed several issues related to the new premium registration flow, onboarding flow, and shell navigation.
+
+### Main problems
+1. **Registration still returned the user to Sign in**
+   After successful registration, the app still followed the old flow and sent the user back to the login screen.
+
+2. **The registration flow did not yet support the new profile fields**
+   The original registration logic did not match the redesigned form or the updated customer data requirements.
+
+3. **The onboarding flow was not connected to registration**
+   A new customer needed to be logged in automatically and moved into intro screens instead of being redirected back to authentication.
+
+4. **Bottom navigation behaved incorrectly after opening top-bar destinations**
+   For both customer and admin, opening top-bar screens such as Notifications caused bottom navigation tabs like Home to behave incorrectly.
+
+5. **Onboarding text and reward logic needed correction**
+   Some intro messages used the wrong voice and the reward logic needed to match the final rule:
+  - welcome Inbox message for every new customer
+  - +5 beans only for promo consent
+
+**How I fixed them**
+- I redesigned the registration flow and aligned it with the new premium Register screen
+- I updated the customer model, repository, ViewModel, and Room migration to support the new fields
+- I changed registration success handling so the customer is logged in immediately
+- I added a dedicated onboarding flow after registration
+- I added post-onboarding welcome messaging and conditional starter beans logic
+- I replaced the old automatic bottom navigation setup with explicit navigation handling for both customer and admin shells
+
+**Result**
+The app now:
+- supports the new premium registration UI
+- stores the new customer registration fields
+- logs the user in directly after successful registration
+- shows onboarding before entering the app
+- sends a welcome Inbox message automatically
+- awards 5 beans only when promotional Inbox consent is enabled
+- handles customer and admin bottom navigation correctly after top-bar navigation

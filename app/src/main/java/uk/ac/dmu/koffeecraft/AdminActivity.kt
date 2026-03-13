@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
@@ -22,18 +22,34 @@ class AdminActivity : AppCompatActivity() {
         val navController = navHost.navController
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.adminBottomNav)
-        bottomNav.setupWithNavController(navController)
 
         val btnNotifications = findViewById<ImageButton>(R.id.btnAdminNotifications)
         val btnSettings = findViewById<ImageButton>(R.id.btnAdminSettings)
         val tvBadge = findViewById<TextView>(R.id.tvAdminNotificationBadge)
 
+        val bottomMenuDestinations = setOf(
+            R.id.adminHomeFragment,
+            R.id.adminOrdersFragment,
+            R.id.adminMenuFragment,
+            R.id.adminFeedbackFragment,
+            R.id.adminInboxFragment
+        )
+
+        bottomNav.setOnItemSelectedListener { item ->
+            navigateIfNeeded(navController, item.itemId)
+            true
+        }
+
+        bottomNav.setOnItemReselectedListener {
+            // I intentionally do nothing on reselection.
+        }
+
         btnNotifications.setOnClickListener {
-            navController.navigate(R.id.adminNotificationsFragment)
+            navigateIfNeeded(navController, R.id.adminNotificationsFragment)
         }
 
         btnSettings.setOnClickListener {
-            navController.navigate(R.id.adminSettingsFragment)
+            navigateIfNeeded(navController, R.id.adminSettingsFragment)
         }
 
         val db = KoffeeCraftDatabase.getInstance(applicationContext)
@@ -50,19 +66,37 @@ class AdminActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val bottomMenuDestinations = setOf(
-                R.id.adminHomeFragment,
-                R.id.adminOrdersFragment,
-                R.id.adminMenuFragment,
-                R.id.adminFeedbackFragment,
-                R.id.adminInboxFragment
-            )
-
-            bottomNav.visibility = if (destination.id in bottomMenuDestinations) {
-                View.VISIBLE
+            if (destination.id in bottomMenuDestinations) {
+                bottomNav.menu.findItem(destination.id)?.isChecked = true
             } else {
-                View.VISIBLE
+                clearBottomSelection(bottomNav)
             }
+
+            bottomNav.visibility = View.VISIBLE
         }
+    }
+
+    private fun navigateIfNeeded(navController: androidx.navigation.NavController, destinationId: Int) {
+        if (navController.currentDestination?.id == destinationId) return
+
+        navController.navigate(
+            destinationId,
+            null,
+            navOptions {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            }
+        )
+    }
+
+    private fun clearBottomSelection(bottomNav: BottomNavigationView) {
+        bottomNav.menu.setGroupCheckable(0, false, true)
+        for (i in 0 until bottomNav.menu.size()) {
+            bottomNav.menu.getItem(i).isChecked = false
+        }
+        bottomNav.menu.setGroupCheckable(0, true, true)
     }
 }

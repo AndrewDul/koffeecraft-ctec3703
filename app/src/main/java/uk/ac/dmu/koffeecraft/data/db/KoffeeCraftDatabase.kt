@@ -12,22 +12,23 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.dao.AdminDao
 import uk.ac.dmu.koffeecraft.data.dao.CustomerDao
 import uk.ac.dmu.koffeecraft.data.dao.FeedbackDao
+import uk.ac.dmu.koffeecraft.data.dao.InboxMessageDao
+import uk.ac.dmu.koffeecraft.data.dao.NotificationDao
 import uk.ac.dmu.koffeecraft.data.dao.OrderDao
 import uk.ac.dmu.koffeecraft.data.dao.OrderItemDao
 import uk.ac.dmu.koffeecraft.data.dao.PaymentDao
 import uk.ac.dmu.koffeecraft.data.dao.ProductDao
 import uk.ac.dmu.koffeecraft.data.entities.Admin
+import uk.ac.dmu.koffeecraft.data.entities.AppNotification
 import uk.ac.dmu.koffeecraft.data.entities.Customer
 import uk.ac.dmu.koffeecraft.data.entities.Feedback
+import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.entities.OrderItem
 import uk.ac.dmu.koffeecraft.data.entities.Payment
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
-import uk.ac.dmu.koffeecraft.data.dao.InboxMessageDao
-import uk.ac.dmu.koffeecraft.data.dao.NotificationDao
-import uk.ac.dmu.koffeecraft.data.entities.AppNotification
-import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
+
 @Database(
     entities = [
         Customer::class,
@@ -40,7 +41,7 @@ import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
         AppNotification::class,
         InboxMessage::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -56,7 +57,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun inboxMessageDao(): InboxMessageDao
 
     companion object {
-        @Volatile private var INSTANCE: KoffeeCraftDatabase? = null
+        @Volatile
+        private var INSTANCE: KoffeeCraftDatabase? = null
 
         private fun addColumnIfMissing(
             db: SupportSQLiteDatabase,
@@ -107,6 +109,7 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 addColumnIfMissing(db, "products", "imageKey", "TEXT")
             }
         }
+
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // I rebuild feedback because the old schema stored one feedback per order,
@@ -117,22 +120,23 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
 
                 db.execSQL(
                     """
-            CREATE TABLE IF NOT EXISTS feedback (
-                feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                orderItemId INTEGER NOT NULL,
-                customerId INTEGER NOT NULL,
-                rating INTEGER NOT NULL,
-                comment TEXT NOT NULL,
-                createdAt INTEGER NOT NULL,
-                updatedAt INTEGER NOT NULL
-            )
-            """.trimIndent()
+                    CREATE TABLE IF NOT EXISTS feedback (
+                        feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        orderItemId INTEGER NOT NULL,
+                        customerId INTEGER NOT NULL,
+                        rating INTEGER NOT NULL,
+                        comment TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
                 )
 
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_feedback_orderItemId ON feedback(orderItemId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_feedback_customerId ON feedback(customerId)")
             }
         }
+
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 addColumnIfMissing(db, "feedback", "isHidden", "INTEGER NOT NULL DEFAULT 0")
@@ -148,20 +152,20 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 // I create the stored in-app notifications table for admin and customer notification centers.
                 db.execSQL(
                     """
-            CREATE TABLE IF NOT EXISTS app_notifications (
-                notificationId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                recipientRole TEXT NOT NULL,
-                recipientCustomerId INTEGER,
-                title TEXT NOT NULL,
-                message TEXT NOT NULL,
-                notificationType TEXT NOT NULL,
-                orderId INTEGER,
-                orderCreatedAt INTEGER,
-                orderStatus TEXT,
-                isRead INTEGER NOT NULL DEFAULT 0,
-                createdAt INTEGER NOT NULL
-            )
-            """.trimIndent()
+                    CREATE TABLE IF NOT EXISTS app_notifications (
+                        notificationId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        recipientRole TEXT NOT NULL,
+                        recipientCustomerId INTEGER,
+                        title TEXT NOT NULL,
+                        message TEXT NOT NULL,
+                        notificationType TEXT NOT NULL,
+                        orderId INTEGER,
+                        orderCreatedAt INTEGER,
+                        orderStatus TEXT,
+                        isRead INTEGER NOT NULL DEFAULT 0,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
                 )
 
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_recipientRole ON app_notifications(recipientRole)")
@@ -173,16 +177,16 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 // I create the stored inbox messages table for customer messages from admin.
                 db.execSQL(
                     """
-            CREATE TABLE IF NOT EXISTS inbox_messages (
-                inboxMessageId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                recipientCustomerId INTEGER NOT NULL,
-                title TEXT NOT NULL,
-                body TEXT NOT NULL,
-                deliveryType TEXT NOT NULL,
-                isRead INTEGER NOT NULL DEFAULT 0,
-                createdAt INTEGER NOT NULL
-            )
-            """.trimIndent()
+                    CREATE TABLE IF NOT EXISTS inbox_messages (
+                        inboxMessageId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        recipientCustomerId INTEGER NOT NULL,
+                        title TEXT NOT NULL,
+                        body TEXT NOT NULL,
+                        deliveryType TEXT NOT NULL,
+                        isRead INTEGER NOT NULL DEFAULT 0,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
                 )
 
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_recipientCustomerId ON inbox_messages(recipientCustomerId)")
@@ -191,6 +195,16 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // I add new customer profile and rewards fields for premium registration and future rewards logic.
+                addColumnIfMissing(db, "customers", "country", "TEXT NOT NULL DEFAULT ''")
+                addColumnIfMissing(db, "customers", "marketingInboxConsent", "INTEGER NOT NULL DEFAULT 0")
+                addColumnIfMissing(db, "customers", "termsAccepted", "INTEGER NOT NULL DEFAULT 0")
+                addColumnIfMissing(db, "customers", "privacyAccepted", "INTEGER NOT NULL DEFAULT 0")
+                addColumnIfMissing(db, "customers", "beansBalance", "INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -199,7 +213,14 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                     KoffeeCraftDatabase::class.java,
                     "koffeecraft.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6,
+                        MIGRATION_6_7
+                    )
                     .addCallback(SeedCallback())
                     .build()
 
@@ -245,13 +266,42 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             if (productDao.countProducts() > 0) return
 
             val products = listOf(
-                Product(name = "Espresso", category = "COFFEE", description = "Strong and bold espresso shot.", price = 2.20),
-                Product(name = "Cappuccino", category = "COFFEE", description = "Espresso with steamed milk and foam.", price = 3.40),
-                Product(name = "Latte", category = "COFFEE", description = "Smooth espresso with lots of milk.", price = 3.60),
-
-                Product(name = "Cheesecake", category = "CAKE", description = "Classic creamy cheesecake slice.", price = 4.20),
-                Product(name = "Chocolate Brownie", category = "CAKE", description = "Rich chocolate brownie.", price = 3.00),
-                Product(name = "Carrot Cake", category = "CAKE", description = "Moist carrot cake with frosting.", price = 3.80)
+                Product(
+                    name = "Espresso",
+                    category = "COFFEE",
+                    description = "Strong and bold espresso shot.",
+                    price = 2.20
+                ),
+                Product(
+                    name = "Cappuccino",
+                    category = "COFFEE",
+                    description = "Espresso with steamed milk and foam.",
+                    price = 3.40
+                ),
+                Product(
+                    name = "Latte",
+                    category = "COFFEE",
+                    description = "Smooth espresso with lots of milk.",
+                    price = 3.60
+                ),
+                Product(
+                    name = "Cheesecake",
+                    category = "CAKE",
+                    description = "Classic creamy cheesecake slice.",
+                    price = 4.20
+                ),
+                Product(
+                    name = "Chocolate Brownie",
+                    category = "CAKE",
+                    description = "Rich chocolate brownie.",
+                    price = 3.00
+                ),
+                Product(
+                    name = "Carrot Cake",
+                    category = "CAKE",
+                    description = "Moist carrot cake with frosting.",
+                    price = 3.80
+                )
             )
 
             productDao.insertAll(products)

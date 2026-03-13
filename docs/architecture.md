@@ -598,3 +598,68 @@ During this stage, I also fixed:
 - navigation XML issues after changing the start flow
 - login verification so it matches the existing password hashing implementation
 - session handling so admin and customer login use the existing session model correctly
+
+
+## Registration, onboarding, and rewards foundation update
+
+I redesigned the customer registration flow so it now feels like a real KoffeeCraft product experience instead of a plain academic form.
+
+### What I changed
+I redesigned the Register screen into a premium coffee-themed card layout consistent with the Welcome and Sign in screens.
+
+I added:
+- a `Personal details` section
+- a `Security` section
+- country selection
+- date of birth
+- live password validation rules
+- optional promotional Inbox consent
+- required Terms of Use acceptance
+- required Privacy Statement acceptance
+
+### Customer profile model update
+I extended the `Customer` entity and database so registration now stores:
+- `country`
+- `dateOfBirth`
+- `marketingInboxConsent`
+- `termsAccepted`
+- `privacyAccepted`
+- `beansBalance`
+
+This gives me a proper foundation for:
+- rewards
+- promo messaging preferences
+- future profile features
+- onboarding-linked reward logic
+
+### Database update
+I added Room migration `6 -> 7` to support the new customer profile fields.
+
+### Post-registration flow
+I changed the registration flow so a newly created customer:
+- is logged in immediately
+- does not return to the Sign in screen
+- is taken directly to onboarding
+
+### Onboarding
+I added a 3-step onboarding flow in the same premium visual style as the rest of the authentication experience.
+
+The onboarding includes:
+- centered rounded card layout
+- branded visual consistency
+- progress dots
+- `Next`-only progression
+- final confirmation step for promotional Inbox consent
+
+### Welcome communication and starter reward logic
+After onboarding:
+- every new customer receives a welcome Inbox message
+- a customer receives `+5 beans` only if promotional Inbox consent is enabled
+- a customer notification is created when those first 5 beans are awarded
+
+### Navigation update
+I also fixed customer and admin shell navigation so bottom navigation works correctly even after opening top-bar destinations such as:
+- Notifications
+- Inbox
+- Settings
+- Cart

@@ -12,9 +12,14 @@ data class Customer(
     @PrimaryKey(autoGenerate = true) val customerId: Long = 0,
     val firstName: String,
     val lastName: String,
+    val country: String,
     val email: String,
     val passwordHash: String,
     val passwordSalt: String,
     val dateOfBirth: String? = null,
+    val marketingInboxConsent: Boolean = false,
+    val termsAccepted: Boolean = false,
+    val privacyAccepted: Boolean = false,
+    val beansBalance: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
 )
