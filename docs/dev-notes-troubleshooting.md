@@ -445,3 +445,30 @@ The app now:
 - sends a welcome Inbox message automatically
 - awards 5 beans only when promotional Inbox consent is enabled
 - handles customer and admin bottom navigation correctly after top-bar navigation
+
+## Rewards bean icon resource fix
+
+During the Rewards screen update, I hit a resource-linking issue while adding the coffee bean image.
+
+### Problem
+The bean image was initially added in a way that created launcher-style asset files inside `mipmap-anydpi-v26`.
+
+Those generated files referenced:
+- `coffee_bean_background`
+
+but that drawable did not exist, which caused Android resource linking to fail.
+
+### Root cause
+The image was added as an asset in the wrong resource flow for this use case.
+
+I needed a normal drawable for an `ImageView` inside the Rewards screen, but the generated files behaved like launcher icon resources instead.
+
+### Fix
+I removed the incorrect generated `mipmap` resources and added the coffee bean image as a normal drawable file inside:
+- `res/drawable`
+
+After that, the Rewards layout could correctly use:
+- `@drawable/coffee_bean`
+
+### Result
+The Rewards screen now displays the bean icon correctly and builds without resource-linking errors.

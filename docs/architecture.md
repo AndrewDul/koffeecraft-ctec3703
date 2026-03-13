@@ -663,3 +663,34 @@ I also fixed customer and admin shell navigation so bottom navigation works corr
 - Inbox
 - Settings
 - Cart
+
+
+## Rewards screen beans balance card
+
+I added a premium beans balance card at the top of the customer Rewards screen.
+
+### What I added
+I added:
+- a full-width premium card at the top of `Rewards`
+- a right-aligned bean balance group
+- a coffee bean icon
+- the current number of collected beans loaded from the customer profile
+
+### Layout behaviour
+I designed the bean icon and bean count as a single right-aligned group.
+
+This means:
+- the right edge stays visually fixed
+- when the bean count grows, the content expands to the left
+- the value does not push outside the screen
+- the card remains visually stable for larger numbers
+
+### Data source
+The Rewards screen now reads the current customer's `beansBalance` from the database and displays it in the balance card.
+
+### Visual direction
+The beans balance card follows the same premium KoffeeCraft direction as the rest of the updated app:
+- rounded card
+- warm coffee-toned palette
+- soft premium spacing
+- cleaner product-style presentation
