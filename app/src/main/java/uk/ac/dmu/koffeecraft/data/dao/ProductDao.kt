@@ -44,4 +44,19 @@ interface ProductDao {
 
     @Query("UPDATE products SET imageKey = :imageKey WHERE productId = :productId")
     suspend fun setImageKey(productId: Long, imageKey: String?)
+
+    @Query("""
+    SELECT * FROM products
+    WHERE category = :category
+      AND isAvailable = 1
+    ORDER BY name ASC
+""")
+    suspend fun getAvailableByCategory(category: String): List<Product>
+
+    @Query("""
+    SELECT * FROM products
+    WHERE category = 'REWARD'
+    ORDER BY name ASC
+""")
+    suspend fun getRewardProducts(): List<Product>
 }

@@ -27,8 +27,22 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
 
         adapter = CartAdapter(
             items = CartManager.getItems(),
-            onPlus = { CartManager.add(it.product); refresh(tvTotal) },
-            onMinus = { CartManager.removeOne(it.product.productId); refresh(tvTotal) }
+            onPlus = {
+                if (it.isReward) {
+                    CartManager.addReward(
+                        sourceProduct = it.product,
+                        rewardType = it.rewardType ?: "REWARD",
+                        beansCostPerUnit = it.beansCostPerUnit
+                    )
+                } else {
+                    CartManager.add(it.product)
+                }
+                refresh(tvTotal)
+            },
+            onMinus = {
+                CartManager.removeOne(it.lineKey)
+                refresh(tvTotal)
+            }
         )
         rv.adapter = adapter
 
@@ -45,6 +59,14 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
 
     private fun refresh(tvTotal: TextView) {
         adapter.submitList(CartManager.getItems())
-        tvTotal.text = "Total: £%.2f".format(CartManager.total())
+
+        val total = CartManager.total()
+        val beansToSpend = CartManager.beansToSpend()
+
+        tvTotal.text = if (beansToSpend > 0) {
+            "Total: £%.2f\nBeans to spend: %d".format(total, beansToSpend)
+        } else {
+            "Total: £%.2f".format(total)
+        }
     }
 }

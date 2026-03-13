@@ -694,3 +694,156 @@ The beans balance card follows the same premium KoffeeCraft direction as the res
 - warm coffee-toned palette
 - soft premium spacing
 - cleaner product-style presentation
+
+## Rewards system, beans earning, and reward redemption flow
+
+I expanded the Rewards feature from a simple beans balance display into a working loyalty and redemption system.
+
+### What I added
+I added:
+- beans earning based on purchased product quantity
+- reward redemption through the `Rewards` screen
+- support for reward items inside the cart
+- support for £0.00 reward checkout items
+- a milestone-based `5 Bean Booster` reward
+- dedicated reward options for `Free Coffee` and `Free Cake`
+- physical reward products for premium redemption flows
+
+### Beans earning rules
+I designed beans to be earned only from normal purchased products.
+
+The current rule is:
+- `1 purchased product = 1 bean`
+
+This is based on product quantity, not product price.
+
+Examples:
+- 1 coffee = 1 bean
+- 2 cakes = 2 beans
+- 1 coffee + 2 cakes = 3 beans
+
+Reward items do **not** generate beans.  
+This prevents reward exploitation and keeps the loyalty system fair.
+
+### Reward checkout rules
+Reward items can now be added to the cart and processed through the same order flow as normal products.
+
+Reward items:
+- appear in the cart
+- use a price of `£0.00`
+- still go through normal order lifecycle states
+- are included in the order pipeline like other items
+
+This means redeemed rewards can move through statuses such as:
+- placed
+- preparing
+- ready
+- collected
+
+### Beans spending rules
+Beans are **not** deducted when a reward is added to the cart.
+
+Instead, beans are deducted only at checkout.
+
+This gives a safer and more realistic flow because:
+- the customer may remove a reward before checkout
+- the cart may change before payment
+- beans are only committed when the order is actually placed
+
+### Reward-aware cart model
+I extended the cart model so it can now distinguish between:
+- normal purchased products
+- reward redemption items
+
+Each cart line can now carry reward-related information such as:
+- whether it is a reward
+- reward type
+- beans cost per unit
+
+This makes it possible to:
+- mix paid products and rewards in the same cart
+- calculate `£` total separately from beans spending
+- keep the checkout logic clear and extensible
+
+### Rewards catalogue
+I added the following reward catalogue structure:
+
+- `Free Coffee` — 15 beans
+- `Free Cake` — 18 beans
+- `KoffeeCraft Mug` — 125 beans
+- `KoffeeCraft Teddy Bear` — 250 beans
+- `1kg Crafted Coffee Beans` — 370 beans
+- `5 Bean Booster` — milestone reward
+
+### Free Coffee and Free Cake flow
+`Free Coffee` and `Free Cake` are handled as guided reward choices.
+
+When the customer selects one of these rewards:
+- the app opens a filtered selection flow
+- only products from the relevant category are shown
+- the customer chooses exactly one item
+- the selected reward is then added to the cart as a reward item with `£0.00`
+
+This keeps reward redemption separate from the normal product menu while still reusing real products and the normal order lifecycle.
+
+### Physical rewards
+I added support for physical rewards such as:
+- KoffeeCraft Mug
+- KoffeeCraft Teddy Bear
+- 1kg Crafted Coffee Beans
+
+These are reward-only products and are not intended to be part of the normal menu purchase flow.
+
+They can be redeemed only from the `Rewards` screen.
+
+### 5 Bean Booster milestone reward
+I designed `5 Bean Booster` as a milestone-based manual claim reward.
+
+It does **not** spend beans.
+
+Instead:
+- each customer has a stored next milestone threshold
+- the first threshold starts at `10`
+- when the customer reaches the threshold, the reward becomes claimable
+- after claiming, the customer receives `+5 beans`
+- the next threshold increases by `10`
+
+Example flow:
+- threshold = 10 → claim +5 beans
+- next threshold = 20 → claim +5 beans
+- next threshold = 30 → claim +5 beans
+
+This prevents repeated claiming for the same milestone and creates a safer progression system.
+
+### Database support
+I extended the customer profile with:
+- `nextBeansBonusThreshold`
+
+I also added reward product seeding and migration support so the reward catalogue can be stored and reused consistently.
+
+### Rewards screen UI
+I expanded the `Rewards` screen beyond the original beans balance card.
+
+The screen now includes:
+- the premium beans balance card
+- helper text explaining reward checkout behaviour
+- a rewards list with action buttons
+- reward eligibility based on available beans
+- milestone reward claim support
+- reward selection and add-to-cart actions
+
+### Cart and checkout integration
+I updated cart and checkout flow so they now:
+- show reward items with `£0.00`
+- calculate beans to spend separately from price total
+- verify the customer has enough beans before checkout
+- deduct beans only when checkout succeeds
+- add earned beans based only on normal purchased products
+
+### Visual direction
+The rewards system follows the same premium KoffeeCraft direction as the rest of the updated app:
+- rounded cards
+- warm coffee-toned palette
+- soft premium spacing
+- clearer loyalty and redemption presentation
+- product-style reward cards with room for future images

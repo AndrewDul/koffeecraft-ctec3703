@@ -21,6 +21,7 @@ data class Customer(
     val termsAccepted: Boolean = false,
     val privacyAccepted: Boolean = false,
     val beansBalance: Int = 0,
+    val nextBeansBonusThreshold: Int = 10,
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis()
 )

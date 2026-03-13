@@ -15,34 +15,35 @@ interface OrderItemDao {
     suspend fun insertAll(items: List<OrderItem>)
 
     @Query("""
-        SELECT p.*, oi.quantity AS quantity
-        FROM order_items oi
-        INNER JOIN products p ON p.productId = oi.productId
-        WHERE oi.orderId = :orderId
-    """)
+    SELECT p.*, oi.quantity AS quantity
+    FROM order_items oi
+    INNER JOIN products p ON p.productId = oi.productId
+    WHERE oi.orderId = :orderId
+      AND oi.unitPrice > 0
+""")
     suspend fun getReorderItems(orderId: Long): List<ReorderItem>
 
     @Query("""
-        SELECT
-            oi.orderItemId AS orderItemId,
-            oi.orderId AS orderId,
-            oi.productId AS productId,
-            p.name AS productName,
-            p.description AS productDescription,
-            oi.quantity AS quantity,
-            oi.unitPrice AS unitPrice,
-            f.feedbackId AS feedbackId,
-            f.rating AS rating,
-            f.comment AS comment
-        FROM order_items oi
-        INNER JOIN products p ON p.productId = oi.productId
-        LEFT JOIN feedback f ON f.orderItemId = oi.orderItemId
-        WHERE oi.orderId = :orderId
-        ORDER BY oi.orderItemId ASC
-    """)
+    SELECT
+        oi.orderItemId AS orderItemId,
+        oi.orderId AS orderId,
+        oi.productId AS productId,
+        p.name AS productName,
+        p.description AS productDescription,
+        oi.quantity AS quantity,
+        oi.unitPrice AS unitPrice,
+        f.feedbackId AS feedbackId,
+        f.rating AS rating,
+        f.comment AS comment
+    FROM order_items oi
+    INNER JOIN products p ON p.productId = oi.productId
+    LEFT JOIN feedback f ON f.orderItemId = oi.orderItemId
+    WHERE oi.orderId = :orderId
+      AND oi.unitPrice > 0
+    ORDER BY oi.orderItemId ASC
+""")
     suspend fun getFeedbackItemsForOrder(orderId: Long): List<OrderFeedbackItem>
     @Query("""
-        
     SELECT
         oi.orderItemId AS orderItemId,
         oi.orderId AS orderId,
@@ -58,30 +59,32 @@ interface OrderItemDao {
     INNER JOIN products p ON p.productId = oi.productId
     LEFT JOIN feedback f ON f.orderItemId = oi.orderItemId
     WHERE oi.orderItemId = :orderItemId
+      AND oi.unitPrice > 0
     LIMIT 1
 """)
     suspend fun getFeedbackItemByOrderItemId(orderItemId: Long): OrderFeedbackItem?
 
     @Query("""
-        SELECT
-            oi.orderItemId AS orderItemId,
-            oi.orderId AS orderId,
-            oi.productId AS productId,
-            p.name AS productName,
-            p.description AS productDescription,
-            oi.quantity AS quantity,
-            oi.unitPrice AS unitPrice,
-            f.feedbackId AS feedbackId,
-            f.rating AS rating,
-            f.comment AS comment
-        FROM order_items oi
-        INNER JOIN products p ON p.productId = oi.productId
-        LEFT JOIN feedback f ON f.orderItemId = oi.orderItemId
-        WHERE oi.orderId = :orderId
-          AND f.feedbackId IS NULL
-        ORDER BY oi.orderItemId ASC
-        LIMIT 1
-    """)
+    SELECT
+        oi.orderItemId AS orderItemId,
+        oi.orderId AS orderId,
+        oi.productId AS productId,
+        p.name AS productName,
+        p.description AS productDescription,
+        oi.quantity AS quantity,
+        oi.unitPrice AS unitPrice,
+        f.feedbackId AS feedbackId,
+        f.rating AS rating,
+        f.comment AS comment
+    FROM order_items oi
+    INNER JOIN products p ON p.productId = oi.productId
+    LEFT JOIN feedback f ON f.orderItemId = oi.orderItemId
+    WHERE oi.orderId = :orderId
+      AND oi.unitPrice > 0
+      AND f.feedbackId IS NULL
+    ORDER BY oi.orderItemId ASC
+    LIMIT 1
+""")
     suspend fun getNextUnreviewedItem(orderId: Long): OrderFeedbackItem?
 
     @Query("""

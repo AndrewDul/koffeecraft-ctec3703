@@ -18,8 +18,9 @@ import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.repository.OrderRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
+import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
+
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -30,7 +31,14 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         val btnPay = view.findViewById<Button>(R.id.btnPay)
         val btnBackToCart = view.findViewById<Button>(R.id.btnBackToCart)
 
-        tvTotal.text = "Total: £%.2f".format(CartManager.total())
+        val initialTotal = CartManager.total()
+        val initialBeansToSpend = CartManager.beansToSpend()
+
+        tvTotal.text = if (initialBeansToSpend > 0) {
+            "Total: £%.2f\nBeans to spend: %d".format(initialTotal, initialBeansToSpend)
+        } else {
+            "Total: £%.2f".format(initialTotal)
+        }
 
         btnBackToCart.setOnClickListener {
             findNavController().navigateUp()
@@ -45,6 +53,8 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
             val paymentType = if (rbCard.isChecked) "CARD" else "CASH"
             val total = CartManager.total()
+            val beansToSpend = CartManager.beansToSpend()
+            val beansToEarn = CartManager.purchasedProductCountForBeans()
             val cartItems = CartManager.getItems()
 
             if (cartItems.isEmpty()) {
@@ -56,6 +66,25 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             val repo = OrderRepository(db)
 
             lifecycleScope.launch(Dispatchers.IO) {
+                val customer = db.customerDao().getById(customerId)
+                if (customer == null) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), "Customer not found.", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+
+                if (customer.beansBalance < beansToSpend) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            requireContext(),
+                            "You do not have enough beans for the selected rewards.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+
                 val items = cartItems.map {
                     it.product.productId to (it.quantity to it.product.price)
                 }
@@ -67,12 +96,20 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                     totalAmount = total
                 )
 
+                val updatedBeansBalance = customer.beansBalance - beansToSpend + beansToEarn
+                db.customerDao().update(
+                    customer.copy(beansBalance = updatedBeansBalance)
+                )
+
                 CartManager.clear()
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Payment successful (simulated).", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Payment successful (simulated).",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
-                    // Notification: payment confirmation
                     NotificationHelper.showOrderNotification(
                         context = requireContext(),
                         title = "Payment confirmed",

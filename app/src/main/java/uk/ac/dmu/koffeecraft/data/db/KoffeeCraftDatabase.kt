@@ -41,7 +41,7 @@ import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
         AppNotification::class,
         InboxMessage::class
     ],
-    version = 8,
+    version = 10,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -210,6 +210,32 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 addColumnIfMissing(db, "customers", "isActive", "INTEGER NOT NULL DEFAULT 1")
             }
         }
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                addColumnIfMissing(db, "customers", "nextBeansBonusThreshold", "INTEGER NOT NULL DEFAULT 10")
+            }
+        }
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+            INSERT INTO products (name, category, description, price, isAvailable, isNew, imageKey)
+            SELECT 'KoffeeCraft Mug', 'REWARD', 'Crafted mug with the KoffeeCraft logo.', 0.0, 1, 0, 'reward_mug'
+            WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'KoffeeCraft Mug')
+        """.trimIndent())
+
+                db.execSQL("""
+            INSERT INTO products (name, category, description, price, isAvailable, isNew, imageKey)
+            SELECT 'KoffeeCraft Teddy Bear', 'REWARD', 'Soft teddy bear with KoffeeCraft branding.', 0.0, 1, 0, 'reward_teddy'
+            WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'KoffeeCraft Teddy Bear')
+        """.trimIndent())
+
+                db.execSQL("""
+            INSERT INTO products (name, category, description, price, isAvailable, isNew, imageKey)
+            SELECT '1kg Crafted Coffee Beans', 'REWARD', 'One kilogram of crafted KoffeeCraft coffee beans.', 0.0, 1, 0, 'reward_beans_1kg'
+            WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = '1kg Crafted Coffee Beans')
+        """.trimIndent())
+            }
+        }
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -225,7 +251,9 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_4_5,
                         MIGRATION_5_6,
                         MIGRATION_6_7,
-                        MIGRATION_7_8
+                        MIGRATION_7_8,
+                        MIGRATION_8_9,
+                        MIGRATION_9_10
                     )
                     .addCallback(SeedCallback())
                     .build()
@@ -307,6 +335,30 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                     category = "CAKE",
                     description = "Moist carrot cake with frosting.",
                     price = 3.80
+                ),
+                Product(
+                    name = "KoffeeCraft Mug",
+                    category = "REWARD",
+                    description = "Crafted mug with the KoffeeCraft logo.",
+                    price = 0.0,
+                    isActive = true,
+                    imageKey = "reward_mug"
+                ),
+                Product(
+                    name = "KoffeeCraft Teddy Bear",
+                    category = "REWARD",
+                    description = "Soft teddy bear with KoffeeCraft branding.",
+                    price = 0.0,
+                    isActive = true,
+                    imageKey = "reward_teddy"
+                ),
+                Product(
+                    name = "1kg Crafted Coffee Beans",
+                    category = "REWARD",
+                    description = "One kilogram of crafted KoffeeCraft coffee beans.",
+                    price = 0.0,
+                    isActive = true,
+                    imageKey = "reward_beans_1kg"
                 )
             )
 
