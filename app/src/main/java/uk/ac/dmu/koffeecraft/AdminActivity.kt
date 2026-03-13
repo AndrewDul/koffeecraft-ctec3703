@@ -6,6 +6,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -36,12 +37,12 @@ class AdminActivity : AppCompatActivity() {
         )
 
         bottomNav.setOnItemSelectedListener { item ->
-            navigateIfNeeded(navController, item.itemId)
+            navigateFromBottom(navController, item.itemId, force = false)
             true
         }
 
-        bottomNav.setOnItemReselectedListener {
-            // I intentionally do nothing on reselection.
+        bottomNav.setOnItemReselectedListener { item ->
+            navigateFromBottom(navController, item.itemId, force = true)
         }
 
         btnNotifications.setOnClickListener {
@@ -76,7 +77,7 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateIfNeeded(navController: androidx.navigation.NavController, destinationId: Int) {
+    private fun navigateIfNeeded(navController: NavController, destinationId: Int) {
         if (navController.currentDestination?.id == destinationId) return
 
         navController.navigate(
@@ -84,10 +85,22 @@ class AdminActivity : AppCompatActivity() {
             null,
             navOptions {
                 launchSingleTop = true
-                restoreState = true
-                popUpTo(navController.graph.startDestinationId) {
-                    saveState = true
-                }
+            }
+        )
+    }
+
+    private fun navigateFromBottom(
+        navController: NavController,
+        destinationId: Int,
+        force: Boolean
+    ) {
+        if (!force && navController.currentDestination?.id == destinationId) return
+
+        navController.navigate(
+            destinationId,
+            null,
+            navOptions {
+                launchSingleTop = true
             }
         )
     }

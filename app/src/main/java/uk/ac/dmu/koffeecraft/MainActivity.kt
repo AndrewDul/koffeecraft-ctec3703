@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -84,12 +85,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         bottomNav.setOnItemSelectedListener { item ->
-            navigateIfNeeded(navController, item.itemId)
+            navigateFromBottom(navController, item.itemId, force = false)
             true
         }
 
-        bottomNav.setOnItemReselectedListener {
-            // I intentionally do nothing on reselection.
+        bottomNav.setOnItemReselectedListener { item ->
+            navigateFromBottom(navController, item.itemId, force = true)
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -126,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         startBadgeObserversIfNeeded()
     }
 
-    private fun navigateIfNeeded(navController: androidx.navigation.NavController, destinationId: Int) {
+    private fun navigateIfNeeded(navController: NavController, destinationId: Int) {
         if (navController.currentDestination?.id == destinationId) return
 
         navController.navigate(
@@ -134,10 +135,22 @@ class MainActivity : AppCompatActivity() {
             null,
             navOptions {
                 launchSingleTop = true
-                restoreState = true
-                popUpTo(navController.graph.startDestinationId) {
-                    saveState = true
-                }
+            }
+        )
+    }
+
+    private fun navigateFromBottom(
+        navController: NavController,
+        destinationId: Int,
+        force: Boolean
+    ) {
+        if (!force && navController.currentDestination?.id == destinationId) return
+
+        navController.navigate(
+            destinationId,
+            null,
+            navOptions {
+                launchSingleTop = true
             }
         )
     }

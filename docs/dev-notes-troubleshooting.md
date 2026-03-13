@@ -472,3 +472,48 @@ After that, the Rewards layout could correctly use:
 
 ### Result
 The Rewards screen now displays the bean icon correctly and builds without resource-linking errors.
+
+
+## Customer and admin shell navigation fix
+
+During this stage, I fixed bottom navigation behaviour for both customer and admin shells.
+
+### Problem
+The shell navigation still had inconsistent behaviour.
+
+#### Customer issues
+- tapping one bottom tab could open the wrong screen
+- for example, `My Orders` could behave like `Menu`
+- after opening top-bar destinations such as Notifications, Inbox, Settings, or Cart, bottom tab switching could become unreliable
+
+#### Admin issues
+- after opening top-bar destinations such as Notifications or Settings, tapping `Home` from the bottom bar did not always work immediately
+- sometimes another bottom tab had to be opened first before `Home` worked again
+
+### Root cause
+The issue was caused by mixed shell navigation state handling.
+
+Top-bar destinations and bottom-bar destinations were sharing one navigation flow, but the bottom bar state and tab selection logic were not being handled consistently.
+
+The previous implementation also mixed old and new navigation helper logic, which caused unresolved references and unstable navigation behaviour.
+
+### Fix
+I separated shell navigation into two explicit flows:
+- one helper for top-bar navigation
+- one helper for bottom-bar navigation
+
+I also updated bottom-bar handling so:
+- bottom tabs navigate directly and consistently
+- top-bar screens no longer block returning to bottom destinations
+- bottom selection state is updated more safely after destination changes
+
+### Result
+The app now:
+- switches correctly between bottom tabs for customer
+- switches correctly between bottom tabs for admin
+- allows returning from top-bar screens back to bottom destinations without getting stuck
+- keeps shell navigation more stable and predictable
+
+### Documentation
+I updated:
+- `troubleshooting.md`
