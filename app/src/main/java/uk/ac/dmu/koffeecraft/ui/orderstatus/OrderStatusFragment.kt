@@ -9,11 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
+import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
+import uk.ac.dmu.koffeecraft.util.orders.OrderSimulationManager
 
 class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
 
@@ -32,7 +32,7 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
 
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
-        btnBackToMenu.isEnabled = false
+        btnBackToMenu.isEnabled = true
         btnFeedback.visibility = View.GONE
 
         btnBackToMenu.setOnClickListener { findNavController().navigate(R.id.menuFragment) }
@@ -43,66 +43,28 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             )
         }
 
-        var lastStatus: String? = null
-        var firstEmission = true
-        var simulationStarted = false
+        if (simulate) {
+            OrderSimulationManager.startIfNeeded(requireContext().applicationContext, orderId)
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.orderDao().observeById(orderId).collect { order ->
                 val status = order?.status ?: "UNKNOWN"
                 tvStatus.text = "Status: $status"
 
-                val canFinish = (status == "READY" || status == "COLLECTED")
-                val canLeaveFeedback = (status == "COLLECTED")
-
-                btnBackToMenu.isEnabled = canFinish
-                btnFeedback.visibility = if (canLeaveFeedback) View.VISIBLE else View.GONE
-
-
-                // Start simulation ONLY for brand new order flow (from checkout)
-                if (simulate && !simulationStarted && status == "PLACED") {
-                    simulationStarted = true
+                if (!simulate && order != null) {
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        delay(2000)
-                        db.orderDao().updateStatus(orderId, "PREPARING")
-                        delay(3000)
-                        db.orderDao().updateStatus(orderId, "READY")
-                        delay(10_000)
-                        db.orderDao().updateStatus(orderId, "COLLECTED")
+                        AdminNotificationManager.syncAdminOrderActionNotification(
+                            context = requireContext(),
+                            db = db,
+                            orderId = order.orderId,
+                            orderCreatedAt = order.createdAt,
+                            orderStatus = status
+                        )
                     }
                 }
 
-                // Do NOT notify on first emission (opening old order should not trigger notifications)
-                if (firstEmission) {
-                    firstEmission = false
-                    lastStatus = status
-                    return@collect
-                }
-
-                // Notify only when status actually changes after first emission
-                if (status != lastStatus) {
-                    when (status) {
-                        "PREPARING" -> NotificationHelper.showOrderNotification(
-                            context = requireContext(),
-                            title = "Order update",
-                            message = "Order #$orderId is now being prepared.",
-                            notificationId = 100000 + (orderId % 50000).toInt()
-                        )
-                        "READY" -> NotificationHelper.showOrderNotification(
-                            context = requireContext(),
-                            title = "Ready for pickup",
-                            message = "Order #$orderId is ready. You can collect it now.",
-                            notificationId = 200000 + (orderId % 50000).toInt()
-                        )
-                        "COLLECTED" -> NotificationHelper.showOrderNotification(
-                            context = requireContext(),
-                            title = "Collected",
-                            message = "Order #$orderId has been collected. Enjoy!",
-                            notificationId = 250000 + (orderId % 50000).toInt()
-                        )
-                    }
-                    lastStatus = status
-                }
+                btnFeedback.visibility = if (status == "COLLECTED") View.VISIBLE else View.GONE
             }
         }
     }

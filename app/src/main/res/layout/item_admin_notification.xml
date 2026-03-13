@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
+    android:layout_marginBottom="6dp"
     app:cardCornerRadius="12dp"
     app:cardUseCompatPadding="true">
 
@@ -16,52 +16,48 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvOrderId"
+                android:id="@+id/tvTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Order #123"
+                android:text="New order needs action"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="£9.20"
-                android:textStyle="bold" />
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Delete notification"
+                android:src="@android:drawable/ic_menu_close_clear_cancel" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Order #23 • Created: 12 Mar 2026, 21:10 • Current status: PLACED" />
 
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Status: READY" />
-
-        <TextView
-            android:id="@+id/tvDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="2026-03-11 19:22" />
-
-        <TextView
-            android:id="@+id/tvDetails"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:visibility="gone" />
+            android:text="Current status: PLACED"
+            android:textStyle="bold" />
 
         <Button
-            android:id="@+id/btnOrderAgain"
-            android:layout_width="wrap_content"
+            android:id="@+id/btnNext"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Order again" />
+            android:text="Next" />
 
     </LinearLayout>
 

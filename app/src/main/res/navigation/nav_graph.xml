@@ -20,7 +20,7 @@
             app:destination="@id/registerFragment" />
         <action
             android:id="@+id/action_login_to_menu"
-            app:destination="@id/menuFragment"
+            app:destination="@id/customerHomeFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
         <action
@@ -116,5 +116,34 @@
             android:name="orderItemId"
             app:argType="long" />
     </fragment>
+    <fragment
+        android:id="@+id/customerHomeFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.home.CustomerHomeFragment"
+        android:label="Home" />
+
+    <fragment
+        android:id="@+id/customerFavouritesFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.favourites.CustomerFavouritesFragment"
+        android:label="Favourite" />
+
+    <fragment
+        android:id="@+id/customerRewardsFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.rewards.CustomerRewardsFragment"
+        android:label="Rewards" />
+
+    <fragment
+        android:id="@+id/customerNotificationsFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.notifications.CustomerNotificationsFragment"
+        android:label="Notifications" />
+
+    <fragment
+        android:id="@+id/customerInboxFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.inbox.CustomerInboxFragment"
+        android:label="Inbox" />
+
+    <fragment
+        android:id="@+id/customerSettingsFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.settings.CustomerSettingsFragment"
+        android:label="Settings" />
 
 </navigation>

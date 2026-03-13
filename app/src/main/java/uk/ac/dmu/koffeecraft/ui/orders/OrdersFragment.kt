@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -14,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
@@ -44,18 +44,11 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
 
         adapter = OrdersAdapter(
             items = emptyList(),
-            onOpen = { order ->
-                // Open OrderStatus for selected order (simulate defaults to false)
-                findNavController().navigate(
-                    R.id.orderStatusFragment,
-                    bundleOf("orderId" to order.orderId)
-                )
-            },
+            detailsByOrderId = emptyMap(),
             onOrderAgain = { order ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val reorderItems = db.orderItemDao().getReorderItems(order.orderId)
 
-                    // clear current cart then refill
                     CartManager.clear()
                     reorderItems.forEach { CartManager.add(it.product, it.quantity) }
 
@@ -70,7 +63,13 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.orderDao().observeByCustomer(customerId).collect { orders ->
-                adapter.submitList(orders)
+                val detailsByOrderId: Map<Long, List<OrderDisplayItem>> = withContext(Dispatchers.IO) {
+                    orders.associate { order ->
+                        order.orderId to db.orderItemDao().getDisplayItemsForOrder(order.orderId)
+                    }
+                }
+
+                adapter.submitData(orders, detailsByOrderId)
                 tvEmpty.visibility = if (orders.isEmpty()) View.VISIBLE else View.GONE
             }
         }

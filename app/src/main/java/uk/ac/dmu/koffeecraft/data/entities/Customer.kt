@@ -15,5 +15,6 @@ data class Customer(
     val email: String,
     val passwordHash: String,
     val passwordSalt: String,
+    val dateOfBirth: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )

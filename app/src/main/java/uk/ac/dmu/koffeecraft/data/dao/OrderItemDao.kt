@@ -83,6 +83,18 @@ interface OrderItemDao {
         LIMIT 1
     """)
     suspend fun getNextUnreviewedItem(orderId: Long): OrderFeedbackItem?
+
+    @Query("""
+    SELECT
+        p.name AS productName,
+        oi.quantity AS quantity,
+        oi.unitPrice AS unitPrice
+    FROM order_items oi
+    INNER JOIN products p ON p.productId = oi.productId
+    WHERE oi.orderId = :orderId
+    ORDER BY oi.orderItemId ASC
+""")
+    suspend fun getDisplayItemsForOrder(orderId: Long): List<OrderDisplayItem>
 }
 
 data class ReorderItem(
@@ -101,4 +113,9 @@ data class OrderFeedbackItem(
     val feedbackId: Long?,
     val rating: Int?,
     val comment: String?
+)
+data class OrderDisplayItem(
+    val productName: String,
+    val quantity: Int,
+    val unitPrice: Double
 )

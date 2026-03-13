@@ -312,3 +312,247 @@ This gives the admin a quick overview of product sentiment and comment activity 
 - `AdminHomeCarouselAdapter.kt`
 - `fragment_admin_home.xml`
 - `item_admin_home_carousel_page.xml`
+
+
+## Communication module and shell redesign
+
+I added a dedicated communication layer that separates system notifications from admin messages.
+
+### Core communication design
+I introduced two separate data models:
+- `AppNotification` for system events
+- `InboxMessage` for direct or broadcast admin messages
+
+I intentionally kept these separate:
+- **Notifications** store system-driven events such as order progress updates and admin order-action alerts
+- **Inbox** stores admin-authored messages such as promotions, reminders, or important notices
+
+This means that a message sent from Admin Inbox does not appear in customer Notifications. It only appears in customer Inbox.
+
+### Customer profile extension
+I extended the `Customer` model with `dateOfBirth` so I can support:
+- birthday-targeted inbox messages
+- future rewards logic
+- future birthday-based customer features
+
+---
+
+## Admin notifications
+
+I implemented a stored admin notification center for manual order handling.
+
+### Purpose
+Admin notifications are created when an order requires staff action, especially when simulation is disabled and the order needs a manual status change.
+
+### Admin notification content
+Each notification stores:
+- order ID
+- created date/time
+- current order status
+- unread/read state
+
+### Admin quick action
+I added a `Next` action directly on the notification card so I can move the order through the workflow:
+- `PLACED -> PREPARING`
+- `PREPARING -> READY`
+- `READY -> COLLECTED`
+
+### Admin notification lifecycle
+I changed the logic so admin notifications are not automatically removed after `COLLECTED`.  
+The admin now removes them manually, which gives better control over completed order history.
+
+### Admin deletion rules
+I restricted deletion so only `COLLECTED` notifications can be removed.  
+This prevents accidental deletion of active order notifications.
+
+---
+
+## Admin inbox
+
+I implemented an Admin Inbox module for writing and sending customer messages.
+
+### Supported targeting modes
+I added support for:
+- all users
+- birthday today
+- customer found by order number
+- customer found by customer ID
+
+### Privacy-oriented targeting
+I deliberately avoided general searching by personal details such as full name or email.  
+I used system-linked targeting instead:
+- `orderId`
+- `customerId`
+
+This keeps the feature closer to a real system and reduces unnecessary exposure of customer data.
+
+### Message delivery
+Admin Inbox sends messages into the customer Inbox only.  
+These messages do not create system notifications.
+
+---
+
+## Customer application shell
+
+I rebuilt the customer-side app shell to match a more complete mobile application structure.
+
+### Fixed top bar
+I added a fixed top bar containing:
+- temporary KoffeeCraft branding
+- Cart icon with badge
+- Inbox icon with badge
+- Notifications icon with badge
+- Settings icon
+
+### Fixed bottom navigation
+I added a fixed bottom navigation with:
+- Home
+- Menu
+- My Orders
+- Favourite
+- Rewards
+
+### Customer settings
+I added a customer settings screen with logout functionality.
+
+---
+
+## Customer inbox
+
+I added a dedicated customer Inbox for admin-authored messages.
+
+### Behaviour
+Customer Inbox:
+- displays full-width cards
+- supports swipe delete
+- supports delete by `X`
+- supports unread badge count
+- supports long-message expansion using `Read more / Read less`
+
+### Expand/collapse implementation
+I changed the expansion logic so expanded state is tracked safely in the adapter rather than inside recycled ViewHolders.
+
+---
+
+## Customer notifications
+
+I added a dedicated customer Notifications screen for system order updates.
+
+### Purpose
+Customer Notifications store order status events such as:
+- preparing
+- ready
+- collected
+
+### Behaviour
+Customer Notifications:
+- display full-width cards
+- support swipe delete
+- support delete by `X`
+- use a separate unread badge from Inbox
+
+### Expanded order details
+I improved customer notification cards so the user can expand them and see:
+- ordered products
+- quantities
+- price per unit
+- line totals
+
+This makes notification cards more useful than simple short alerts.
+
+---
+
+## Cart access redesign
+
+I moved Cart access from the old Menu screen into the fixed customer top bar.
+
+### Changes
+I replaced the old cart button in Menu with:
+- a top-bar cart icon
+- a live badge counter
+
+This better matches the new customer shell and makes Cart accessible from anywhere inside the main customer experience.
+
+---
+
+## Order flow improvements
+
+I improved several parts of the order flow and order presentation.
+
+### Order simulation
+I extracted simulation logic into `OrderSimulationManager`.
+
+### Why I changed it
+Previously, status simulation depended on fragment lifecycle, which meant it could stop when the user left the screen.
+
+### Result
+Simulation now continues more reliably outside the fragment lifecycle.
+
+### Back navigation
+I changed Order Status so `Back to Menu` is always available.  
+Only feedback availability remains tied to order status rules.
+
+---
+
+## My Orders redesign
+
+I redesigned My Orders into a more app-like card system.
+
+### New behaviour
+I changed My Orders so:
+- each order is displayed as a full-width card
+- clicking expands or collapses the same card
+- ordered products, quantities, and prices are shown inline
+- `Order again` remains available inside the card
+
+This removes unnecessary navigation and gives the user faster access to order information.
+
+---
+
+## Files involved
+
+### New or expanded communication/data layer
+- `AppNotification.kt`
+- `InboxMessage.kt`
+- `NotificationDao.kt`
+- `InboxMessageDao.kt`
+- `CustomerDao.kt`
+- `Customer.kt`
+- `KoffeeCraftDatabase.kt`
+
+### Admin communication
+- `AdminNotificationManager.kt`
+- `AdminNotificationsFragment.kt`
+- `AdminNotificationsAdapter.kt`
+- `AdminInboxFragment.kt`
+- `activity_admin.xml`
+- `admin_bottom_nav.xml`
+- `fragment_admin_notifications.xml`
+- `item_admin_notification.xml`
+- `fragment_admin_inbox.xml`
+
+### Customer communication and shell
+- `MainActivity.kt`
+- `activity_main.xml`
+- `customer_bottom_nav.xml`
+- `CustomerInboxFragment.kt`
+- `CustomerInboxAdapter.kt`
+- `CustomerNotificationsFragment.kt`
+- `CustomerNotificationsAdapter.kt`
+- `CustomerSettingsFragment.kt`
+- `fragment_customer_inbox.xml`
+- `fragment_customer_notifications.xml`
+- `fragment_customer_settings.xml`
+- `item_customer_inbox.xml`
+- `item_customer_notification.xml`
+
+### Order and UX improvements
+- `OrderStatusFragment.kt`
+- `OrderSimulationManager.kt`
+- `OrderItemDao.kt`
+- `OrdersFragment.kt`
+- `OrdersAdapter.kt`
+- `item_order.xml`
+- `CartManager.kt`
+- `fragment_menu.xml`
+- `MenuFragment.kt`

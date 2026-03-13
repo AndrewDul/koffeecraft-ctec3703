@@ -4,26 +4,39 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
+import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class MainActivity : AppCompatActivity() {
 
     private val requestNotificationsPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            // Optional: you can log/handle granted/denied here
-        }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    private var observedCustomerId: Long? = null
+    private var cartBadgeJob: Job? = null
+    private var inboxBadgeJob: Job? = null
+    private var notificationBadgeJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Ensure channel exists (safe on all versions)
         NotificationHelper.ensureChannels(this)
 
-        // Android 13+ requires runtime permission for notifications
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
                 this,
@@ -32,6 +45,123 @@ class MainActivity : AppCompatActivity() {
 
             if (!granted) {
                 requestNotificationsPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHost.navController
+
+        val topBar = findViewById<View>(R.id.customerTopBar)
+        val bottomNav = findViewById<BottomNavigationView>(R.id.customerBottomNav)
+
+        val btnCart = findViewById<ImageButton>(R.id.btnCustomerCart)
+        val btnInbox = findViewById<ImageButton>(R.id.btnCustomerInbox)
+        val btnNotifications = findViewById<ImageButton>(R.id.btnCustomerNotifications)
+        val btnSettings = findViewById<ImageButton>(R.id.btnCustomerSettings)
+
+        btnCart.setOnClickListener {
+            navController.navigate(R.id.cartFragment)
+        }
+
+        btnInbox.setOnClickListener {
+            navController.navigate(R.id.customerInboxFragment)
+        }
+
+        btnNotifications.setOnClickListener {
+            navController.navigate(R.id.customerNotificationsFragment)
+        }
+
+        btnSettings.setOnClickListener {
+            navController.navigate(R.id.customerSettingsFragment)
+        }
+
+        bottomNav.setupWithNavController(navController)
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val customerShellDestinations = setOf(
+                R.id.customerHomeFragment,
+                R.id.menuFragment,
+                R.id.ordersFragment,
+                R.id.customerFavouritesFragment,
+                R.id.customerRewardsFragment,
+                R.id.customerInboxFragment,
+                R.id.customerNotificationsFragment,
+                R.id.customerSettingsFragment,
+                R.id.cartFragment
+            )
+
+            val showShell = destination.id in customerShellDestinations
+            topBar.visibility = if (showShell) View.VISIBLE else View.GONE
+            bottomNav.visibility = if (showShell) View.VISIBLE else View.GONE
+
+            if (showShell) {
+                startBadgeObserversIfNeeded()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startBadgeObserversIfNeeded()
+    }
+
+    private fun startBadgeObserversIfNeeded() {
+        val customerId = SessionManager.currentCustomerId
+
+        val cartBadge = findViewById<TextView>(R.id.tvCustomerCartBadge)
+        val inboxBadge = findViewById<TextView>(R.id.tvCustomerInboxBadge)
+        val notificationBadge = findViewById<TextView>(R.id.tvCustomerNotificationBadge)
+
+        if (customerId == null) {
+            observedCustomerId = null
+            cartBadgeJob?.cancel()
+            inboxBadgeJob?.cancel()
+            notificationBadgeJob?.cancel()
+            cartBadge.visibility = View.GONE
+            inboxBadge.visibility = View.GONE
+            notificationBadge.visibility = View.GONE
+            return
+        }
+
+        if (observedCustomerId == customerId) return
+        observedCustomerId = customerId
+
+        cartBadgeJob?.cancel()
+        inboxBadgeJob?.cancel()
+        notificationBadgeJob?.cancel()
+
+        val db = KoffeeCraftDatabase.getInstance(applicationContext)
+
+        cartBadgeJob = lifecycleScope.launch {
+            CartManager.itemCount.collect { count ->
+                if (count > 0) {
+                    cartBadge.visibility = View.VISIBLE
+                    cartBadge.text = if (count > 99) "99+" else count.toString()
+                } else {
+                    cartBadge.visibility = View.GONE
+                }
+            }
+        }
+
+        inboxBadgeJob = lifecycleScope.launch {
+            db.inboxMessageDao().observeUnreadCountForCustomer(customerId).collect { count ->
+                if (count > 0) {
+                    inboxBadge.visibility = View.VISIBLE
+                    inboxBadge.text = if (count > 99) "99+" else count.toString()
+                } else {
+                    inboxBadge.visibility = View.GONE
+                }
+            }
+        }
+
+        notificationBadgeJob = lifecycleScope.launch {
+            db.notificationDao().observeUnreadCustomerCount(customerId).collect { count ->
+                if (count > 0) {
+                    notificationBadge.visibility = View.VISIBLE
+                    notificationBadge.text = if (count > 99) "99+" else count.toString()
+                } else {
+                    notificationBadge.visibility = View.GONE
+                }
             }
         }
     }

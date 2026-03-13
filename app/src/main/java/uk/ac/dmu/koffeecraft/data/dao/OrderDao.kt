@@ -62,4 +62,7 @@ interface OrderDao {
         query: String?,
         sortDir: String
     ): kotlinx.coroutines.flow.Flow<List<uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow>>
+
+    @Query("SELECT * FROM orders WHERE orderId = :orderId LIMIT 1")
+    suspend fun getById(orderId: Long): Order?
 }

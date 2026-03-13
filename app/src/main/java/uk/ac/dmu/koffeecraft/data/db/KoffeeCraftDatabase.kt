@@ -24,7 +24,10 @@ import uk.ac.dmu.koffeecraft.data.entities.OrderItem
 import uk.ac.dmu.koffeecraft.data.entities.Payment
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
-
+import uk.ac.dmu.koffeecraft.data.dao.InboxMessageDao
+import uk.ac.dmu.koffeecraft.data.dao.NotificationDao
+import uk.ac.dmu.koffeecraft.data.entities.AppNotification
+import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 @Database(
     entities = [
         Customer::class,
@@ -33,9 +36,11 @@ import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
         Order::class,
         OrderItem::class,
         Payment::class,
-        Feedback::class
+        Feedback::class,
+        AppNotification::class,
+        InboxMessage::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -47,6 +52,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun orderItemDao(): OrderItemDao
     abstract fun paymentDao(): PaymentDao
     abstract fun feedbackDao(): FeedbackDao
+    abstract fun notificationDao(): NotificationDao
+    abstract fun inboxMessageDao(): InboxMessageDao
 
     companion object {
         @Volatile private var INSTANCE: KoffeeCraftDatabase? = null
@@ -133,6 +140,57 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // I add date of birth for future rewards and birthday messaging.
+                addColumnIfMissing(db, "customers", "dateOfBirth", "TEXT")
+
+                // I create the stored in-app notifications table for admin and customer notification centers.
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS app_notifications (
+                notificationId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                recipientRole TEXT NOT NULL,
+                recipientCustomerId INTEGER,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                notificationType TEXT NOT NULL,
+                orderId INTEGER,
+                orderCreatedAt INTEGER,
+                orderStatus TEXT,
+                isRead INTEGER NOT NULL DEFAULT 0,
+                createdAt INTEGER NOT NULL
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_recipientRole ON app_notifications(recipientRole)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_recipientCustomerId ON app_notifications(recipientCustomerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_isRead ON app_notifications(isRead)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_createdAt ON app_notifications(createdAt)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_orderId ON app_notifications(orderId)")
+
+                // I create the stored inbox messages table for customer messages from admin.
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS inbox_messages (
+                inboxMessageId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                recipientCustomerId INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                body TEXT NOT NULL,
+                deliveryType TEXT NOT NULL,
+                isRead INTEGER NOT NULL DEFAULT 0,
+                createdAt INTEGER NOT NULL
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_recipientCustomerId ON inbox_messages(recipientCustomerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_isRead ON inbox_messages(isRead)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_createdAt ON inbox_messages(createdAt)")
+            }
+        }
+
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -141,7 +199,7 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                     KoffeeCraftDatabase::class.java,
                     "koffeecraft.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .addCallback(SeedCallback())
                     .build()
 

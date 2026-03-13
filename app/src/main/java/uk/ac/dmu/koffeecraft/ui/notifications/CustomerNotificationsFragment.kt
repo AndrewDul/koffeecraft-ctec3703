@@ -1,0 +1,87 @@
+package uk.ac.dmu.koffeecraft.ui.notifications
+
+import android.os.Bundle
+import android.view.View
+import android.widget.TextView
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
+import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
+
+class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifications) {
+
+    private lateinit var adapter: CustomerNotificationsAdapter
+    private lateinit var tvEmpty: TextView
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val customerId = SessionManager.currentCustomerId ?: return
+
+        val rv = view.findViewById<RecyclerView>(R.id.rvCustomerNotifications)
+        tvEmpty = view.findViewById(R.id.tvEmpty)
+
+        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+
+        rv.layoutManager = LinearLayoutManager(requireContext())
+
+        adapter = CustomerNotificationsAdapter(
+            items = emptyList(),
+            detailsByOrderId = emptyMap(),
+            onDelete = { item ->
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    db.notificationDao().deleteById(item.notificationId)
+                }
+            }
+        )
+        rv.adapter = adapter
+
+        attachSwipeToDelete(rv, db)
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            db.notificationDao().markAllCustomerAsRead(customerId)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            db.notificationDao().observeCustomerNotifications(customerId).collect { items ->
+                val detailsByOrderId: Map<Long, List<OrderDisplayItem>> = withContext(Dispatchers.IO) {
+                    items.mapNotNull { it.orderId }
+                        .distinct()
+                        .associateWith { orderId ->
+                            db.orderItemDao().getDisplayItemsForOrder(orderId)
+                        }
+                }
+
+                adapter.submitData(items, detailsByOrderId)
+                tvEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun attachSwipeToDelete(rv: RecyclerView, db: KoffeeCraftDatabase) {
+        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val item = adapter.getItemAt(viewHolder.bindingAdapterPosition)
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    db.notificationDao().deleteById(item.notificationId)
+                }
+            }
+        }
+
+        ItemTouchHelper(callback).attachToRecyclerView(rv)
+    }
+}

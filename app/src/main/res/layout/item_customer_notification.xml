@@ -19,49 +19,36 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvOrderId"
+                android:id="@+id/tvTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Order #123"
-                android:textSize="16sp"
+                android:text="Ready for pickup"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="£9.20"
-                android:textStyle="bold" />
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Delete notification"
+                android:src="@android:drawable/ic_menu_close_clear_cancel" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/tvStatus"
+            android:id="@+id/tvMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Status: READY" />
-
-        <TextView
-            android:id="@+id/tvDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="2026-03-11 19:22" />
+            android:text="Order #15 is ready. You can collect it now." />
 
         <TextView
             android:id="@+id/tvDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:textStyle="normal"
             android:visibility="gone" />
-
-        <Button
-            android:id="@+id/btnOrderAgain"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Order again" />
 
     </LinearLayout>
 
