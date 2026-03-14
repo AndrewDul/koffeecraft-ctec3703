@@ -847,3 +847,265 @@ The rewards system follows the same premium KoffeeCraft direction as the rest of
 - soft premium spacing
 - clearer loyalty and redemption presentation
 - product-style reward cards with room for future images
+
+---
+
+## Product structure redesign, premium extras flow, and customer Home dashboard update
+
+In this stage, I improved both the internal product structure and the customer-facing Home experience.
+
+### Product structure redesign
+
+I changed the way products are represented so the project now separates:
+
+- `productFamily`
+  - `COFFEE`
+  - `CAKE`
+  - `MERCH`
+- `rewardEnabled`
+
+### Why I changed this
+
+Previously, the product category concept was carrying too much responsibility.  
+It was being used at the same time to describe what the product is and how it should behave in the rewards logic.
+
+I changed this because I wanted the structure to be cleaner and more scalable.
+
+Now:
+- `productFamily` describes what the product actually is
+- `rewardEnabled` describes whether the product can be used in rewards
+
+This improves the architecture because:
+- coffee and cake products can still behave like normal menu products
+- coffee and cake can also become reward-eligible without needing fake duplicate categories
+- merch reward items can exist as their own proper product family
+- the logic is easier to understand and easier to maintain later
+
+### Database and query update
+
+To support this change, I updated the Room layer.
+
+I added:
+- support for `rewardEnabled` in `Product`
+- migration logic to move older reward-style products into the clearer `MERCH` structure
+- updated product queries for:
+  - normal menu loading
+  - reward loading
+  - active `NEW` products
+  - family-based ordering
+
+This means the database now supports a more professional separation between product identity and reward behaviour.
+
+---
+
+## Admin product management improvement
+
+I redesigned the admin product form so the admin can now clearly choose:
+
+- the product family
+- whether the product should also be reward-enabled
+
+This makes the admin workflow more explicit and reduces confusion during product creation.
+
+### What improved
+
+This change improved the admin experience because:
+- product creation is now more intentional
+- reward behaviour is easier to configure
+- the structure matches the real business logic better
+- future filtering and reporting will be easier to maintain
+
+---
+
+## Premium extras management redesign
+
+I also redesigned the extras management flow.
+
+Previously, extras management was closer to a technical checkbox-style interaction.  
+At this stage, I changed it into a more structured admin flow.
+
+The new `Manage extras` approach separates:
+
+- extras assigned to the current product
+- extras available in the shared library for that product family
+
+### Admin actions now supported more clearly
+
+The admin can now:
+- assign an extra to the current product
+- remove an extra from the current product without deleting it globally
+- edit extra details
+- enable / disable extras in the shared library
+- create new extras directly from the management flow
+- permanently delete an extra only when needed
+
+### Why this was important
+
+I changed this because extras are now part of several important systems in the app:
+
+- product customisation
+- final price calculation
+- estimated calories
+- favourite preset combinations
+- premium product presentation
+
+Because extras affect both data and user experience, I wanted their admin flow to feel more like a proper management panel and less like a temporary utility dialog.
+
+### What improved
+
+This redesign improved the project because:
+- assignment logic is clearer
+- the difference between remove / disable / delete is now easier to understand
+- extras are easier to maintain across multiple products
+- the admin experience feels more premium and more professional
+
+---
+
+## Customer Home dashboard redesign
+
+I redesigned the customer Home screen into a richer dashboard experience.
+
+Instead of leaving Home as a basic placeholder, I added multiple premium sections that help the customer discover rewards and products more naturally.
+
+### Final Home structure in this stage
+
+The Home screen now contains these sections in this order:
+
+1. Beans balance card
+2. Rewards preview carousel
+3. New arrivals carousel
+4. Recommended coffees carousel
+5. Recommended cakes carousel
+
+### Beans balance card
+
+I added a compact beans card at the top of the Home screen.
+
+It shows:
+- the customer bean balance
+- a short milestone / reward progress message
+
+I also removed the extra button from this card and made the whole card clickable.
+
+### Why I changed that interaction
+
+I removed the button because the card looked too tall and visually heavy.  
+Making the whole card clickable made the interaction cleaner and more premium.
+
+This improved the screen because:
+- the layout became more compact
+- the card became easier to scan
+- the user still has direct access to Rewards with fewer visual distractions
+
+---
+
+## Rewards preview section
+
+I added a rewards preview carousel directly on Home.
+
+This section helps the user discover:
+- milestone-style reward logic
+- free coffee reward
+- free cake reward
+- merch reward items
+
+The full rewards screen still remains the main destination, but Home now acts as a discovery entry point.
+
+### What improved
+
+This makes the loyalty system more visible and more engaging because the customer can immediately see that rewards exist without first navigating manually.
+
+---
+
+## New arrivals section
+
+I added a new arrivals carousel based on products marked with the admin-controlled `NEW` flag.
+
+### Why this matters
+
+This gives the Home screen a more dynamic feel and allows admin product highlighting to become visible immediately in the customer experience.
+
+It also helps prevent the Home screen from feeling static.
+
+---
+
+## Recommended coffee and cake sections
+
+I added two separate recommendation carousels:
+
+- recommended coffees
+- recommended cakes
+
+These recommendations are based on product feedback.
+
+### Recommendation rules
+
+To make the recommendations more reliable, I applied these rules:
+
+- only `COFFEE` products appear in the coffee section
+- only `CAKE` products appear in the cake section
+- only active products can appear
+- products must have at least `3` ratings
+- the top `3` products are selected
+- ordering is based on:
+  1. average rating
+  2. rating count
+  3. product name
+
+### Why I used a minimum rating threshold
+
+I used a minimum of `3` ratings so that a single very high score would not dominate the recommendations unfairly.
+
+This makes the recommendation logic more believable and gives the customer a more trustworthy discovery experience.
+
+---
+
+## Home layout and visual refinement
+
+I also refined the Home screen visually so it better matches the KoffeeCraft premium direction.
+
+I changed the Home screen to use:
+- a milk-coffee background tone instead of plain white
+- softer rounded cards
+- more compact section spacing
+- wider horizontal carousel cards
+- lower card height
+- partial next-card visibility to suggest sideways scrolling
+
+### Why this visual change matters
+
+The previous version used too much vertical space and the carousel cards were too narrow and tall.
+
+I changed this because I wanted:
+- a more premium visual density
+- more content visible on screen at once
+- stronger carousel affordance
+- a warmer and more polished first impression
+
+### What improved
+
+This improved the customer Home experience because:
+- the screen feels more intentional and less empty
+- the dashboard looks more like a real coffee app landing page
+- the user can scan sections faster
+- horizontal carousels now communicate their purpose better
+
+---
+
+## Summary of this stage
+
+At this stage, I improved both architecture and user experience.
+
+### Architecture improvements
+- clearer product structure
+- better reward configuration
+- more maintainable extras management
+- stronger separation of concerns
+
+### Customer experience improvements
+- richer and more useful Home screen
+- better visibility of rewards
+- clearer product discovery
+- more premium layout and proportions
+
+This stage moved the project closer to a polished assessment-ready product instead of a simple feature collection.

@@ -11,17 +11,30 @@ import uk.ac.dmu.koffeecraft.data.entities.Product
 @Dao
 interface ProductDao {
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM products
-        ORDER BY category ASC, name ASC
-    """)
+        ORDER BY
+            CASE category
+                WHEN 'COFFEE' THEN 0
+                WHEN 'CAKE' THEN 1
+                WHEN 'MERCH' THEN 2
+                ELSE 3
+            END,
+            rewardEnabled DESC,
+            name ASC
+        """
+    )
     fun observeAll(): Flow<List<Product>>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM products
         WHERE category = :category
+          AND isAvailable = 1
         ORDER BY name ASC
-    """)
+        """
+    )
     fun observeByCategory(category: String): Flow<List<Product>>
 
     @Query("SELECT COUNT(*) FROM products")
@@ -36,38 +49,66 @@ interface ProductDao {
     @Update
     suspend fun update(product: Product)
 
-    @Query("""
+    @Query(
+        """
         UPDATE products
         SET isAvailable = :isActive
         WHERE productId = :productId
-    """)
+        """
+    )
     suspend fun setActive(productId: Long, isActive: Boolean)
 
-    @Query("""
+    @Query(
+        """
         DELETE FROM products
         WHERE productId = :productId
-    """)
+        """
+    )
     suspend fun deleteById(productId: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM products
         WHERE productId = :productId
         LIMIT 1
-    """)
+        """
+    )
     suspend fun getById(productId: Long): Product?
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM products
         WHERE category = :category
           AND isAvailable = 1
+          AND rewardEnabled = 1
         ORDER BY name ASC
-    """)
+        """
+    )
     suspend fun getAvailableByCategory(category: String): List<Product>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM products
-        WHERE category = 'REWARD'
+        WHERE category = 'MERCH'
+          AND isAvailable = 1
+          AND rewardEnabled = 1
         ORDER BY name ASC
-    """)
+        """
+    )
     suspend fun getRewardProducts(): List<Product>
+
+    @Query("""
+    SELECT * FROM products
+    WHERE isAvailable = 1
+      AND isNew = 1
+    ORDER BY
+        CASE category
+            WHEN 'COFFEE' THEN 0
+            WHEN 'CAKE' THEN 1
+            WHEN 'MERCH' THEN 2
+            ELSE 3
+        END,
+        name ASC
+""")
+    suspend fun getActiveNewProducts(): List<Product>
 }

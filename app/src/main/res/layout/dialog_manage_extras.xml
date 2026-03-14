@@ -28,81 +28,35 @@
                 android:padding="20dp">
 
                 <TextView
-                    android:id="@+id/tvProductName"
+                    android:id="@+id/tvManageExtrasTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Latte"
+                    android:text="Manage extras"
                     android:textColor="#2E2018"
-                    android:textSize="24sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvProductMeta"
+                    android:id="@+id/tvManageExtrasSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Coffee • Menu + rewards • From £3.60 • Active"
+                    android:text="Assign extras, edit the library, and keep product customisation clean and consistent."
                     android:textColor="#6E5A4D"
                     android:textSize="13sp" />
 
-                <TextView
-                    android:id="@+id/tvDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:lineSpacingExtra="2dp"
-                    android:text="Smooth espresso with steamed milk and a soft crafted finish."
-                    android:textColor="#5B4638"
-                    android:textSize="14sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnManageSizes"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_primary_pill_button"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:minHeight="48dp"
-                        android:text="Manage sizes"
-                        android:textAllCaps="false"
-                        android:textColor="#FFF8F2"
-                        app:cornerRadius="22dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnManageExtras"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_secondary_pill_button"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:minHeight="48dp"
-                        android:text="Manage extras"
-                        android:textAllCaps="false"
-                        android:textColor="#6B4423"
-                        app:cornerRadius="22dp" />
-                </LinearLayout>
-
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnManageAllergens"
+                    android:id="@+id/btnCreateExtra"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_secondary_pill_button"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_primary_pill_button"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:minHeight="48dp"
-                    android:text="Manage allergens"
+                    android:text="+ Create new extra"
                     android:textAllCaps="false"
-                    android:textColor="#6B4423"
+                    android:textColor="#FFF8F2"
                     app:cornerRadius="22dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -126,56 +80,35 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sizes / portions"
+                    android:text="Assigned to this product"
                     android:textColor="#2E2018"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvOptions"
+                    android:id="@+id/tvAssignedExtrasHint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:lineSpacingExtra="3dp"
-                    android:text="No size / portion options configured yet."
-                    android:textColor="#5B4638"
-                    android:textSize="13sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
-            app:strokeColor="#E4D5C8"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="18dp">
+                    android:layout_marginTop="4dp"
+                    android:text="These extras are currently available in the customer customisation flow for this product."
+                    android:textColor="#6E5A4D"
+                    android:textSize="12sp" />
 
                 <TextView
+                    android:id="@+id/tvAssignedEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Available extras"
-                    android:textColor="#2E2018"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvAddOns"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:lineSpacingExtra="3dp"
+                    android:layout_marginTop="12dp"
                     android:text="No extras assigned yet."
-                    android:textColor="#5B4638"
+                    android:textColor="#7A6558"
                     android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/containerAssignedExtras"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -198,20 +131,35 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Allergens"
+                    android:text="Extra library"
                     android:textColor="#2E2018"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvAllergens"
+                    android:id="@+id/tvLibraryExtrasHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="These extras belong to the selected product family and can be assigned when needed."
+                    android:textColor="#6E5A4D"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvLibraryEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="No extra library items available."
+                    android:textColor="#7A6558"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/containerLibraryExtras"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:lineSpacingExtra="3dp"
-                    android:text="No allergens listed."
-                    android:textColor="#5B4638"
-                    android:textSize="13sp" />
+                    android:orientation="vertical" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

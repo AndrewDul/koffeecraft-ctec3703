@@ -514,6 +514,37 @@ The app now:
 - allows returning from top-bar screens back to bottom destinations without getting stuck
 - keeps shell navigation more stable and predictable
 
-### Documentation
-I updated:
-- `troubleshooting.md`
+## Product customisation selector resource fix
+
+During the premium customisation UI update, the project failed to compile because one of the new chip text selectors was missing.
+
+### Problem
+The build failed with an unresolved resource reference inside `ProductCustomizationBottomSheet.kt`.
+
+### Symptom
+Kotlin compilation failed with an error similar to:
+- unresolved reference to `kc_chip_text_selector`
+
+### Root cause
+The premium chip styling logic referenced a new color selector resource for chip text states, but the corresponding XML file had not yet been added to `res/color`.
+
+### Fix
+I created the missing color state list resource:
+- `res/color/kc_chip_text_selector.xml`
+
+This restored the missing reference used by the premium chip styling code.
+
+### Result
+The project compiled correctly again and the product customisation chips could use the intended selected / unselected premium text styling.
+
+---
+
+## Notes for this stage
+
+Most of the remaining work in this stage was not bug-fixing but structured feature development and UI refinement.
+
+The main changes were:
+- product model redesign using `productFamily` and `rewardEnabled`
+- premium admin extras management redesign
+- premium customer Home dashboard with rewards and recommendation carousels
+

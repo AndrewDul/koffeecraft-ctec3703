@@ -40,6 +40,12 @@ import uk.ac.dmu.koffeecraft.data.entities.Favourite
 import uk.ac.dmu.koffeecraft.data.entities.ProductAddOnCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductAllergenCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
+
+import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetDao
+import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePreset
+import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
+
+
 @Database(
     entities = [
         Customer::class,
@@ -57,9 +63,11 @@ import uk.ac.dmu.koffeecraft.data.entities.ProductOption
         ProductAddOnCrossRef::class,
         ProductAllergenCrossRef::class,
         AddOnAllergenCrossRef::class,
-        Favourite::class
+        Favourite::class,
+        CustomerFavouritePreset::class,
+        CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 11,
+    version = 13,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -77,6 +85,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun productOptionDao(): ProductOptionDao
     abstract fun allergenDao(): AllergenDao
     abstract fun favouriteDao(): FavouriteDao
+
+    abstract fun customerFavouritePresetDao(): CustomerFavouritePresetDao
 
     companion object {
         @Volatile
@@ -474,6 +484,63 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS customer_favourite_presets (
+                presetId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                customerId INTEGER NOT NULL,
+                productId INTEGER NOT NULL,
+                optionId INTEGER NOT NULL,
+                totalPriceSnapshot REAL NOT NULL,
+                totalCaloriesSnapshot INTEGER NOT NULL,
+                createdAt INTEGER NOT NULL
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS customer_favourite_preset_add_on_cross_ref (
+                presetId INTEGER NOT NULL,
+                addOnId INTEGER NOT NULL,
+                PRIMARY KEY(presetId, addOnId)
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_customerId ON customer_favourite_presets(customerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_productId ON customer_favourite_presets(productId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_optionId ON customer_favourite_presets(optionId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_createdAt ON customer_favourite_presets(createdAt)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_preset_add_on_cross_ref_presetId ON customer_favourite_preset_add_on_cross_ref(presetId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_preset_add_on_cross_ref_addOnId ON customer_favourite_preset_add_on_cross_ref(addOnId)")
+            }
+        }
+
+        private val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                addColumnIfMissing(db, "products", "rewardEnabled", "INTEGER NOT NULL DEFAULT 0")
+
+                db.execSQL(
+                    """
+            UPDATE products
+            SET rewardEnabled = 1
+            WHERE category = 'REWARD'
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            UPDATE products
+            SET category = 'MERCH'
+            WHERE category = 'REWARD'
+            """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -491,7 +558,9 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_7_8,
                         MIGRATION_8_9,
                         MIGRATION_9_10,
-                        MIGRATION_10_11
+                        MIGRATION_10_11,
+                        MIGRATION_11_12,
+                        MIGRATION_12_13
                     )
                     .addCallback(SeedCallback())
                     .build()
@@ -540,63 +609,72 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             val products = listOf(
                 Product(
                     name = "Espresso",
-                    category = "COFFEE",
+                    productFamily = "COFFEE",
                     description = "Strong and bold espresso shot.",
-                    price = 2.20
+                    price = 2.20,
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "Cappuccino",
-                    category = "COFFEE",
+                    productFamily = "COFFEE",
                     description = "Espresso with steamed milk and foam.",
-                    price = 3.40
+                    price = 3.40,
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "Latte",
-                    category = "COFFEE",
+                    productFamily = "COFFEE",
                     description = "Smooth espresso with lots of milk.",
-                    price = 3.60
+                    price = 3.60,
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "Cheesecake",
-                    category = "CAKE",
+                    productFamily = "CAKE",
                     description = "Classic creamy cheesecake slice.",
-                    price = 4.20
+                    price = 4.20,
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "Chocolate Brownie",
-                    category = "CAKE",
+                    productFamily = "CAKE",
                     description = "Rich chocolate brownie.",
-                    price = 3.00
+                    price = 3.00,
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "Carrot Cake",
-                    category = "CAKE",
+                    productFamily = "CAKE",
                     description = "Moist carrot cake with frosting.",
-                    price = 3.80
+                    price = 3.80,
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "KoffeeCraft Mug",
-                    category = "REWARD",
+                    productFamily = "MERCH",
                     description = "Crafted mug with the KoffeeCraft logo.",
                     price = 0.0,
                     isActive = true,
-                    imageKey = "reward_mug"
+                    imageKey = "reward_mug",
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "KoffeeCraft Teddy Bear",
-                    category = "REWARD",
+                    productFamily = "MERCH",
                     description = "Soft teddy bear with KoffeeCraft branding.",
                     price = 0.0,
                     isActive = true,
-                    imageKey = "reward_teddy"
+                    imageKey = "reward_teddy",
+                    rewardEnabled = true
                 ),
                 Product(
                     name = "1kg Crafted Coffee Beans",
-                    category = "REWARD",
+                    productFamily = "MERCH",
                     description = "One kilogram of crafted KoffeeCraft coffee beans.",
                     price = 0.0,
                     isActive = true,
-                    imageKey = "reward_beans_1kg"
+                    imageKey = "reward_beans_1kg",
+                    rewardEnabled = true
                 )
             )
 

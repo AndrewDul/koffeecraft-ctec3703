@@ -74,7 +74,8 @@ interface AddOnDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProductRefs(refs: List<ProductAddOnCrossRef>)
-
+    @Query("DELETE FROM product_add_on_cross_ref WHERE productId = :productId AND addOnId = :addOnId")
+    suspend fun deleteProductRef(productId: Long, addOnId: Long)
     @Query("DELETE FROM product_add_on_cross_ref WHERE productId = :productId")
     suspend fun deleteRefsForProduct(productId: Long)
 

@@ -25,6 +25,13 @@ interface ProductOptionDao {
     """)
     suspend fun getForProduct(productId: Long): List<ProductOption>
 
+    @Query("""
+        SELECT * FROM product_options
+        WHERE optionId = :optionId
+        LIMIT 1
+    """)
+    suspend fun getById(optionId: Long): ProductOption?
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(option: ProductOption): Long
 

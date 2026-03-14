@@ -48,15 +48,27 @@ class AdminProductsAdapter(
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
         fun bind(product: Product) {
-            ivImage.setImageResource(android.R.drawable.ic_menu_gallery)
+            ivImage.setImageResource(
+                if (product.isCoffee) R.drawable.coffee_bean else android.R.drawable.ic_menu_gallery
+            )
 
             tvName.text = product.name
-            tvCategory.text = product.category.replaceFirstChar { it.uppercase() }
-            tvPrice.text = String.format(Locale.UK, "From £%.2f", product.price)
-            tvTapHint.text = "Tap to view sizes, extras, allergens, and calories"
+            tvCategory.text = "${product.familyLabel} • ${product.listingLabel}"
+            tvPrice.text = if (product.isMerch) {
+                "Reward / merch setup"
+            } else {
+                String.format(Locale.UK, "From £%.2f", product.price)
+            }
+
+            tvTapHint.text = if (product.isMerch) {
+                "Tap to view reward settings and allergens"
+            } else {
+                "Tap to view sizes, extras, allergens, and calories"
+            }
 
             val badges = mutableListOf<String>()
             if (product.isNew) badges += "NEW"
+            if (product.rewardEnabled) badges += "REWARD"
             if (!product.isActive) badges += "DISABLED"
 
             if (badges.isEmpty()) {

@@ -8,17 +8,46 @@ import androidx.room.PrimaryKey
 data class Product(
     @PrimaryKey(autoGenerate = true) val productId: Long = 0,
     val name: String,
-    val category: String, // "COFFEE" or "CAKE"
+
+    @ColumnInfo(name = "category")
+    val productFamily: String, // "COFFEE", "CAKE", "MERCH"
+
     val description: String,
     val price: Double,
 
-    // I map this Kotlin property to the existing DB column name "isAvailable".
     @ColumnInfo(name = "isAvailable")
     val isActive: Boolean = true,
 
-    // I use this flag to drive the customer "NEW" carousel and admin NEW badge.
     val isNew: Boolean = false,
+    val imageKey: String? = null,
 
-    // I store a drawable resource key here (e.g., "p_latte"). Null means "use placeholder".
-    val imageKey: String? = null
-)
+    @ColumnInfo(defaultValue = "0")
+    val rewardEnabled: Boolean = false
+) {
+    val category: String
+        get() = productFamily
+
+    val isCoffee: Boolean
+        get() = productFamily.equals("COFFEE", ignoreCase = true)
+
+    val isCake: Boolean
+        get() = productFamily.equals("CAKE", ignoreCase = true)
+
+    val isMerch: Boolean
+        get() = productFamily.equals("MERCH", ignoreCase = true)
+
+    val familyLabel: String
+        get() = when {
+            isCoffee -> "Coffee"
+            isCake -> "Cake"
+            isMerch -> "Merch"
+            else -> productFamily.replaceFirstChar { it.uppercase() }
+        }
+
+    val listingLabel: String
+        get() = when {
+            isMerch && rewardEnabled -> "Reward item"
+            rewardEnabled -> "Menu + rewards"
+            else -> "Menu only"
+        }
+}
