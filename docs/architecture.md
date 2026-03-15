@@ -1109,3 +1109,93 @@ At this stage, I improved both architecture and user experience.
 - more premium layout and proportions
 
 This stage moved the project closer to a polished assessment-ready product instead of a simple feature collection.
+
+
+## My Orders premium refinement and crafted order history
+
+I extended the earlier My Orders redesign into a more premium and more interactive customer history screen.
+
+### What I changed
+I added:
+- a premium top section with clearer hierarchy
+- a `Browse menu` action
+- date filter chips for:
+  - `All`
+  - `Today`
+  - `Yesterday`
+  - `2 days ago`
+  - `Last 7 days`
+  - `Last 14 days`
+  - `Earlier`
+- softer premium full-width order cards
+- inline expand / collapse behaviour inside the same card
+- text-style `Buy again` action instead of a heavy button
+- customer-side soft hide using:
+  - swipe left
+  - swipe right
+  - `X` action
+
+### Why I changed this
+I changed this because the previous My Orders version was still functionally correct but visually too plain and too prototype-like for the current KoffeeCraft direction.
+
+I wanted the screen to feel closer to a real premium mobile product by improving:
+- information hierarchy
+- spacing
+- interaction clarity
+- visual consistency with the rest of the customer app
+
+### Soft hide design decision
+I deliberately implemented removal from My Orders as a customer-side soft hide rather than deleting the real order record.
+
+This means:
+- the order disappears from the customer history view
+- the real order data remains stored
+- admin flow and order history integrity are not affected
+- no unnecessary database deletion logic was introduced for this UI action
+
+This made the feature safer and lower risk.
+
+### Crafted order indicator
+I also added a `Crafted` badge for customised orders.
+
+The badge appears when an order includes at least one product that was customised using:
+- size or portion selection
+- add-ons
+- stored customisation metadata
+
+I positioned the badge below the order number and above the order date so it becomes part of the visual identity of the card instead of competing with the status chip.
+
+### Order data persistence improvement
+To support the crafted history behaviour correctly, I updated order placement so customised cart metadata is stored in `order_items`.
+
+This now preserves:
+- selected option label
+- selected option size value
+- selected option size unit
+- selected add-on summary
+- estimated calories
+
+### Result
+The My Orders screen now:
+- looks more premium
+- supports faster scanning
+- supports date-based filtering
+- supports safer customer-side history cleanup
+- shows richer inline order details
+- highlights customised orders more clearly
+
+### Files involved
+- `OrdersFragment.kt`
+- `OrdersAdapter.kt`
+- `OrderItemDao.kt`
+- `OrderRepository.kt`
+- `CheckoutFragment.kt`
+- `HiddenOrdersStore.kt`
+- `fragment_orders.xml`
+- `item_order.xml`
+- `item_order_detail.xml`
+- `bg_orders_filter_chip.xml`
+- `bg_orders_filter_chip_selected.xml`
+- `bg_order_status_chip.xml`
+- `bg_order_crafted_chip.xml`
+- `bg_order_delete_circle.xml`

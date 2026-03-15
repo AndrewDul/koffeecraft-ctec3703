@@ -91,7 +91,7 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
                 val orderId = repo.placeOrder(
                     customerId = customerId,
-                    items = items,
+                    items = cartItems,
                     paymentType = paymentType,
                     totalAmount = total
                 )

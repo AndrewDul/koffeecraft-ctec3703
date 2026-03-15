@@ -43,6 +43,7 @@ interface OrderItemDao {
     ORDER BY oi.orderItemId ASC
 """)
     suspend fun getFeedbackItemsForOrder(orderId: Long): List<OrderFeedbackItem>
+
     @Query("""
     SELECT
         oi.orderItemId AS orderItemId,
@@ -91,7 +92,12 @@ interface OrderItemDao {
     SELECT
         p.name AS productName,
         oi.quantity AS quantity,
-        oi.unitPrice AS unitPrice
+        oi.unitPrice AS unitPrice,
+        oi.selectedOptionLabel AS selectedOptionLabel,
+        oi.selectedOptionSizeValue AS selectedOptionSizeValue,
+        oi.selectedOptionSizeUnit AS selectedOptionSizeUnit,
+        oi.selectedAddOnsSummary AS selectedAddOnsSummary,
+        oi.estimatedCalories AS estimatedCalories
     FROM order_items oi
     INNER JOIN products p ON p.productId = oi.productId
     WHERE oi.orderId = :orderId
@@ -117,8 +123,21 @@ data class OrderFeedbackItem(
     val rating: Int?,
     val comment: String?
 )
+
 data class OrderDisplayItem(
     val productName: String,
     val quantity: Int,
-    val unitPrice: Double
-)
+    val unitPrice: Double,
+    val selectedOptionLabel: String?,
+    val selectedOptionSizeValue: Int?,
+    val selectedOptionSizeUnit: String?,
+    val selectedAddOnsSummary: String?,
+    val estimatedCalories: Int?
+) {
+    val isCrafted: Boolean
+        get() = !selectedOptionLabel.isNullOrBlank() ||
+                selectedOptionSizeValue != null ||
+                !selectedOptionSizeUnit.isNullOrBlank() ||
+                !selectedAddOnsSummary.isNullOrBlank() ||
+                estimatedCalories != null
+}

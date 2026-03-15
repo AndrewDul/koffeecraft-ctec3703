@@ -1,6 +1,7 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import androidx.room.withTransaction
+import uk.ac.dmu.koffeecraft.data.cart.CartItem
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.entities.OrderItem
@@ -10,7 +11,7 @@ class OrderRepository(private val db: KoffeeCraftDatabase) {
 
     suspend fun placeOrder(
         customerId: Long,
-        items: List<Pair<Long, Pair<Int, Double>>>, // productId -> (qty, unitPrice)
+        items: List<CartItem>,
         paymentType: String,
         totalAmount: Double
     ): Long {
@@ -23,16 +24,20 @@ class OrderRepository(private val db: KoffeeCraftDatabase) {
                 )
             )
 
-            val orderItems = items.map { (productId, qtyPrice) ->
-                val qty = qtyPrice.first
-                val unitPrice = qtyPrice.second
+            val orderItems = items.map { cartItem ->
                 OrderItem(
                     orderId = orderId,
-                    productId = productId,
-                    quantity = qty,
-                    unitPrice = unitPrice
+                    productId = cartItem.product.productId,
+                    quantity = cartItem.quantity,
+                    unitPrice = cartItem.unitPrice,
+                    selectedOptionLabel = cartItem.selectedOptionLabel,
+                    selectedOptionSizeValue = cartItem.selectedOptionSizeValue,
+                    selectedOptionSizeUnit = cartItem.selectedOptionSizeUnit,
+                    selectedAddOnsSummary = cartItem.selectedAddOnsSummary,
+                    estimatedCalories = cartItem.estimatedCalories
                 )
             }
+
             db.orderItemDao().insertAll(orderItems)
 
             db.paymentDao().insert(

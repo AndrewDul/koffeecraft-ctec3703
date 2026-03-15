@@ -548,3 +548,31 @@ The main changes were:
 - premium admin extras management redesign
 - premium customer Home dashboard with rewards and recommendation carousels
 
+
+## 31) Crafted label did not appear for customised orders in My Orders
+
+**Problem**
+The new `Crafted` badge in My Orders did not appear even when the customer had changed product size or selected add-ons.
+
+**Cause**
+The My Orders UI and DAO were already able to read customisation metadata from `order_items`, but the order placement flow was still saving only the basic order item fields:
+- `productId`
+- `quantity`
+- `unitPrice`
+
+This meant the database did not preserve the customisation metadata needed to detect crafted orders later in history.
+
+**Fix**
+I updated the checkout / order placement flow so customised cart metadata is stored in `order_items`.
+
+The saved fields now include:
+- `selectedOptionLabel`
+- `selectedOptionSizeValue`
+- `selectedOptionSizeUnit`
+- `selectedAddOnsSummary`
+- `estimatedCalories`
+
+I also kept the My Orders card logic based on real persisted data instead of showing the badge through UI-only assumptions.
+
+**Result**
+The `Crafted` badge now appears correctly for newly placed customised orders and the order history can display more accurate custom product information.
