@@ -249,15 +249,42 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/tvBuyAgain"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvFeedbackHint"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
+                android:layout_marginTop="14dp"
+                android:lineSpacingExtra="2dp"
+                android:text="Feedback unlocks after collection."
+                android:textColor="#6E5A4D"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Buy again"
-                android:textColor="#4D3527"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvFeedbackAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Leave feedback"
+                    android:textColor="#5D4332"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvBuyAgain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="18dp"
+                    android:text="Buy again"
+                    android:textColor="#4D3527"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

@@ -15,10 +15,35 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+data class OrderFeedbackSummary(
+    val eligibleItemCount: Int,
+    val reviewedItemCount: Int
+) {
+    val hasAnyFeedback: Boolean
+        get() = reviewedItemCount > 0
+
+    val hasPendingFeedback: Boolean
+        get() = eligibleItemCount > 0 && reviewedItemCount < eligibleItemCount
+
+    val isFullyReviewed: Boolean
+        get() = eligibleItemCount > 0 && reviewedItemCount == eligibleItemCount
+
+    fun actionLabel(): String {
+        return when {
+            eligibleItemCount <= 0 -> "Leave feedback"
+            reviewedItemCount <= 0 -> "Leave feedback"
+            reviewedItemCount < eligibleItemCount -> "Continue feedback"
+            else -> "Edit feedback"
+        }
+    }
+}
+
 class OrdersAdapter(
     private var items: List<Order>,
     private var detailsByOrderId: Map<Long, List<OrderDisplayItem>>,
+    private var feedbackSummaryByOrderId: Map<Long, OrderFeedbackSummary>,
     private val onOrderAgain: (Order) -> Unit,
+    private val onOpenFeedback: (Order) -> Unit,
     private val onRemoveOrder: (Order) -> Unit
 ) : RecyclerView.Adapter<OrdersAdapter.VH>() {
 
@@ -27,10 +52,12 @@ class OrdersAdapter(
 
     fun submitData(
         newItems: List<Order>,
-        newDetailsByOrderId: Map<Long, List<OrderDisplayItem>>
+        newDetailsByOrderId: Map<Long, List<OrderDisplayItem>>,
+        newFeedbackSummaryByOrderId: Map<Long, OrderFeedbackSummary>
     ) {
         items = newItems
         detailsByOrderId = newDetailsByOrderId
+        feedbackSummaryByOrderId = newFeedbackSummaryByOrderId
         expandedIds.retainAll(newItems.map { it.orderId }.toSet())
         notifyDataSetChanged()
     }
@@ -39,7 +66,7 @@ class OrdersAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_order, parent, false)
-        return VH(view, onOrderAgain, onRemoveOrder, formatter)
+        return VH(view, onOrderAgain, onOpenFeedback, onRemoveOrder, formatter)
     }
 
     override fun getItemCount(): Int = items.size
@@ -47,11 +74,14 @@ class OrdersAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val order = items[position]
         val details = detailsByOrderId[order.orderId].orEmpty()
+        val feedbackSummary = feedbackSummaryByOrderId[order.orderId]
+            ?: OrderFeedbackSummary(eligibleItemCount = 0, reviewedItemCount = 0)
         val expanded = expandedIds.contains(order.orderId)
 
         holder.bind(
             order = order,
             details = details,
+            feedbackSummary = feedbackSummary,
             expanded = expanded,
             onToggle = {
                 val id = order.orderId
@@ -68,6 +98,7 @@ class OrdersAdapter(
     class VH(
         itemView: View,
         private val onOrderAgain: (Order) -> Unit,
+        private val onOpenFeedback: (Order) -> Unit,
         private val onRemoveOrder: (Order) -> Unit,
         private val formatter: SimpleDateFormat
     ) : RecyclerView.ViewHolder(itemView) {
@@ -85,16 +116,20 @@ class OrdersAdapter(
         private val tvSummaryStatusValue: TextView = itemView.findViewById(R.id.tvSummaryStatusValue)
         private val tvSummaryDateValue: TextView = itemView.findViewById(R.id.tvSummaryDateValue)
         private val tvSummaryTotalValue: TextView = itemView.findViewById(R.id.tvSummaryTotalValue)
+        private val tvFeedbackHint: TextView = itemView.findViewById(R.id.tvFeedbackHint)
+        private val tvFeedbackAction: TextView = itemView.findViewById(R.id.tvFeedbackAction)
         private val tvBuyAgain: TextView = itemView.findViewById(R.id.tvBuyAgain)
 
         fun bind(
             order: Order,
             details: List<OrderDisplayItem>,
+            feedbackSummary: OrderFeedbackSummary,
             expanded: Boolean,
             onToggle: () -> Unit
         ) {
             val formattedDate = formatter.format(Date(order.createdAt))
             val isCrafted = details.any { it.isCrafted }
+            val canOpenFeedback = canOpenFeedback(order.status)
 
             tvOrderId.text = "Order #${order.orderId}"
             tvDate.text = formattedDate
@@ -109,6 +144,7 @@ class OrdersAdapter(
             tvSummaryTotalValue.text = formatMoney(order.totalAmount)
 
             bindDetails(details)
+            bindFeedbackSection(order, feedbackSummary, canOpenFeedback)
 
             layoutExpandedContent.visibility = if (expanded) View.VISIBLE else View.GONE
             dividerExpanded.visibility = if (expanded) View.VISIBLE else View.GONE
@@ -116,6 +152,52 @@ class OrdersAdapter(
             itemView.setOnClickListener { onToggle() }
             tvBuyAgain.setOnClickListener { onOrderAgain(order) }
             tvRemove.setOnClickListener { onRemoveOrder(order) }
+        }
+
+        private fun bindFeedbackSection(
+            order: Order,
+            feedbackSummary: OrderFeedbackSummary,
+            canOpenFeedback: Boolean
+        ) {
+            tvFeedbackHint.text = buildFeedbackHintText(
+                canOpenFeedback = canOpenFeedback,
+                feedbackSummary = feedbackSummary
+            )
+
+            val showFeedbackAction = canOpenFeedback && feedbackSummary.eligibleItemCount > 0
+
+            tvFeedbackAction.visibility = if (showFeedbackAction) View.VISIBLE else View.GONE
+            tvFeedbackAction.text = feedbackSummary.actionLabel()
+
+            if (showFeedbackAction) {
+                tvFeedbackAction.setOnClickListener { onOpenFeedback(order) }
+            } else {
+                tvFeedbackAction.setOnClickListener(null)
+            }
+        }
+
+        private fun buildFeedbackHintText(
+            canOpenFeedback: Boolean,
+            feedbackSummary: OrderFeedbackSummary
+        ): String {
+            if (!canOpenFeedback) {
+                return "Feedback unlocks after collection."
+            }
+
+            if (feedbackSummary.eligibleItemCount <= 0) {
+                return "No paid products from this order are available for feedback."
+            }
+
+            return when {
+                feedbackSummary.reviewedItemCount <= 0 ->
+                    "You can now rate and review this order."
+
+                feedbackSummary.hasPendingFeedback ->
+                    "${feedbackSummary.reviewedItemCount} of ${feedbackSummary.eligibleItemCount} items reviewed. You can continue anytime."
+
+                else ->
+                    "All paid items have been reviewed. You can still edit them anytime."
+            }
         }
 
         private fun bindDetails(details: List<OrderDisplayItem>) {
@@ -213,6 +295,11 @@ class OrdersAdapter(
                     tvStatus.setTextColor(Color.parseColor("#6A4D3A"))
                 }
 
+                "COLLECTED" -> {
+                    background.setColor(Color.parseColor("#DFE7D8"))
+                    tvStatus.setTextColor(Color.parseColor("#3D5640"))
+                }
+
                 "COMPLETED" -> {
                     background.setColor(Color.parseColor("#DFE7D8"))
                     tvStatus.setTextColor(Color.parseColor("#3D5640"))
@@ -227,6 +314,13 @@ class OrdersAdapter(
                     background.setColor(Color.parseColor("#E9DFD6"))
                     tvStatus.setTextColor(Color.parseColor("#5C473A"))
                 }
+            }
+        }
+
+        private fun canOpenFeedback(status: String): Boolean {
+            return when (status.uppercase(Locale.UK)) {
+                "COLLECTED", "COMPLETED" -> true
+                else -> false
             }
         }
 

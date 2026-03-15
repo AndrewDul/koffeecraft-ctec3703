@@ -146,9 +146,12 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
                         notificationId = 350000 + (orderId % 50000).toInt()
                     )
 
-                    val popped = findNavController().popBackStack(R.id.menuFragment, false)
+                    val popped = findNavController().popBackStack(R.id.feedbackFragment, false)
                     if (!popped) {
-                        findNavController().navigate(R.id.menuFragment)
+                        findNavController().navigate(
+                            R.id.feedbackFragment,
+                            bundleOf("orderId" to orderId)
+                        )
                     }
                 }
             }

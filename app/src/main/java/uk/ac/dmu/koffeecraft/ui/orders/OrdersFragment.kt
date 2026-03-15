@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -66,6 +67,7 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
         adapter = OrdersAdapter(
             items = emptyList(),
             detailsByOrderId = emptyMap(),
+            feedbackSummaryByOrderId = emptyMap(),
             onOrderAgain = { order ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val reorderItems = db.orderItemDao().getReorderItems(order.orderId)
@@ -77,6 +79,12 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
                         findNavController().navigate(R.id.cartFragment)
                     }
                 }
+            },
+            onOpenFeedback = { order ->
+                findNavController().navigate(
+                    R.id.feedbackFragment,
+                    bundleOf("orderId" to order.orderId)
+                )
             },
             onRemoveOrder = { order ->
                 hideOrder(order.orderId)
@@ -147,13 +155,30 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
                     matchesSelectedFilter(order.createdAt)
                 }
 
-            val detailsByOrderId = withContext(Dispatchers.IO) {
+            val detailsAndFeedback = withContext(Dispatchers.IO) {
                 visibleOrders.associate { order ->
-                    order.orderId to db.orderItemDao().getDisplayItemsForOrder(order.orderId)
+                    val details = db.orderItemDao().getDisplayItemsForOrder(order.orderId)
+                    val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(order.orderId)
+                    val reviewedCount = feedbackItems.count { it.feedbackId != null }
+
+                    order.orderId to Pair(
+                        details,
+                        OrderFeedbackSummary(
+                            eligibleItemCount = feedbackItems.size,
+                            reviewedItemCount = reviewedCount
+                        )
+                    )
                 }
             }
 
-            adapter.submitData(visibleOrders, detailsByOrderId)
+            val detailsByOrderId = detailsAndFeedback.mapValues { it.value.first }
+            val feedbackSummaryByOrderId = detailsAndFeedback.mapValues { it.value.second }
+
+            adapter.submitData(
+                newItems = visibleOrders,
+                newDetailsByOrderId = detailsByOrderId,
+                newFeedbackSummaryByOrderId = feedbackSummaryByOrderId
+            )
 
             val isEmpty = visibleOrders.isEmpty()
             tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE

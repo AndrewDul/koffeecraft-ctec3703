@@ -12,7 +12,9 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
 import uk.ac.dmu.koffeecraft.util.orders.OrderSimulationManager
@@ -26,6 +28,7 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         val tvStatusChip = view.findViewById<TextView>(R.id.tvStatusChip)
         val tvOrderId = view.findViewById<TextView>(R.id.tvOrderId)
         val tvStatus = view.findViewById<TextView>(R.id.tvStatus)
+        val tvFeedbackHelper = view.findViewById<TextView>(R.id.tvFeedbackHelper)
         val btnBackToMenu = view.findViewById<MaterialButton>(R.id.btnBackToMenu)
         val btnFeedback = view.findViewById<MaterialButton>(R.id.btnFeedback)
 
@@ -74,11 +77,79 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
                     }
                 }
 
-                val feedbackEnabled = status == "COLLECTED"
+                val feedbackSummary = withContext(Dispatchers.IO) {
+                    val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(orderId)
+                    val reviewedCount = feedbackItems.count { it.feedbackId != null }
+
+                    FeedbackEntryState(
+                        eligibleItemCount = feedbackItems.size,
+                        reviewedItemCount = reviewedCount
+                    )
+                }
+
+                val feedbackEnabled = canOpenFeedback(status) && feedbackSummary.eligibleItemCount > 0
+
                 btnFeedback.visibility = View.VISIBLE
                 btnFeedback.isEnabled = feedbackEnabled
                 btnFeedback.alpha = if (feedbackEnabled) 1f else 0.45f
+                btnFeedback.text = buildFeedbackButtonLabel(
+                    canOpen = canOpenFeedback(status),
+                    summary = feedbackSummary
+                )
+
+                tvFeedbackHelper.text = buildFeedbackHelperText(
+                    status = status,
+                    summary = feedbackSummary
+                )
             }
+        }
+    }
+
+    private fun canOpenFeedback(status: String): Boolean {
+        return when (status.uppercase(Locale.UK)) {
+            "COLLECTED", "COMPLETED" -> true
+            else -> false
+        }
+    }
+
+    private fun buildFeedbackButtonLabel(
+        canOpen: Boolean,
+        summary: FeedbackEntryState
+    ): String {
+        if (!canOpen) return "Leave feedback"
+
+        if (summary.eligibleItemCount == 0) {
+            return "Leave feedback"
+        }
+
+        return when {
+            summary.reviewedItemCount <= 0 -> "Leave feedback"
+            summary.reviewedItemCount < summary.eligibleItemCount -> "Continue feedback"
+            else -> "Edit feedback"
+        }
+    }
+
+    private fun buildFeedbackHelperText(
+        status: String,
+        summary: FeedbackEntryState
+    ): String {
+        if (!canOpenFeedback(status)) {
+            return "Feedback becomes available after collection."
+        }
+
+        if (summary.eligibleItemCount == 0) {
+            return "No paid products from this order are available for feedback."
+        }
+
+        return when {
+            summary.reviewedItemCount <= 0 ->
+                "You can now rate your order and leave product feedback."
+
+            summary.reviewedItemCount < summary.eligibleItemCount ->
+                "You can continue rating the remaining products from this order."
+
+            else ->
+                "You have already reviewed all paid products from this order. You can still edit them anytime."
         }
     }
 
@@ -132,3 +203,8 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             }
     }
 }
+
+private data class FeedbackEntryState(
+    val eligibleItemCount: Int,
+    val reviewedItemCount: Int
+)

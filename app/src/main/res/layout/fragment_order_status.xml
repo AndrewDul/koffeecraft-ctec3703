@@ -101,6 +101,16 @@
                 android:textColor="#2E2018"
                 android:textSize="15sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFeedbackHelper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:lineSpacingExtra="2dp"
+                android:text="Feedback becomes available after collection."
+                android:textColor="#6E5A4D"
+                android:textSize="13sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

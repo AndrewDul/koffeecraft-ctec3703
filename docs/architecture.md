@@ -1829,6 +1829,97 @@ These refinements affect several connected customer features:
 - reward customisation
 - order history
 
+---
+
+## Feedback flow expansion from Order Status and My Orders
+
+I extended the existing feedback system so customers can access it from more natural places in the order journey without introducing a second review flow.
+
+### 1. Reusing the existing feedback architecture
+
+I kept the existing feedback structure as the single source of truth:
+- `FeedbackFragment` still acts as the order-level feedback entry point
+- `ProductFeedbackFragment` still handles creating and editing product-level ratings and comments
+- existing feedback persistence and edit behaviour remain unchanged
+
+### Why I chose this approach
+I chose this because it avoids duplicating review logic and reduces the risk of inconsistent behaviour between multiple feedback entry paths.
+
+---
+
+### 2. Feedback availability in Order Status
+
+I improved the `Order Status` screen so it now communicates when feedback is available.
+
+#### New behaviour
+- feedback stays disabled before collection
+- feedback becomes available when the order reaches `COLLECTED` or `COMPLETED`
+- the screen now displays helper text explaining whether feedback is locked, available, partially completed, or already finished
+
+### Why I changed it
+I changed this because the previous flow expected the user to know that feedback only became available after collection, but the UI did not explain that clearly.
+
+---
+
+### 3. Feedback entry from My Orders
+
+I added feedback access to the expanded card in `My Orders`.
+
+#### New behaviour
+Depending on the feedback state of the order, the customer now sees:
+- `Leave feedback`
+- `Continue feedback`
+- `Edit feedback`
+
+This action appears only when feedback is actually available for the order.
+
+### Why I changed it
+I changed this because `My Orders` is one of the most natural places for a user to revisit past purchases and decide to review them.  
+This makes the feedback feature easier to discover and more aligned with normal customer behaviour.
+
+---
+
+### 4. Feedback progress awareness
+
+I added lightweight order-level feedback summary handling in the orders UI.
+
+#### Summary logic
+For each order, I now evaluate:
+- how many eligible paid products are available for feedback
+- how many of those products already have feedback
+- whether the order still has pending feedback items
+- whether the order is fully reviewed
+
+### Result
+This allows the UI to present more accurate feedback states instead of showing one static action for every order.
+
+---
+
+### 5. Navigation refinement after saving feedback
+
+I updated the post-save navigation in the product feedback flow.
+
+#### Previous behaviour
+After saving feedback, the user could be pushed back to the menu.
+
+#### New behaviour
+After saving feedback, the app now returns the user to the feedback list for the same order.
+
+### Why I changed it
+I changed this because it keeps the user inside the same review journey and makes multi-item feedback much smoother.
+
+---
+
+### 6. Design impact
+
+These changes improve:
+- discoverability of feedback
+- consistency of the customer order journey
+- reuse of existing review logic
+- product review completion flow
+
+
+
 
 
 
