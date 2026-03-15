@@ -1461,3 +1461,92 @@ This makes it possible to show the `Crafted` badge consistently in:
 - `bg_topbar_badge.xml`
 - `bg_cart_quantity_button.xml`
 
+## Customer Settings redesign
+
+I redesigned the customer Settings area into a more complete premium account hub so it now feels consistent with the rest of the KoffeeCraft customer experience.
+
+### Main settings structure
+The main Settings screen now presents:
+- customer full name
+- customer email
+- premium grouped sections for:
+  - Account
+  - Security
+  - Inbox Preferences
+  - Help & Policies
+  - Danger Zone
+
+This creates a clearer structure than the earlier minimal settings version and makes the screen feel closer to a real mobile product.
+
+### Personal Info
+I added a dedicated `Personal Info` screen where the customer can update:
+- first name
+- last name
+- email
+
+The fields are pre-filled with the current customer values instead of relying on placeholder text only.
+
+I kept `Date of Birth` visible but read-only. This was an intentional decision so the stored birthday reward logic cannot be abused by repeatedly changing the birthday.
+
+### Change Password
+I added a dedicated `Change Password` screen with:
+- current password field
+- new password field
+- live password validation chips
+
+The live validation mirrors the registration-style rule feedback so the customer can immediately see whether the new password satisfies each requirement.
+
+The password update flow verifies the current password first, then saves a newly generated password hash and salt.
+
+### Inbox Preferences
+I added a separate `Inbox Preferences` screen so the customer can change promotional message consent after registration.
+
+This keeps the original registration choice intact while allowing the user to update that preference later from Settings.
+
+### Help and policy content
+I added separate Settings-linked screens for:
+- Help
+- Terms of Use
+- Privacy Statement
+
+To keep the project structure simpler, I used a shared info page pattern with different content based on the selected section.
+
+### Delete Account
+I added a dedicated `Delete Account` screen with:
+- current password confirmation
+- explicit warning
+- delete and back actions
+
+The deletion flow permanently removes the customer account and related customer-owned data from the local database.
+
+### Design direction
+Across all settings-related screens I used:
+- premium warm coffee-tone background
+- rounded cards
+- softer premium buttons
+- clear section grouping
+- back navigation using a top-left `‹` pattern
+
+This keeps Settings visually aligned with:
+- Cart
+- Checkout
+- Order Status
+- Feedback
+- Notifications
+- Favourites
+
+### Files involved
+- `CustomerSettingsFragment.kt`
+- `fragment_customer_settings.xml`
+- `CustomerPersonalInfoFragment.kt`
+- `fragment_customer_personal_info.xml`
+- `CustomerChangePasswordFragment.kt`
+- `fragment_customer_change_password.xml`
+- `CustomerInboxPreferencesFragment.kt`
+- `fragment_customer_inbox_preferences.xml`
+- `SettingsInfoPageFragment.kt`
+- `fragment_settings_info_page.xml`
+- `CustomerDeleteAccountFragment.kt`
+- `fragment_customer_delete_account.xml`
+- `nav_graph.xml`
+

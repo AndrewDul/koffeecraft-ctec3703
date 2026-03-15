@@ -163,4 +163,33 @@
         android:name="uk.ac.dmu.koffeecraft.ui.settings.CustomerSettingsFragment"
         android:label="Settings" />
 
+    <fragment
+        android:id="@+id/customerPersonalInfoFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.settings.CustomerPersonalInfoFragment"
+        android:label="Personal Info" />
+
+    <fragment
+        android:id="@+id/customerChangePasswordFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.settings.CustomerChangePasswordFragment"
+        android:label="Change Password" />
+
+    <fragment
+        android:id="@+id/customerInboxPreferencesFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.settings.CustomerInboxPreferencesFragment"
+        android:label="Inbox Preferences" />
+
+    <fragment
+        android:id="@+id/settingsInfoPageFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.settings.SettingsInfoPageFragment"
+        android:label="Settings Info">
+        <argument
+            android:name="pageType"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/customerDeleteAccountFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.settings.CustomerDeleteAccountFragment"
+        android:label="Delete Account" />
+
 </navigation>

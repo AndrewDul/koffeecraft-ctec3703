@@ -732,3 +732,39 @@ I also added an `isCrafted` derived property to the projection model.
 **Result**
 The feedback product list and the individual product feedback screen can now show the `Crafted` badge correctly for customised purchased items.
 
+## 37) Settings area needed a full customer account structure
+
+**Problem**
+The original customer settings area was too minimal and did not match the premium visual direction of the rest of the application.
+
+It only exposed a basic settings entry point and did not provide a complete account management flow.
+
+**Cause**
+Settings had not yet been expanded into a proper customer-facing account area. Important tasks such as:
+- editing personal details
+- changing password
+- managing inbox preferences
+- viewing policy/help content
+- deleting the account
+
+were not yet separated into structured screens.
+
+**Fix**
+I redesigned Settings into a premium multi-screen account flow with grouped sections:
+- Account
+- Security
+- Inbox Preferences
+- Help & Policies
+- Danger Zone
+
+I added dedicated screens for:
+- Personal Info
+- Change Password
+- Inbox Preferences
+- Help / Terms / Privacy
+- Delete Account
+
+**Result**
+The customer settings experience now feels more complete, more realistic, and more consistent with the rest of the premium KoffeeCraft UI.
+
+
