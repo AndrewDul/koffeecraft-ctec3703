@@ -38,25 +38,25 @@ interface FavouriteDao {
     fun observeFavouriteProductsForCustomer(customerId: Long): Flow<List<Product>>
 
     @Query("""
-    SELECT
-        p.productId AS productId,
-        p.name AS name,
-        p.description AS description,
-        p.category AS productFamily,
-        p.price AS price,
-        p.isAvailable AS isActive,
-        po.displayLabel AS standardOptionLabel,
-        po.sizeValue AS standardSizeValue,
-        po.sizeUnit AS standardSizeUnit,
-        po.estimatedCalories AS standardCalories
-    FROM products p
-    INNER JOIN favourites f ON f.productId = p.productId
-    LEFT JOIN product_options po
-        ON po.productId = p.productId
-       AND po.isDefault = 1
-    WHERE f.customerId = :customerId
-    ORDER BY f.createdAt DESC
-""")
+        SELECT
+            p.productId AS productId,
+            p.name AS name,
+            p.description AS description,
+            p.category AS productFamily,
+            p.price AS price,
+            p.isAvailable AS isActive,
+            po.displayLabel AS standardOptionLabel,
+            po.sizeValue AS standardSizeValue,
+            po.sizeUnit AS standardSizeUnit,
+            po.estimatedCalories AS standardCalories
+        FROM products p
+        INNER JOIN favourites f ON f.productId = p.productId
+        LEFT JOIN product_options po
+            ON po.productId = p.productId
+           AND po.isDefault = 1
+        WHERE f.customerId = :customerId
+        ORDER BY f.createdAt DESC
+    """)
     fun observeStandardFavouriteCardsForCustomer(customerId: Long): Flow<List<StandardFavouriteCard>>
 
     @Query("""
@@ -85,11 +85,39 @@ interface FavouriteDao {
         LIMIT 3
     """)
     suspend fun getLowestNonZeroFavouriteProducts(): List<ProductFavouriteInsight>
+
+    @Query("""
+        SELECT
+            p.productId AS productId,
+            p.name AS productName,
+            p.description AS productDescription,
+            p.category AS productFamily,
+            p.price AS price,
+            COUNT(f.productId) AS favouriteCount
+        FROM products p
+        INNER JOIN favourites f ON f.productId = p.productId
+        WHERE p.isAvailable = 1
+          AND p.category IN ('COFFEE', 'CAKE')
+        GROUP BY p.productId, p.name, p.description, p.category, p.price
+        HAVING COUNT(f.productId) > 0
+        ORDER BY favouriteCount DESC, p.name ASC
+        LIMIT :limit
+    """)
+    suspend fun getMostLovedProducts(limit: Int): List<HomeLovedProductInsight>
 }
 
 data class ProductFavouriteInsight(
     val productId: Long,
     val productName: String,
+    val favouriteCount: Int
+)
+
+data class HomeLovedProductInsight(
+    val productId: Long,
+    val productName: String,
+    val productDescription: String,
+    val productFamily: String,
+    val price: Double,
     val favouriteCount: Int
 )
 

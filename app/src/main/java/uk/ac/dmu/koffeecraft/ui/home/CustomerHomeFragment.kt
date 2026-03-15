@@ -8,8 +8,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,7 +19,6 @@ import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
-import com.google.android.material.progressindicator.LinearProgressIndicator
 
 class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
@@ -34,16 +33,19 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
     private lateinit var rvNewArrivals: RecyclerView
     private lateinit var rvTopCoffees: RecyclerView
     private lateinit var rvTopCakes: RecyclerView
+    private lateinit var rvMostLoved: RecyclerView
 
     private lateinit var tvRewardsEmpty: TextView
     private lateinit var tvNewArrivalsEmpty: TextView
     private lateinit var tvTopCoffeesEmpty: TextView
     private lateinit var tvTopCakesEmpty: TextView
+    private lateinit var tvMostLovedEmpty: TextView
 
     private lateinit var rewardsAdapter: CustomerHomeCarouselAdapter
     private lateinit var newArrivalsAdapter: CustomerHomeCarouselAdapter
     private lateinit var topCoffeesAdapter: CustomerHomeCarouselAdapter
     private lateinit var topCakesAdapter: CustomerHomeCarouselAdapter
+    private lateinit var mostLovedAdapter: CustomerHomeCarouselAdapter
 
     private val customerId: Long?
         get() = SessionManager.currentCustomerId
@@ -62,11 +64,13 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
         rvNewArrivals = view.findViewById(R.id.rvNewArrivals)
         rvTopCoffees = view.findViewById(R.id.rvTopCoffees)
         rvTopCakes = view.findViewById(R.id.rvTopCakes)
+        rvMostLoved = view.findViewById(R.id.rvMostLoved)
 
         tvRewardsEmpty = view.findViewById(R.id.tvRewardsEmpty)
         tvNewArrivalsEmpty = view.findViewById(R.id.tvNewArrivalsEmpty)
         tvTopCoffeesEmpty = view.findViewById(R.id.tvTopCoffeesEmpty)
         tvTopCakesEmpty = view.findViewById(R.id.tvTopCakesEmpty)
+        tvMostLovedEmpty = view.findViewById(R.id.tvMostLovedEmpty)
 
         rewardsAdapter = CustomerHomeCarouselAdapter(emptyList()) {
             openRewards()
@@ -84,10 +88,15 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
             openMenu()
         }
 
+        mostLovedAdapter = CustomerHomeCarouselAdapter(emptyList()) {
+            openMenu()
+        }
+
         setupHorizontalRecycler(rvRewardsPreview, rewardsAdapter)
         setupHorizontalRecycler(rvNewArrivals, newArrivalsAdapter)
         setupHorizontalRecycler(rvTopCoffees, topCoffeesAdapter)
         setupHorizontalRecycler(rvTopCakes, topCakesAdapter)
+        setupHorizontalRecycler(rvMostLoved, mostLovedAdapter)
 
         cardBeansBalance.setOnClickListener { openRewards() }
         cardRewardsSection.setOnClickListener { openRewards() }
@@ -117,8 +126,17 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
             val customer = db.customerDao().getById(cid) ?: return@launch
             val rewardProducts = db.productDao().getRewardProducts()
             val newProducts = db.productDao().getActiveNewProducts()
-            val topCoffees = db.feedbackDao().getTopRatedProductsByFamily("COFFEE", 3)
-            val topCakes = db.feedbackDao().getTopRatedProductsByFamily("CAKE", 3)
+            val topCoffees = db.feedbackDao().getTopRatedProductsByFamily(
+                productFamily = "COFFEE",
+                minimumRatings = 1,
+                limit = 3
+            )
+            val topCakes = db.feedbackDao().getTopRatedProductsByFamily(
+                productFamily = "CAKE",
+                minimumRatings = 1,
+                limit = 3
+            )
+            val mostLovedProducts = db.favouriteDao().getMostLovedProducts(limit = 5)
 
             val rewardItems = buildRewardPreviewItems(
                 customer.beansBalance,
@@ -126,10 +144,13 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
                 customer.pendingBeansBoosters,
                 rewardProducts
             )
+
             val newArrivalItems = newProducts.map { product ->
                 CustomerHomeCarouselItem(
                     title = product.name,
-                    subtitle = product.description.ifBlank { "Freshly added to the KoffeeCraft collection." },
+                    subtitle = product.description.ifBlank {
+                        "Freshly added to the KoffeeCraft collection."
+                    },
                     metaLine = if (product.isMerch) {
                         if (product.rewardEnabled) "Reward item" else "Merch item"
                     } else {
@@ -169,6 +190,24 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
                 )
             }
 
+            val mostLovedItems = mostLovedProducts.map { item ->
+                CustomerHomeCarouselItem(
+                    title = item.productName,
+                    subtitle = item.productDescription.ifBlank { "Customer favourite across the KoffeeCraft menu." },
+                    metaLine = String.format(
+                        Locale.UK,
+                        "♥ %d favourites • From £%.2f",
+                        item.favouriteCount,
+                        item.price
+                    ),
+                    badgeLabel = when {
+                        item.productFamily.equals("COFFEE", ignoreCase = true) -> "COFFEE"
+                        item.productFamily.equals("CAKE", ignoreCase = true) -> "CAKE"
+                        else -> "LOVED"
+                    }
+                )
+            }
+
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
 
@@ -189,6 +228,7 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
                 newArrivalsAdapter.submitList(newArrivalItems)
                 topCoffeesAdapter.submitList(topCoffeeItems)
                 topCakesAdapter.submitList(topCakeItems)
+                mostLovedAdapter.submitList(mostLovedItems)
 
                 tvRewardsEmpty.visibility = if (rewardItems.isEmpty()) View.VISIBLE else View.GONE
                 rvRewardsPreview.visibility = if (rewardItems.isEmpty()) View.GONE else View.VISIBLE
@@ -201,6 +241,9 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
                 tvTopCakesEmpty.visibility = if (topCakeItems.isEmpty()) View.VISIBLE else View.GONE
                 rvTopCakes.visibility = if (topCakeItems.isEmpty()) View.GONE else View.VISIBLE
+
+                tvMostLovedEmpty.visibility = if (mostLovedItems.isEmpty()) View.VISIBLE else View.GONE
+                rvMostLoved.visibility = if (mostLovedItems.isEmpty()) View.GONE else View.VISIBLE
             }
         }
     }
@@ -244,7 +287,9 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
             items += CustomerHomeCarouselItem(
                 title = product.name,
-                subtitle = product.description.ifBlank { "Special reward item available in the rewards screen." },
+                subtitle = product.description.ifBlank {
+                    "Special reward item available in the rewards screen."
+                },
                 metaLine = if (beansCost > 0) "$beansCost beans" else "Reward item",
                 badgeLabel = if (beansCost > 0 && beansBalance >= beansCost) "AVAILABLE" else "REWARD"
             )

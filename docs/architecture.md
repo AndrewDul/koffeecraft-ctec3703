@@ -1918,6 +1918,94 @@ These changes improve:
 - reuse of existing review logic
 - product review completion flow
 
+---
+
+## Home recommendation logic refinement and new Most Loved carousel
+
+I refined the recommendation structure on the customer home page so each carousel now represents a clearer and more consistent signal.
+
+### 1. Recommended Coffees
+
+I kept `Recommended Coffees` based only on customer star ratings.
+
+#### New rule
+- only products from the `COFFEE` family are included
+- only active products are included
+- products need at least `1` rating
+- results are ordered by:
+  - average rating descending
+  - rating count descending
+  - product name ascending
+- the carousel shows up to `3` products
+
+### Why I changed it
+I changed this because the previous threshold of `3` minimum ratings was too restrictive for the current dataset and could leave the carousel nearly empty even when rated products already existed.
+
+---
+
+### 2. Recommended Cakes
+
+I kept `Recommended Cakes` based only on customer star ratings.
+
+#### New rule
+- only products from the `CAKE` family are included
+- only active products are included
+- products need at least `1` rating
+- results are ordered by:
+  - average rating descending
+  - rating count descending
+  - product name ascending
+- the carousel shows up to `3` products
+
+### Why I changed it
+I changed this for the same reason as coffees.  
+I wanted the cakes recommendation carousel to reflect real customer ratings without being blocked by an unnecessarily high threshold.
+
+---
+
+### 3. Most Loved Products
+
+I added a new carousel called `Most Loved Products`.
+
+#### Purpose
+This carousel is designed to represent customer affection through favourites rather than ratings.
+
+#### Rule
+- it includes both `COFFEE` and `CAKE` products in the same carousel
+- only active products are included
+- results are ordered by:
+  - favourite count descending
+  - product name ascending
+- the carousel shows up to `5` products
+
+### Why I changed it
+I added this because favourites and ratings represent two different signals:
+- ratings show product quality feedback
+- favourites show ongoing customer preference and attachment
+
+Keeping them separate makes the home page more understandable and gives the recommendations a more professional structure.
+
+---
+
+### 4. Home page information architecture
+
+The home page recommendation area now has three distinct recommendation types:
+
+1. `Recommended Coffees` → rating-based coffee recommendations
+2. `Recommended Cakes` → rating-based cake recommendations
+3. `Most Loved Products` → favourites-based mixed coffee and cake recommendations
+
+---
+
+### 5. UI impact
+
+I extended the home screen layout to support the new carousel and its empty state.
+
+#### Added/updated home sections
+- recommended coffees
+- recommended cakes
+- most loved products
+
 
 
 

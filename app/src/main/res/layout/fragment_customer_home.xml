@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5EBDD"
-    android:fillViewport="true">
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,7 +15,7 @@
         android:paddingStart="16dp"
         android:paddingTop="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="100dp">
+        android:paddingBottom="22dp">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardBeansBalance"
@@ -21,10 +23,10 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#E9D8C7"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="2dp"
-            app:strokeColor="#D8C5B5"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -33,64 +35,40 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:text="Beans balance"
+                    android:textColor="#2E2018"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="42dp"
-                        android:layout_height="42dp"
-                        android:background="@drawable/bg_reward_icon_circle"
-                        android:contentDescription="Beans icon"
-                        android:padding="9dp"
-                        android:src="@drawable/coffee_bean" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Your bean balance"
-                            android:textColor="#6E5A4D"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tvBeansValue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="0 beans"
-                            android:textColor="#2E2018"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/progressBeansHome"
+                <TextView
+                    android:id="@+id/tvBeansValue"
                     android:layout_width="match_parent"
-                    android:layout_height="8dp"
-                    android:layout_marginTop="14dp"
-                    android:max="10"
-                    android:progress="0"
-                    app:indicatorColor="#6F4E37"
-                    app:trackColor="#D9C4B2" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="0 beans"
+                    android:textColor="#5B4638"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvBeansMeta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="14dp"
                     android:text="Bean booster progress"
-                    android:textColor="#5B4638"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:textColor="#7A6558"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBeansHome"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:indicatorColor="#8B6B4A"
+                    app:trackColor="#E6D6C8" />
 
                 <TextView
                     android:id="@+id/tvBeansProgressValue"
@@ -242,7 +220,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="Top-rated active coffees with at least 3 ratings."
+                    android:text="Top-rated active coffees based on customer stars."
                     android:textColor="#6E5A4D"
                     android:textSize="12sp" />
 
@@ -251,7 +229,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Not enough coffee ratings yet."
+                    android:text="No coffee ratings yet."
                     android:textColor="#7A6558"
                     android:textSize="13sp"
                     android:visibility="gone" />
@@ -296,7 +274,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="Top-rated active cakes with at least 3 ratings."
+                    android:text="Top-rated active cakes based on customer stars."
                     android:textColor="#6E5A4D"
                     android:textSize="12sp" />
 
@@ -305,13 +283,67 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Not enough cake ratings yet."
+                    android:text="No cake ratings yet."
                     android:textColor="#7A6558"
                     android:textSize="13sp"
                     android:visibility="gone" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvTopCakes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
+                    android:paddingEnd="4dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Most loved products"
+                    android:textColor="#2E2018"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="The most favourited coffees and cakes across the app."
+                    android:textColor="#6E5A4D"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvMostLovedEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="No favourites have been added yet."
+                    android:textColor="#7A6558"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvMostLoved"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"

@@ -101,29 +101,32 @@ interface FeedbackDao {
         LIMIT 3
     """)
     suspend fun getLeastCommentedProducts(): List<ProductCommentInsight>
+
     @Query("""
-    SELECT
-        p.productId AS productId,
-        p.name AS productName,
-        p.description AS productDescription,
-        p.price AS price,
-        p.imageKey AS imageKey,
-        AVG(CAST(f.rating AS REAL)) AS averageRating,
-        COUNT(f.feedbackId) AS ratingCount
-    FROM feedback f
-    INNER JOIN order_items oi ON oi.orderItemId = f.orderItemId
-    INNER JOIN products p ON p.productId = oi.productId
-    WHERE p.category = :productFamily
-      AND p.isAvailable = 1
-    GROUP BY p.productId, p.name, p.description, p.price, p.imageKey
-    HAVING COUNT(f.feedbackId) >= :minimumRatings
-    ORDER BY averageRating DESC, ratingCount DESC, p.name ASC
-    LIMIT 3
-""")
+        SELECT
+            p.productId AS productId,
+            p.name AS productName,
+            p.description AS productDescription,
+            p.price AS price,
+            p.imageKey AS imageKey,
+            AVG(CAST(f.rating AS REAL)) AS averageRating,
+            COUNT(f.feedbackId) AS ratingCount
+        FROM feedback f
+        INNER JOIN order_items oi ON oi.orderItemId = f.orderItemId
+        INNER JOIN products p ON p.productId = oi.productId
+        WHERE p.category = :productFamily
+          AND p.isAvailable = 1
+        GROUP BY p.productId, p.name, p.description, p.price, p.imageKey
+        HAVING COUNT(f.feedbackId) >= :minimumRatings
+        ORDER BY averageRating DESC, ratingCount DESC, p.name ASC
+        LIMIT :limit
+    """)
     suspend fun getTopRatedProductsByFamily(
         productFamily: String,
-        minimumRatings: Int
+        minimumRatings: Int,
+        limit: Int
     ): List<HomeRatedProductInsight>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(feedback: Feedback)
 
@@ -178,6 +181,7 @@ data class ProductCommentInsight(
     val averageRating: Double,
     val ratingCount: Int
 )
+
 data class HomeRatedProductInsight(
     val productId: Long,
     val productName: String,
