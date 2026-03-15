@@ -653,3 +653,33 @@ instead of referencing a non-existent database column.
 
 **Result**
 KSP processed the DAO correctly again and the favourites feature could compile with the new standard favourite card projection.
+
+## 34) Customer notification card layout broke after adding order total
+
+**Problem**
+After adding the order total to the collapsed customer notification card, the layout became incorrect.
+
+**Cause**
+The new `Order total` row was initially inserted as a separate sibling inside the top horizontal layout, alongside:
+- the main notification content column
+- the remove `X` action
+
+Because of this, the row tried to behave like another horizontal column instead of part of the main left-side content.
+
+**Fix**
+I moved the `Order total` row inside the main left content column, underneath:
+- the status chip
+- the order number
+- the status sentence
+
+This restored the correct structure of the collapsed notification card.
+
+**Result**
+The collapsed notification card now displays:
+- status
+- order number
+- status sentence
+- order total
+- remove action
+
+in a clean and visually stable premium layout.

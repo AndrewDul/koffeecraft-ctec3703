@@ -1,14 +1,17 @@
 package uk.ac.dmu.koffeecraft.ui.notifications
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.entities.AppNotification
+import java.util.Locale
 
 class CustomerNotificationsAdapter(
     private var items: List<AppNotification>,
@@ -63,10 +66,16 @@ class CustomerNotificationsAdapter(
     override fun getItemCount(): Int = items.size
 
     class CustomerNotificationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
-        private val tvMessage: TextView = itemView.findViewById(R.id.tvMessage)
-        private val tvDetails: TextView = itemView.findViewById(R.id.tvDetails)
-        private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
+
+        private val tvStatusChip: TextView = itemView.findViewById(R.id.tvStatusChip)
+        private val tvOrderId: TextView = itemView.findViewById(R.id.tvOrderId)
+        private val tvStatusSentence: TextView = itemView.findViewById(R.id.tvStatusSentence)
+        private val tvOrderTotal: TextView = itemView.findViewById(R.id.tvOrderTotal)
+        private val tvRemove: TextView = itemView.findViewById(R.id.tvRemove)
+
+        private val dividerExpanded: View = itemView.findViewById(R.id.dividerExpanded)
+        private val layoutExpandedContent: LinearLayout = itemView.findViewById(R.id.layoutExpandedContent)
+        private val layoutNotificationDetails: LinearLayout = itemView.findViewById(R.id.layoutNotificationDetails)
 
         fun bind(
             item: AppNotification,
@@ -75,34 +84,142 @@ class CustomerNotificationsAdapter(
             onDelete: (AppNotification) -> Unit,
             onToggle: () -> Unit
         ) {
-            tvTitle.text = item.title
-            tvMessage.text = item.message
+            val formattedStatus = formatStatus(item.orderStatus)
+            val orderIdText = item.orderId?.let { "Order #$it" } ?: item.title
+            val statusSentence = buildStatusSentence(item)
+            val orderTotal = details.sumOf { it.quantity * it.unitPrice }
 
-            if (expanded && item.orderId != null) {
-                tvDetails.visibility = View.VISIBLE
-                tvDetails.text = buildDetailsText(details)
+            tvStatusChip.text = formattedStatus
+            tvOrderId.text = orderIdText
+            tvStatusSentence.text = statusSentence
+
+            if (details.isNotEmpty()) {
+                tvOrderTotal.visibility = View.VISIBLE
+                tvOrderTotal.text = formatMoney(orderTotal)
             } else {
-                tvDetails.visibility = View.GONE
-                tvDetails.text = ""
+                tvOrderTotal.visibility = View.GONE
             }
+
+            bindStatusChip(item.orderStatus)
+
+            bindDetails(details)
+
+            dividerExpanded.visibility = if (expanded && item.orderId != null) View.VISIBLE else View.GONE
+            layoutExpandedContent.visibility = if (expanded && item.orderId != null) View.VISIBLE else View.GONE
 
             itemView.setOnClickListener {
                 if (item.orderId != null) onToggle()
             }
 
-            btnDelete.setOnClickListener { onDelete(item) }
+            tvRemove.setOnClickListener { onDelete(item) }
         }
 
-        private fun buildDetailsText(details: List<OrderDisplayItem>): String {
-            if (details.isEmpty()) return "No item details available."
+        private fun bindDetails(details: List<OrderDisplayItem>) {
+            layoutNotificationDetails.removeAllViews()
 
-            return buildString {
-                details.forEachIndexed { index, detail ->
-                    val lineTotal = detail.quantity * detail.unitPrice
-                    append("${detail.productName} x${detail.quantity} • £${"%.2f".format(detail.unitPrice)} each • £${"%.2f".format(lineTotal)}")
-                    if (index != details.lastIndex) append("\n")
+            if (details.isEmpty()) {
+                val emptyView = TextView(itemView.context).apply {
+                    text = "No item details available."
+                    textSize = 13f
+                    setTextColor(Color.parseColor("#7A6558"))
+                }
+                layoutNotificationDetails.addView(emptyView)
+                return
+            }
+
+            details.forEach { detail ->
+                val detailView = LayoutInflater.from(itemView.context)
+                    .inflate(R.layout.item_customer_notification_detail, layoutNotificationDetails, false)
+
+                val tvDetailName = detailView.findViewById<TextView>(R.id.tvDetailName)
+                val tvDetailCraftedBadge = detailView.findViewById<TextView>(R.id.tvDetailCraftedBadge)
+                val tvDetailQuantity = detailView.findViewById<TextView>(R.id.tvDetailQuantity)
+                val tvDetailPriceEach = detailView.findViewById<TextView>(R.id.tvDetailPriceEach)
+                val tvDetailLineTotal = detailView.findViewById<TextView>(R.id.tvDetailLineTotal)
+
+                val lineTotal = detail.quantity * detail.unitPrice
+
+                tvDetailName.text = detail.productName
+                tvDetailCraftedBadge.visibility = if (detail.isCrafted) View.VISIBLE else View.GONE
+                tvDetailQuantity.text = "Qty ${detail.quantity}"
+                tvDetailPriceEach.text = "${formatMoney(detail.unitPrice)} each"
+                tvDetailLineTotal.text = formatMoney(lineTotal)
+
+                layoutNotificationDetails.addView(detailView)
+            }
+        }
+
+        private fun bindStatusChip(status: String?) {
+            tvStatusChip.text = formatStatus(status)
+            val background = tvStatusChip.background.mutate() as GradientDrawable
+
+            when (status?.uppercase(Locale.UK)) {
+                "READY" -> {
+                    background.setColor(Color.parseColor("#DCE9DA"))
+                    tvStatusChip.setTextColor(Color.parseColor("#36533E"))
+                }
+
+                "PREPARING" -> {
+                    background.setColor(Color.parseColor("#F2E4D3"))
+                    tvStatusChip.setTextColor(Color.parseColor("#7A5634"))
+                }
+
+                "PLACED" -> {
+                    background.setColor(Color.parseColor("#E8DDD4"))
+                    tvStatusChip.setTextColor(Color.parseColor("#6A4D3A"))
+                }
+
+                "COLLECTED" -> {
+                    background.setColor(Color.parseColor("#DFE7D8"))
+                    tvStatusChip.setTextColor(Color.parseColor("#3D5640"))
+                }
+
+                "COMPLETED" -> {
+                    background.setColor(Color.parseColor("#DFE7D8"))
+                    tvStatusChip.setTextColor(Color.parseColor("#3D5640"))
+                }
+
+                "CANCELLED" -> {
+                    background.setColor(Color.parseColor("#F0DCD8"))
+                    tvStatusChip.setTextColor(Color.parseColor("#7B4A42"))
+                }
+
+                else -> {
+                    background.setColor(Color.parseColor("#E9DFD6"))
+                    tvStatusChip.setTextColor(Color.parseColor("#5C473A"))
                 }
             }
+        }
+
+        private fun buildStatusSentence(item: AppNotification): String {
+            val orderIdText = item.orderId?.let { "Order #$it" }
+
+            return when (item.orderStatus?.uppercase(Locale.UK)) {
+                "PREPARING" -> "${orderIdText ?: "Your order"} is now being prepared."
+                "READY" -> "${orderIdText ?: "Your order"} is ready for collection."
+                "COLLECTED" -> "${orderIdText ?: "Your order"} has been collected."
+                "COMPLETED" -> "${orderIdText ?: "Your order"} has been completed."
+                "PLACED" -> "${orderIdText ?: "Your order"} has been placed successfully."
+                "CANCELLED" -> "${orderIdText ?: "Your order"} has been cancelled."
+                else -> item.message
+            }
+        }
+
+        private fun formatStatus(status: String?): String {
+            if (status.isNullOrBlank()) return "Update"
+
+            return status
+                .lowercase(Locale.UK)
+                .split("_")
+                .joinToString(" ") { word ->
+                    word.replaceFirstChar { firstChar ->
+                        firstChar.titlecase(Locale.UK)
+                    }
+                }
+        }
+
+        private fun formatMoney(value: Double): String {
+            return String.format(Locale.UK, "£%.2f", value)
         }
     }
 }

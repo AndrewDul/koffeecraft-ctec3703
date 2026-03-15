@@ -1271,3 +1271,70 @@ This keeps the favourites screen more specialised and avoids breaking menu behav
 - `fragment_customer_favourites.xml`
 - `item_customer_favourite_preset.xml`
 - `item_customer_standard_favourite.xml`
+
+
+## Customer Notifications redesign
+
+I redesigned the customer notifications screen so it now matches the premium visual direction of the rest of KoffeeCraft.
+
+### What I changed
+I replaced the basic notification list presentation with a more premium card-based layout.
+
+Each customer notification card now supports:
+- a premium rounded card style
+- a styled status chip
+- order number
+- a short order status sentence
+- total order price in the collapsed state
+- inline expand / collapse behaviour
+- swipe left and swipe right delete
+- a premium `X` remove action
+
+### Expanded notification details
+When expanded, each notification now shows the ordered products in a structured layout instead of a plain text block.
+
+Each ordered item now displays:
+- product name
+- `Crafted` badge when the item was customised
+- quantity
+- price per item
+- total line price
+
+This makes the notification screen much easier to scan and much closer to a real premium mobile ordering app.
+
+### Why I changed this
+The earlier notification screen was functionally correct, but the presentation was too basic and too close to a prototype.
+
+It relied on:
+- simple title/message text
+- a raw details block
+- minimal card styling
+
+This did not match the stronger premium direction already used in:
+- My Orders
+- Favourites
+- other customer-facing screens
+
+### Design decisions
+I kept delete behaviour lightweight and consistent by supporting:
+- swipe left
+- swipe right
+- direct remove using the `X` action
+
+I also kept notifications expandable inline rather than opening a new screen, because this makes order updates faster to check and keeps the flow lightweight.
+
+### Result
+The Customer Notifications screen now:
+- looks more polished
+- feels more premium
+- gives better visibility of order progress
+- shows meaningful order details without leaving the screen
+- visually matches the rest of the customer app much better
+
+### Files involved
+- `CustomerNotificationsFragment.kt`
+- `CustomerNotificationsAdapter.kt`
+- `fragment_customer_notifications.xml`
+- `item_customer_notification.xml`
+- `item_customer_notification_detail.xml`
+

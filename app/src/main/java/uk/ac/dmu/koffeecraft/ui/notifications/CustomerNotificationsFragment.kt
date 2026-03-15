@@ -1,5 +1,9 @@
 package uk.ac.dmu.koffeecraft.ui.notifications
 
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -32,6 +36,8 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
         rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.setHasFixedSize(false)
+        rv.clipToPadding = false
 
         adapter = CustomerNotificationsAdapter(
             items = emptyList(),
@@ -67,7 +73,10 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
     }
 
     private fun attachSwipeToDelete(rv: RecyclerView, db: KoffeeCraftDatabase) {
-        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        val callback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -80,8 +89,62 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
                     db.notificationDao().deleteById(item.notificationId)
                 }
             }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                drawSwipeBackground(c, viewHolder.itemView, dX)
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
         }
 
         ItemTouchHelper(callback).attachToRecyclerView(rv)
     }
+
+    private fun drawSwipeBackground(canvas: Canvas, itemView: View, dX: Float) {
+        if (dX == 0f) return
+
+        val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#B98C73")
+        }
+
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#FFF8F2")
+            textAlign = Paint.Align.CENTER
+            textSize = dp(14f)
+            isFakeBoldText = true
+        }
+
+        val top = itemView.top + dp(8f)
+        val bottom = itemView.bottom - dp(8f)
+
+        val rect = if (dX > 0) {
+            RectF(
+                itemView.left + dp(8f),
+                top,
+                itemView.left + dX - dp(4f),
+                bottom
+            )
+        } else {
+            RectF(
+                itemView.right + dX + dp(4f),
+                top,
+                itemView.right - dp(8f),
+                bottom
+            )
+        }
+
+        canvas.drawRoundRect(rect, dp(22f), dp(22f), backgroundPaint)
+
+        val textY = rect.centerY() - ((textPaint.descent() + textPaint.ascent()) / 2f)
+        canvas.drawText("Remove", rect.centerX(), textY, textPaint)
+    }
+
+    private fun dp(value: Float): Float = value * requireContext().resources.displayMetrics.density
 }
