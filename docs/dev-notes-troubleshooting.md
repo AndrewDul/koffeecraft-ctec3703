@@ -576,3 +576,80 @@ I also kept the My Orders card logic based on real persisted data instead of sho
 
 **Result**
 The `Crafted` badge now appears correctly for newly placed customised orders and the order history can display more accurate custom product information.
+
+
+## 32) Customer Favourites needed a dedicated premium interaction model
+
+**Problem**
+The favourites screen had inconsistent behaviour between its two sections.
+
+- saved custom favourites still relied on a dialog for details
+- standard favourites still reused the generic menu product card style
+- standard favourites did not expand inline
+- long add-on summaries in saved presets could break the layout
+- some actions became visually duplicated when standard favourites were expanded
+
+**Cause**
+The favourites feature had grown beyond the original simple card/dialog flow.
+
+Saved presets and standard favourites were being treated too similarly in structure, even though they represent different user actions:
+- one stores a full customised configuration
+- the other stores a normal product bookmark
+
+The standard favourites section also still depended on a generic adapter intended for menu browsing rather than a favourites-specific interaction.
+
+**Fix**
+I redesigned the Customer Favourites screen into two clearer premium sections:
+
+- `Saved custom favourites` now use expandable inline cards instead of a popup dialog
+- long add-on text was changed to wrap correctly inside the card
+- the unnecessary `Close` action was removed because tapping the card again already collapses it
+- `Standard favourites` now use a dedicated premium adapter and layout
+- `Customize` remains available as a bold text action in the collapsed card
+- `Buy again` remains in the collapsed card
+- the expanded standard favourite card now only adds `Remove` to avoid action duplication
+
+I also changed the standard expanded info from:
+- `Family`
+- `Availability`
+
+to:
+- `Standard size`
+- `Calories`
+
+To support this, I added a dedicated Room projection that reads the default product option for each standard favourite.
+
+**Result**
+The Customer Favourites screen is now:
+- more premium
+- more consistent with the rest of the app
+- easier to browse inline
+- clearer in how standard favourites and saved custom presets differ
+- more stable when showing long saved add-on content
+
+## 33) Room / KSP failed after adding standard favourite projection
+
+**Problem**
+The build failed during KSP processing after I introduced the new standard favourite projection for the favourites screen.
+
+**Symptom**
+Gradle failed with a Room/KSP processing error during:
+- `:app:kspDebugKotlin`
+
+**Cause**
+The DAO query used:
+- `p.productFamily`
+
+but the actual database column in `products` is:
+- `category`
+
+The Kotlin property name and the Room database column name were not the same in this case.
+
+**Fix**
+I corrected the Room query alias so it maps:
+- `p.category AS productFamily`
+
+instead of referencing a non-existent database column.
+
+**Result**
+KSP processed the DAO correctly again and the favourites feature could compile with the new standard favourite card projection.

@@ -38,6 +38,28 @@ interface FavouriteDao {
     fun observeFavouriteProductsForCustomer(customerId: Long): Flow<List<Product>>
 
     @Query("""
+    SELECT
+        p.productId AS productId,
+        p.name AS name,
+        p.description AS description,
+        p.category AS productFamily,
+        p.price AS price,
+        p.isAvailable AS isActive,
+        po.displayLabel AS standardOptionLabel,
+        po.sizeValue AS standardSizeValue,
+        po.sizeUnit AS standardSizeUnit,
+        po.estimatedCalories AS standardCalories
+    FROM products p
+    INNER JOIN favourites f ON f.productId = p.productId
+    LEFT JOIN product_options po
+        ON po.productId = p.productId
+       AND po.isDefault = 1
+    WHERE f.customerId = :customerId
+    ORDER BY f.createdAt DESC
+""")
+    fun observeStandardFavouriteCardsForCustomer(customerId: Long): Flow<List<StandardFavouriteCard>>
+
+    @Query("""
         SELECT
             p.productId AS productId,
             p.name AS productName,
@@ -70,3 +92,41 @@ data class ProductFavouriteInsight(
     val productName: String,
     val favouriteCount: Int
 )
+
+data class StandardFavouriteCard(
+    val productId: Long,
+    val name: String,
+    val description: String,
+    val productFamily: String,
+    val price: Double,
+    val isActive: Boolean,
+    val standardOptionLabel: String?,
+    val standardSizeValue: Int?,
+    val standardSizeUnit: String?,
+    val standardCalories: Int?
+) {
+    val familyLabel: String
+        get() = when {
+            productFamily.equals("COFFEE", ignoreCase = true) -> "Coffee"
+            productFamily.equals("CAKE", ignoreCase = true) -> "Cake"
+            productFamily.equals("MERCH", ignoreCase = true) -> "Merch"
+            else -> productFamily.replaceFirstChar { it.uppercase() }
+        }
+
+    val standardSizeText: String
+        get() {
+            val label = standardOptionLabel?.takeIf { it.isNotBlank() }
+            val sizeValue = standardSizeValue
+            val sizeUnit = standardSizeUnit?.takeIf { it.isNotBlank() }?.lowercase()
+
+            return when {
+                label != null && sizeValue != null && sizeUnit != null -> "$label • ${sizeValue}${sizeUnit}"
+                label != null -> label
+                sizeValue != null && sizeUnit != null -> "${sizeValue}${sizeUnit}"
+                else -> "Not set"
+            }
+        }
+
+    val standardCaloriesText: String
+        get() = standardCalories?.let { "$it kcal" } ?: "Not set"
+}

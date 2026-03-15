@@ -8,32 +8,29 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetCard
+import uk.ac.dmu.koffeecraft.data.dao.StandardFavouriteCard
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.Favourite
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.ui.menu.ProductAdapter
 import uk.ac.dmu.koffeecraft.ui.menu.ProductCustomizationBottomSheet
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 
 class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourites) {
 
     private lateinit var presetAdapter: CustomerFavouritePresetAdapter
-    private lateinit var standardAdapter: ProductAdapter
+    private lateinit var standardAdapter: StandardFavouriteAdapter
 
     private lateinit var tvEmpty: TextView
     private lateinit var tvPresetSection: TextView
     private lateinit var tvStandardSection: TextView
 
-    private var currentProducts: List<Product> = emptyList()
+    private var currentProducts: List<StandardFavouriteCard> = emptyList()
     private var currentPresets: List<CustomerFavouritePresetCard> = emptyList()
-    private var favouriteIds: Set<Long> = emptySet()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -57,32 +54,30 @@ class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourite
         rvProducts.layoutManager = LinearLayoutManager(requireContext())
         rvPresets.isNestedScrollingEnabled = false
         rvProducts.isNestedScrollingEnabled = false
+        rvPresets.setHasFixedSize(false)
+        rvProducts.setHasFixedSize(false)
 
         presetAdapter = CustomerFavouritePresetAdapter(
             items = emptyList(),
-            onOpen = { preset ->
-                showPresetDetailsDialog(db, preset)
+            onRemove = { preset ->
+                removePreset(db, preset)
             },
             onBuyAgain = { preset ->
                 buyPresetAgain(db, preset)
             }
         )
 
-        standardAdapter = ProductAdapter(
+        standardAdapter = StandardFavouriteAdapter(
             items = emptyList(),
-            favouriteIds = emptySet(),
-            onCustomizeClicked = { product ->
-                ProductCustomizationBottomSheet.newInstance(product.productId)
+            onRemove = { card ->
+                removeStandardFavourite(db, customerId, card)
+            },
+            onCustomize = { card ->
+                ProductCustomizationBottomSheet.newInstance(card.productId)
                     .show(parentFragmentManager, "product_customize")
             },
-            onFavouriteToggle = { product, shouldFavourite ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    if (shouldFavourite) {
-                        db.favouriteDao().insert(Favourite(customerId = customerId, productId = product.productId))
-                    } else {
-                        db.favouriteDao().delete(customerId, product.productId)
-                    }
-                }
+            onBuyAgain = { card ->
+                buyStandardFavouriteAgain(db, card)
             }
         )
 
@@ -97,9 +92,8 @@ class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourite
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            db.favouriteDao().observeFavouriteProductsForCustomer(customerId).collect { products ->
+            db.favouriteDao().observeStandardFavouriteCardsForCustomer(customerId).collect { products ->
                 currentProducts = products
-                favouriteIds = products.map { it.productId }.toSet()
                 render()
             }
         }
@@ -108,53 +102,81 @@ class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourite
     private fun render() {
         presetAdapter.submitList(currentPresets)
         standardAdapter.submitList(currentProducts)
-        standardAdapter.updateFavouriteIds(favouriteIds)
 
         tvPresetSection.visibility = if (currentPresets.isEmpty()) View.GONE else View.VISIBLE
         tvStandardSection.visibility = if (currentProducts.isEmpty()) View.GONE else View.VISIBLE
-
         tvEmpty.visibility =
             if (currentPresets.isEmpty() && currentProducts.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    private fun showPresetDetailsDialog(
+    private fun removePreset(
         db: KoffeeCraftDatabase,
         preset: CustomerFavouritePresetCard
     ) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(preset.productName)
-            .setMessage(
-                buildString {
-                    append(preset.productDescription)
-                    append("\n\n")
-                    append("Size: ")
-                    append(preset.optionLabel)
-                    append(" • ")
-                    append(preset.optionSizeValue)
-                    append(preset.optionSizeUnit.lowercase())
-                    append("\n")
-                    append("Add-ons: ")
-                    append(preset.addOnSummary ?: "None")
-                    append("\n")
-                    append("Calories: ")
-                    append(preset.totalCalories)
-                    append(" kcal")
-                    append("\n")
-                    append("Price: £")
-                    append(String.format("%.2f", preset.totalPrice))
-                }
-            )
-            .setNegativeButton("Close", null)
-            .setNeutralButton("Remove") { _, _ ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.customerFavouritePresetDao().deleteAddOnRefsForPreset(preset.presetId)
-                    db.customerFavouritePresetDao().deletePresetById(preset.presetId)
-                }
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            db.customerFavouritePresetDao().deleteAddOnRefsForPreset(preset.presetId)
+            db.customerFavouritePresetDao().deletePresetById(preset.presetId)
+
+            withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
+
+                Toast.makeText(
+                    requireContext(),
+                    "Saved favourite removed.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            .setPositiveButton("Buy again") { _, _ ->
-                buyPresetAgain(db, preset)
+        }
+    }
+
+    private fun removeStandardFavourite(
+        db: KoffeeCraftDatabase,
+        customerId: Long,
+        card: StandardFavouriteCard
+    ) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            db.favouriteDao().delete(customerId, card.productId)
+
+            withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
+
+                Toast.makeText(
+                    requireContext(),
+                    "Favourite removed.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            .show()
+        }
+    }
+
+    private fun buyStandardFavouriteAgain(
+        db: KoffeeCraftDatabase,
+        card: StandardFavouriteCard
+    ) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val product: Product? = db.productDao().getById(card.productId)
+
+            withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
+
+                if (product == null || !product.isActive) {
+                    Toast.makeText(
+                        requireContext(),
+                        "This product is currently unavailable.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@withContext
+                }
+
+                CartManager.add(product)
+
+                Toast.makeText(
+                    requireContext(),
+                    "Favourite added to cart.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     private fun buyPresetAgain(

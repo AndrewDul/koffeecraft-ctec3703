@@ -3,20 +3,24 @@ package uk.ac.dmu.koffeecraft.ui.favourites
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetCard
+import java.util.Locale
 
 class CustomerFavouritePresetAdapter(
     private var items: List<CustomerFavouritePresetCard>,
-    private val onOpen: (CustomerFavouritePresetCard) -> Unit,
+    private val onRemove: (CustomerFavouritePresetCard) -> Unit,
     private val onBuyAgain: (CustomerFavouritePresetCard) -> Unit
 ) : RecyclerView.Adapter<CustomerFavouritePresetAdapter.PresetViewHolder>() {
 
+    private val expandedIds = mutableSetOf<Long>()
+
     fun submitList(newItems: List<CustomerFavouritePresetCard>) {
         items = newItems
+        expandedIds.retainAll(newItems.map { it.presetId }.toSet())
         notifyDataSetChanged()
     }
 
@@ -27,40 +31,90 @@ class CustomerFavouritePresetAdapter(
     }
 
     override fun onBindViewHolder(holder: PresetViewHolder, position: Int) {
-        holder.bind(items[position], onOpen, onBuyAgain)
+        val item = items[position]
+        val expanded = expandedIds.contains(item.presetId)
+
+        holder.bind(
+            item = item,
+            expanded = expanded,
+            onToggle = {
+                val id = item.presetId
+                if (!expandedIds.add(id)) {
+                    expandedIds.remove(id)
+                }
+
+                val index = items.indexOfFirst { it.presetId == id }
+                if (index != -1) notifyItemChanged(index)
+            },
+            onRemove = onRemove,
+            onBuyAgain = onBuyAgain
+        )
     }
 
     override fun getItemCount(): Int = items.size
 
     class PresetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
         private val tvName: TextView = itemView.findViewById(R.id.tvPresetName)
-        private val tvConfig: TextView = itemView.findViewById(R.id.tvPresetConfig)
-        private val tvMeta: TextView = itemView.findViewById(R.id.tvPresetMeta)
-        private val btnBuyAgain: Button = itemView.findViewById(R.id.btnPresetBuyAgain)
+        private val tvSize: TextView = itemView.findViewById(R.id.tvPresetSize)
+        private val tvAddOns: TextView = itemView.findViewById(R.id.tvPresetAddOns)
+        private val tvPriceValue: TextView = itemView.findViewById(R.id.tvPresetPriceValue)
+        private val tvCaloriesValue: TextView = itemView.findViewById(R.id.tvPresetCaloriesValue)
+        private val tvBuyAgainCollapsed: TextView = itemView.findViewById(R.id.tvPresetBuyAgainCollapsed)
+
+        private val dividerExpanded: View = itemView.findViewById(R.id.dividerExpanded)
+        private val layoutExpandedContent: LinearLayout = itemView.findViewById(R.id.layoutExpandedContent)
+
+        private val tvExpandedSizeValue: TextView = itemView.findViewById(R.id.tvExpandedSizeValue)
+        private val tvExpandedAddOnsValue: TextView = itemView.findViewById(R.id.tvExpandedAddOnsValue)
+        private val tvExpandedCaloriesValue: TextView = itemView.findViewById(R.id.tvExpandedCaloriesValue)
+        private val tvExpandedPriceValue: TextView = itemView.findViewById(R.id.tvExpandedPriceValue)
+
+        private val tvRemove: TextView = itemView.findViewById(R.id.tvPresetRemove)
+        private val tvBuyAgainExpanded: TextView = itemView.findViewById(R.id.tvPresetBuyAgainExpanded)
 
         fun bind(
             item: CustomerFavouritePresetCard,
-            onOpen: (CustomerFavouritePresetCard) -> Unit,
+            expanded: Boolean,
+            onToggle: () -> Unit,
+            onRemove: (CustomerFavouritePresetCard) -> Unit,
             onBuyAgain: (CustomerFavouritePresetCard) -> Unit
         ) {
-            tvName.text = item.productName
+            val sizeText = buildSizeText(item)
+            val addOnsText = item.addOnSummary?.takeIf { it.isNotBlank() } ?: "None"
 
-            tvConfig.text = buildString {
+            tvName.text = item.productName
+            tvSize.text = "Size • $sizeText"
+            tvAddOns.text = "Add-ons • $addOnsText"
+            tvPriceValue.text = formatMoney(item.totalPrice)
+            tvCaloriesValue.text = "${item.totalCalories} kcal"
+
+            tvExpandedSizeValue.text = sizeText
+            tvExpandedAddOnsValue.text = addOnsText
+            tvExpandedCaloriesValue.text = "${item.totalCalories} kcal"
+            tvExpandedPriceValue.text = formatMoney(item.totalPrice)
+
+            dividerExpanded.visibility = if (expanded) View.VISIBLE else View.GONE
+            layoutExpandedContent.visibility = if (expanded) View.VISIBLE else View.GONE
+            tvBuyAgainCollapsed.visibility = if (expanded) View.GONE else View.VISIBLE
+
+            itemView.setOnClickListener { onToggle() }
+            tvRemove.setOnClickListener { onRemove(item) }
+            tvBuyAgainCollapsed.setOnClickListener { onBuyAgain(item) }
+            tvBuyAgainExpanded.setOnClickListener { onBuyAgain(item) }
+        }
+
+        private fun buildSizeText(item: CustomerFavouritePresetCard): String {
+            return buildString {
                 append(item.optionLabel)
                 append(" • ")
                 append(item.optionSizeValue)
-                append(item.optionSizeUnit.lowercase())
-
-                if (!item.addOnSummary.isNullOrBlank()) {
-                    append("\n")
-                    append(item.addOnSummary)
-                }
+                append(item.optionSizeUnit.lowercase(Locale.UK))
             }
+        }
 
-            tvMeta.text = "£%.2f • %d kcal".format(item.totalPrice, item.totalCalories)
-
-            itemView.setOnClickListener { onOpen(item) }
-            btnBuyAgain.setOnClickListener { onBuyAgain(item) }
+        private fun formatMoney(value: Double): String {
+            return String.format(Locale.UK, "£%.2f", value)
         }
     }
 }

@@ -1199,3 +1199,75 @@ The My Orders screen now:
 - `bg_order_status_chip.xml`
 - `bg_order_crafted_chip.xml`
 - `bg_order_delete_circle.xml`
+
+## Customer Favourites redesign
+
+I redesigned the customer Favourites screen so it now behaves more like a premium mobile product instead of a collection of temporary utility actions.
+
+### Screen structure
+I kept the favourites area split into two separate sections:
+- `Saved custom favourites`
+- `Standard favourites`
+
+This preserves the difference between:
+- fully saved customised configurations
+- normal favourited products
+
+### Saved custom favourites
+I changed saved custom favourites from a dialog-based interaction into expandable inline cards.
+
+Each saved preset card now:
+- shows the product name
+- shows saved size information
+- shows saved add-ons
+- shows calories
+- shows price
+- supports inline expand / collapse in the same list item
+
+I removed the old popup-style details flow because it felt less premium and interrupted the browsing experience.
+
+I also removed the extra `Close` action because tapping the same card again already collapses it, which keeps the interaction cleaner.
+
+### Long add-on handling
+I improved the saved preset card layout so long add-on summaries wrap correctly instead of:
+- overlapping the label area
+- overflowing outside the right edge of the card
+
+This was important because custom favourites can contain many extras and the layout needed to stay stable for larger content.
+
+### Standard favourites
+I separated standard favourites from the shared menu adapter and gave them their own favourites-specific presentation.
+
+Each standard favourite now uses:
+- a premium expandable card
+- a text-style `Customize` action
+- a text-style `Buy again` action
+- a `Remove` action inside the expanded area
+
+I intentionally kept `Customize` and `Buy again` visible in the collapsed card and limited the expanded card to `Remove` only, so actions are not duplicated.
+
+### Expanded standard favourite information
+I changed the expanded information for standard favourites so it now shows:
+- `Standard size`
+- `Calories`
+- `From`
+
+instead of the earlier:
+- `Family`
+- `Availability`
+
+To support this, I extended the favourites data query to read the default product option from `product_options`.
+
+### Technical direction
+For standard favourites, I introduced a dedicated projection model and query rather than reusing the generic product menu adapter.
+
+This keeps the favourites screen more specialised and avoids breaking menu behaviour in other parts of the app.
+
+### Files involved
+- `CustomerFavouritesFragment.kt`
+- `CustomerFavouritePresetAdapter.kt`
+- `StandardFavouriteAdapter.kt`
+- `FavouriteDao.kt`
+- `fragment_customer_favourites.xml`
+- `item_customer_favourite_preset.xml`
+- `item_customer_standard_favourite.xml`

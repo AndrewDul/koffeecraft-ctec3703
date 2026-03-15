@@ -1,29 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:background="#F5EBDD"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="18dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Favourites"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Favourites"
+                    android:textColor="#2E2018"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Revisit your saved picks and crafted favourites."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvPresetSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="18dp"
             android:text="Saved custom favourites"
-            android:textSize="16sp"
+            android:textColor="#4D3527"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
@@ -32,7 +65,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:nestedScrollingEnabled="false" />
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:paddingBottom="4dp" />
 
         <TextView
             android:id="@+id/tvStandardSection"
@@ -40,7 +76,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Standard favourites"
-            android:textSize="16sp"
+            android:textColor="#4D3527"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
@@ -49,15 +86,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:nestedScrollingEnabled="false" />
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:paddingBottom="4dp" />
 
         <TextView
             android:id="@+id/tvEmpty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="32dp"
             android:gravity="center"
             android:text="No favourites saved yet."
+            android:textColor="#7A6558"
+            android:textSize="14sp"
             android:visibility="gone" />
 
     </LinearLayout>

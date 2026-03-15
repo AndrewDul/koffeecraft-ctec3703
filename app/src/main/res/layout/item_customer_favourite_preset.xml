@@ -3,45 +3,252 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    app:cardCornerRadius="16dp"
-    app:cardUseCompatPadding="true">
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#FFF8F2"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="1dp"
+    app:strokeColor="#E3D4C6"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="14dp">
+        android:padding="16dp">
 
         <TextView
             android:id="@+id/tvPresetName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Latte"
+            android:textColor="#2E2018"
             android:textSize="17sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvPresetConfig"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Large • 450ml&#10;Vanilla syrup, Coconut topping" />
-
-        <TextView
-            android:id="@+id/tvPresetMeta"
+            android:id="@+id/tvPresetSize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="£5.20 • 420 kcal"
-            android:textStyle="bold" />
+            android:text="Size • Large • 450ml"
+            android:textColor="#6E5A4D"
+            android:textSize="13sp" />
 
-        <Button
-            android:id="@+id/btnPresetBuyAgain"
+        <TextView
+            android:id="@+id/tvPresetAddOns"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:breakStrategy="high_quality"
+            android:hyphenationFrequency="normal"
+            android:lineSpacingExtra="2dp"
+            android:maxLines="3"
+            android:text="Add-ons • Vanilla syrup, Oat milk"
+            android:textColor="#6E5A4D"
+            android:textSize="13sp" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Buy again" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Price"
+                    android:textColor="#7A6558"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tvPresetPriceValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="£5.20"
+                    android:textColor="#2E2018"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calories"
+                    android:textColor="#7A6558"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tvPresetCaloriesValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="420 kcal"
+                    android:textColor="#2E2018"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPresetBuyAgainCollapsed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="14dp"
+            android:text="Buy again"
+            android:textColor="#4D3527"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/dividerExpanded"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="14dp"
+            android:background="#EADFD4"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layoutExpandedContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Size"
+                android:textColor="#7A6558"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvExpandedSizeValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Large • 450ml"
+                android:textColor="#2E2018"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Add-ons"
+                android:textColor="#7A6558"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvExpandedAddOnsValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:breakStrategy="high_quality"
+                android:hyphenationFrequency="normal"
+                android:lineSpacingExtra="2dp"
+                android:text="Vanilla syrup, Oat milk"
+                android:textColor="#2E2018"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Calories"
+                        android:textColor="#7A6558"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvExpandedCaloriesValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="420 kcal"
+                        android:textColor="#2E2018"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Price"
+                        android:textColor="#7A6558"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvExpandedPriceValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="£5.20"
+                        android:textColor="#2E2018"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvPresetRemove"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Remove"
+                    android:textColor="#7B4A42"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPresetBuyAgainExpanded"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="18dp"
+                    android:text="Buy again"
+                    android:textColor="#4D3527"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
