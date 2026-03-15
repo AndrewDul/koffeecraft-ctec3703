@@ -9,19 +9,25 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
+import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
 
+import uk.ac.dmu.koffeecraft.ui.menu.ProductCustomizationBottomSheet
 class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
 
     private lateinit var tvBeansCount: TextView
     private lateinit var tvBeansSubtitle: TextView
+    private lateinit var progressBeansBooster: LinearProgressIndicator
+    private lateinit var tvBeansProgress: TextView
     private lateinit var adapter: CustomerRewardsAdapter
 
     private val customerId: Long?
@@ -32,6 +38,8 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
 
         tvBeansCount = view.findViewById(R.id.tvBeansCount)
         tvBeansSubtitle = view.findViewById(R.id.tvBeansSubtitle)
+        progressBeansBooster = view.findViewById(R.id.progressBeansBooster)
+        tvBeansProgress = view.findViewById(R.id.tvBeansProgress)
 
         val rvRewards = view.findViewById<RecyclerView>(R.id.rvRewards)
         rvRewards.layoutManager = LinearLayoutManager(requireContext())
@@ -63,9 +71,16 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
                 val reservedBeans = CartManager.beansToSpend()
                 val availableBeansForNewRewards = (customer.beansBalance - reservedBeans).coerceAtLeast(0)
 
+                val progress = customer.beansBoosterProgress.coerceIn(0, BeansBoosterManager.BOOSTER_STEP - 1)
+                val pendingBoosters = customer.pendingBeansBoosters.coerceAtLeast(0)
+
                 tvBeansCount.text = customer.beansBalance.toString()
                 tvBeansSubtitle.text =
                     "Available now: $availableBeansForNewRewards • Reserved in cart: $reservedBeans"
+
+                progressBeansBooster.max = BeansBoosterManager.BOOSTER_STEP
+                progressBeansBooster.progress = progress
+                tvBeansProgress.text = BeansBoosterManager.progressStatusText(progress, pendingBoosters)
 
                 val rewardProductsByName = rewardProducts.associateBy { it.name }
 
@@ -74,14 +89,10 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
                 items += RewardUiModel(
                     id = "BEAN_BOOSTER",
                     title = "5 Bean Booster",
-                    description = "Claim 5 extra beans when you reach your next milestone.",
-                    beansLabel = "Next: ${customer.nextBeansBonusThreshold}",
-                    actionLabel = if (customer.beansBalance >= customer.nextBeansBonusThreshold) {
-                        "Claim +5 beans"
-                    } else {
-                        "Need ${customer.nextBeansBonusThreshold} beans"
-                    },
-                    enabled = customer.beansBalance >= customer.nextBeansBonusThreshold
+                    description = "Every 10 earned beans unlock a +5 bean booster.",
+                    beansLabel = BeansBoosterManager.rewardMetaLine(progress, pendingBoosters),
+                    actionLabel = if (pendingBoosters > 0) "Claim +5 beans" else "Keep collecting beans",
+                    enabled = pendingBoosters > 0
                 )
 
                 items += RewardUiModel(
@@ -158,17 +169,21 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val customer = db.customerDao().getById(cid) ?: return@launch
 
-            if (customer.beansBalance < customer.nextBeansBonusThreshold) {
+            if (customer.pendingBeansBoosters <= 0) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "You have not reached the next bean milestone yet.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "You do not have a bean booster ready yet.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
                 return@launch
             }
 
             db.customerDao().update(
                 customer.copy(
-                    beansBalance = customer.beansBalance + 5,
-                    nextBeansBonusThreshold = customer.nextBeansBonusThreshold + 10
+                    beansBalance = customer.beansBalance + BeansBoosterManager.BOOSTER_REWARD,
+                    pendingBeansBoosters = (customer.pendingBeansBoosters - 1).coerceAtLeast(0)
                 )
             )
 
@@ -202,20 +217,40 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
                     return@withContext
                 }
 
-                val names = options.map { it.name }.toTypedArray()
+                val dialogView = LayoutInflater.from(requireContext())
+                    .inflate(R.layout.dialog_reward_product_picker, null, false)
 
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(if (category == "COFFEE") "Choose your free coffee" else "Choose your free cake")
-                    .setItems(names) { _, which ->
-                        val selected = options[which]
-                        CartManager.addReward(
-                            sourceProduct = selected,
-                            rewardType = rewardType,
-                            beansCostPerUnit = beansCost
-                        )
-                        Toast.makeText(requireContext(), "Reward added to cart.", Toast.LENGTH_SHORT).show()
-                        loadRewards()
-                    }
+                val tvPickerTitle = dialogView.findViewById<TextView>(R.id.tvPickerTitle)
+                val tvPickerSubtitle = dialogView.findViewById<TextView>(R.id.tvPickerSubtitle)
+                val rvPicker = dialogView.findViewById<RecyclerView>(R.id.rvRewardProductPicker)
+
+                tvPickerTitle.text = if (category == "COFFEE") {
+                    "Choose your free coffee"
+                } else {
+                    "Choose your free cake"
+                }
+
+                tvPickerSubtitle.text =
+                    "Pick one reward item and customise it. The base item is free — you only pay for size upgrades and extras."
+
+                rvPicker.layoutManager = LinearLayoutManager(requireContext())
+
+                lateinit var dialog: AlertDialog
+
+                val pickerAdapter = RewardProductPickerAdapter(options) { selected ->
+                    dialog.dismiss()
+
+                    ProductCustomizationBottomSheet.newRewardInstance(
+                        productId = selected.productId,
+                        rewardType = rewardType,
+                        beansCost = beansCost
+                    ).show(parentFragmentManager, "reward_customize")
+                }
+
+                rvPicker.adapter = pickerAdapter
+
+                dialog = MaterialAlertDialogBuilder(requireContext())
+                    .setView(dialogView)
                     .setNegativeButton("Cancel", null)
                     .show()
             }
@@ -247,14 +282,18 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
                 return@launch
             }
 
-            CartManager.addReward(
+            val added = CartManager.addReward(
                 sourceProduct = selected,
                 rewardType = "PHYSICAL_REWARD",
                 beansCostPerUnit = beansCost
             )
 
             withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "Reward added to cart.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    if (added) "Reward added to cart." else "That reward is already in your cart.",
+                    Toast.LENGTH_SHORT
+                ).show()
                 loadRewards()
             }
         }

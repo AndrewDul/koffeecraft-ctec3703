@@ -80,8 +80,17 @@ class CartAdapter(
             tvLineTotal.text = formatMoney(item.unitPrice * item.quantity)
             tvQty.text = item.quantity.toString()
 
-            btnPlus.setOnClickListener { onPlus(item) }
             btnMinus.setOnClickListener { onMinus(item) }
+
+            if (item.isReward) {
+                btnPlus.alpha = 0.35f
+                btnPlus.isEnabled = false
+                btnPlus.setOnClickListener(null)
+            } else {
+                btnPlus.alpha = 1f
+                btnPlus.isEnabled = true
+                btnPlus.setOnClickListener { onPlus(item) }
+            }
         }
 
         private fun buildSizeText(item: CartItem): String? {

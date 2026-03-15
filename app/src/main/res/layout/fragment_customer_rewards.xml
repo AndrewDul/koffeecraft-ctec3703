@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent"
+    android:background="#F5EBDD"
     android:fillViewport="true">
 
     <LinearLayout
@@ -13,80 +13,136 @@
         android:padding="16dp">
 
         <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvRewardsTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rewards"
+                    android:textColor="#2E2018"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRewardsSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Use your beans to unlock crafted rewards and exclusive extras."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardBeansBalance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
             app:cardBackgroundColor="#E7D8C7"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#D9C4B2"
+            app:strokeWidth="1dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:padding="18dp">
 
                 <LinearLayout
-                    android:id="@+id/leftContent"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:orientation="vertical"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/beanBalanceGroup"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                    <TextView
-                        android:id="@+id/tvBeansTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Your Beans"
-                        android:textColor="#2E2018"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvBeansSubtitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Collect beans and unlock crafted rewards."
-                        android:textColor="#5B4638"
-                        android:textSize="14sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/beanBalanceGroup"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+                    android:orientation="horizontal">
 
-                    <ImageView
-                        android:id="@+id/ivBeanIcon"
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:adjustViewBounds="true"
-                        android:contentDescription="Coffee bean"
-                        android:src="@drawable/coffee_bean" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvBeansCount"
+                        <TextView
+                            android:id="@+id/tvBeansTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your Beans"
+                            android:textColor="#2E2018"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvBeansSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Available now: 0 • Reserved in cart: 0"
+                            android:textColor="#5B4638"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:maxLines="1"
-                        android:text="0"
-                        android:textColor="#2E2018"
-                        android:textSize="28sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/ivBeanIcon"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="Coffee bean"
+                            android:src="@drawable/coffee_bean" />
+
+                        <TextView
+                            android:id="@+id/tvBeansCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:maxLines="1"
+                            android:text="0"
+                            android:textColor="#2E2018"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBeansBooster"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="16dp"
+                    android:max="10"
+                    android:progress="0"
+                    app:indicatorColor="#6F4E37"
+                    app:trackColor="#D9C4B2" />
 
+                <TextView
+                    android:id="@+id/tvBeansProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="0/10"
+                    android:textColor="#5B4638"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
@@ -94,7 +150,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Rewards can be added to cart with a £0.00 price. Beans are deducted only at checkout."
+            android:text="Rewards are added to your cart at £0.00. Beans are only deducted when you complete checkout."
             android:textColor="#5B4638"
             android:textSize="13sp" />
 

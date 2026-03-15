@@ -1,8 +1,9 @@
 package uk.ac.dmu.koffeecraft.ui.menu
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -22,6 +23,10 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
     private lateinit var vm: MenuViewModel
     private lateinit var adapter: ProductAdapter
 
+    private lateinit var tvFilterCoffee: TextView
+    private lateinit var tvFilterCake: TextView
+
+    private var currentCategory: String = "COFFEE"
     private var currentProducts: List<Product> = emptyList()
     private var favouriteIds: Set<Long> = emptySet()
 
@@ -31,16 +36,20 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
         vm = ViewModelProvider(this, MenuViewModelFactory(db.productDao()))[MenuViewModel::class.java]
 
+        tvFilterCoffee = view.findViewById(R.id.tvFilterCoffee)
+        tvFilterCake = view.findViewById(R.id.tvFilterCake)
+
         val rv = view.findViewById<RecyclerView>(R.id.rvProducts)
         rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.setHasFixedSize(false)
+        rv.clipToPadding = false
 
         adapter = ProductAdapter(
+            scope = viewLifecycleOwner.lifecycleScope,
+            db = db,
+            appContext = requireContext().applicationContext,
             items = emptyList(),
             favouriteIds = emptySet(),
-            onCustomizeClicked = { product ->
-                ProductCustomizationBottomSheet.newInstance(product.productId)
-                    .show(parentFragmentManager, "product_customize")
-            },
             onFavouriteToggle = { product, shouldFavourite ->
                 val customerId = SessionManager.currentCustomerId
                 if (customerId == null) {
@@ -60,15 +69,17 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
 
         rv.adapter = adapter
 
-        view.findViewById<Button>(R.id.btnCoffee).setOnClickListener { vm.setCategory("COFFEE") }
-        view.findViewById<Button>(R.id.btnCake).setOnClickListener { vm.setCategory("CAKE") }
+        tvFilterCoffee.setOnClickListener { vm.setCategory("COFFEE") }
+        tvFilterCake.setOnClickListener { vm.setCategory("CAKE") }
 
         vm.start()
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.state.collect { state ->
+                currentCategory = state.category
                 currentProducts = state.products
                 renderProducts()
+                renderCategoryChips()
             }
         }
 
@@ -86,5 +97,20 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
     private fun renderProducts() {
         adapter.submitList(currentProducts)
         adapter.updateFavouriteIds(favouriteIds)
+    }
+
+    private fun renderCategoryChips() {
+        styleFilterChip(tvFilterCoffee, currentCategory == "COFFEE")
+        styleFilterChip(tvFilterCake, currentCategory == "CAKE")
+    }
+
+    private fun styleFilterChip(view: TextView, selected: Boolean) {
+        if (selected) {
+            view.setBackgroundResource(R.drawable.bg_orders_filter_chip_selected)
+            view.setTextColor(Color.parseColor("#2E2018"))
+        } else {
+            view.setBackgroundResource(R.drawable.bg_orders_filter_chip)
+            view.setTextColor(Color.parseColor("#6E5A4D"))
+        }
     }
 }

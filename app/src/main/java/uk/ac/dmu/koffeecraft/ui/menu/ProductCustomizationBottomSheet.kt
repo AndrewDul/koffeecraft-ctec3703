@@ -27,7 +27,10 @@ import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet_product_customize) {
 
-    private var productId: Long = -1L
+    private var productId: Long = 0L
+    private var rewardMode: Boolean = false
+    private var rewardType: String? = null
+    private var rewardBeansCost: Int = 0
 
     private lateinit var tvTitle: TextView
     private lateinit var tvDescription: TextView
@@ -51,6 +54,9 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         productId = requireArguments().getLong(ARG_PRODUCT_ID)
+        rewardMode = requireArguments().getBoolean(ARG_REWARD_MODE, false)
+        rewardType = requireArguments().getString(ARG_REWARD_TYPE)
+        rewardBeansCost = requireArguments().getInt(ARG_REWARD_BEANS_COST, 0)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -97,7 +103,15 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
 
     private fun bindUi() {
         tvTitle.text = product.name
-        tvDescription.text = product.description
+        tvDescription.text = if (rewardMode) {
+            if (product.description.isBlank()) {
+                "Base item included. You only pay for size upgrades and extras."
+            } else {
+                "${product.description}\n\nBase item included. You only pay for size upgrades and extras."
+            }
+        } else {
+            product.description
+        }
 
         chipGroupOptions.removeAllViews()
         chipGroupAddOns.removeAllViews()
@@ -152,11 +166,14 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
         }
 
         btnSavePreset.text = "Save as favourite combo"
+        btnSavePreset.visibility = if (rewardMode) View.GONE else View.VISIBLE
 
         btnSavePreset.setOnClickListener {
             if (!btnSavePreset.isEnabled) return@setOnClickListener
             saveCurrentConfiguration()
         }
+
+        btnAddToCart.text = if (rewardMode) "Add reward to cart" else "Add to cart"
 
         btnAddToCart.setOnClickListener {
             val option = selectedOption
@@ -167,13 +184,26 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
 
             val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
 
-            CartManager.addCustomisedProduct(
-                product = product,
-                option = option,
-                addOns = selectedAddOns
-            )
+            if (rewardMode) {
+                CartManager.addRewardCustomisedProduct(
+                    sourceProduct = product,
+                    rewardType = rewardType ?: "CUSTOM_REWARD",
+                    beansCostPerUnit = rewardBeansCost,
+                    option = option,
+                    addOns = selectedAddOns
+                )
 
-            Toast.makeText(requireContext(), "Product added to cart.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Reward added to cart.", Toast.LENGTH_SHORT).show()
+            } else {
+                CartManager.addCustomisedProduct(
+                    product = product,
+                    option = option,
+                    addOns = selectedAddOns
+                )
+
+                Toast.makeText(requireContext(), "Product added to cart.", Toast.LENGTH_SHORT).show()
+            }
+
             dismiss()
         }
 
@@ -218,7 +248,8 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
         }
 
         val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
-        val totalPrice = product.price + option.extraPrice + selectedAddOns.sumOf { it.price }
+        val basePrice = if (rewardMode) 0.0 else product.price
+        val totalPrice = basePrice + option.extraPrice + selectedAddOns.sumOf { it.price }
         val totalCalories = option.estimatedCalories + selectedAddOns.sumOf { it.estimatedCalories }
 
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
@@ -296,10 +327,28 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
 
     companion object {
         private const val ARG_PRODUCT_ID = "product_id"
+        private const val ARG_REWARD_MODE = "reward_mode"
+        private const val ARG_REWARD_TYPE = "reward_type"
+        private const val ARG_REWARD_BEANS_COST = "reward_beans_cost"
 
         fun newInstance(productId: Long): ProductCustomizationBottomSheet {
             return ProductCustomizationBottomSheet().apply {
                 arguments = bundleOf(ARG_PRODUCT_ID to productId)
+            }
+        }
+
+        fun newRewardInstance(
+            productId: Long,
+            rewardType: String,
+            beansCost: Int
+        ): ProductCustomizationBottomSheet {
+            return ProductCustomizationBottomSheet().apply {
+                arguments = bundleOf(
+                    ARG_PRODUCT_ID to productId,
+                    ARG_REWARD_MODE to true,
+                    ARG_REWARD_TYPE to rewardType,
+                    ARG_REWARD_BEANS_COST to beansCost
+                )
             }
         }
     }

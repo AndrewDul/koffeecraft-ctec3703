@@ -791,3 +791,72 @@ The inbox now supports meaningful:
 
 filtering, and the read state better reflects actual customer interaction.
 
+## 39) Reward items could be inflated in cart and break bean availability totals
+
+**Problem**
+The rewards screen showed incorrect bean values such as:
+- extremely high `Reserved in cart`
+- incorrect `Available now`
+- oversized cart badge totals
+
+This also blocked normal reward selection even when the customer still had a valid bean balance.
+
+**Cause**
+Reward items could still be increased through cart quantity behaviour, so a reward entry could reserve beans repeatedly even though reward items should behave like one-off redemptions.
+
+**Fix**
+I changed the cart reward behaviour so reward quantities are normalised and reward items are no longer allowed to inflate through the normal quantity increase flow.
+
+**Result**
+Bean reservation values now stay realistic and the rewards screen can calculate availability correctly again.
+
+
+## 40) Free coffee and free cake could fail despite available beans
+
+**Problem**
+Free coffee and free cake could appear unavailable or behave incorrectly even when the customer had enough beans.
+
+**Cause**
+Two separate issues contributed to this:
+- reserved bean values could become corrupted by inflated reward quantities in cart
+- older local data could leave reward eligibility in an inconsistent state for coffee and cake products
+
+**Fix**
+I corrected reward quantity behaviour in cart and added migration support to stabilise reward eligibility handling for existing local data.
+
+**Result**
+Free coffee and free cake reward flow can now rely on a more accurate bean state and more consistent reward product eligibility.
+
+## 41) ProductAdapter refactor caused Kotlin visibility and scope compile errors
+
+**Problem**
+After the menu refactor, `ProductAdapter` failed to compile with errors related to:
+- exposing a private parameter type
+- unresolved references from inside the ViewHolder
+
+**Cause**
+`ProductCardState` was still marked as private while being exposed through the ViewHolder bind signature, and the ViewHolder could not access adapter-level helper methods because it was not structured correctly for that access pattern.
+
+**Fix**
+I adjusted the adapter structure so the state type was no longer exposed incorrectly and the ViewHolder could correctly access the helper logic used for inline menu customisation.
+
+**Result**
+The menu adapter compiles correctly and the inline expandable product customisation flow can build successfully.
+
+## 42) Rewards refactor caused compile errors due to import duplication and missing cart method
+
+**Problem**
+The rewards flow failed to compile after the refactor.
+
+**Cause**
+There were two direct issues:
+- a duplicate `LinearLayoutManager` import inside `CustomerRewardsFragment`
+- `CustomerRewardsFragment` referenced `CartManager.addReward(...)` while the current `CartManager` version did not yet include that method
+
+**Fix**
+I removed the duplicate import and restored a complete reward-aware `CartManager` implementation including the missing reward add method.
+
+**Result**
+The rewards module and reward cart flow can compile against the same cart API again.
+
+

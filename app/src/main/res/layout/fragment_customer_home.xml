@@ -72,13 +72,33 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBeansHome"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="14dp"
+                    android:max="10"
+                    android:progress="0"
+                    app:indicatorColor="#6F4E37"
+                    app:trackColor="#D9C4B2" />
+
                 <TextView
                     android:id="@+id/tvBeansMeta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Keep collecting beans to unlock crafted rewards."
+                    android:layout_marginTop="8dp"
+                    android:text="Bean booster progress"
                     android:textColor="#5B4638"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvBeansProgressValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="0/10"
+                    android:textColor="#6E5A4D"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

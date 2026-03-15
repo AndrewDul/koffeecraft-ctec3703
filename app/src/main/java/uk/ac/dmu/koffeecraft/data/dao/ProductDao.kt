@@ -31,8 +31,7 @@ interface ProductDao {
         """
         SELECT * FROM products
         WHERE category = :category
-          AND isAvailable = 1
-        ORDER BY name ASC
+        ORDER BY isAvailable DESC, name ASC
         """
     )
     fun observeByCategory(category: String): Flow<List<Product>>

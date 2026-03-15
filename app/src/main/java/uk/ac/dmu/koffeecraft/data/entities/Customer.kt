@@ -21,7 +21,9 @@ data class Customer(
     val termsAccepted: Boolean = false,
     val privacyAccepted: Boolean = false,
     val beansBalance: Int = 0,
-    val nextBeansBonusThreshold: Int = 10,
+    val nextBeansBonusThreshold: Int = 10, // legacy field kept for older installs
+    val beansBoosterProgress: Int = 0,
+    val pendingBeansBoosters: Int = 0,
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis()
 )

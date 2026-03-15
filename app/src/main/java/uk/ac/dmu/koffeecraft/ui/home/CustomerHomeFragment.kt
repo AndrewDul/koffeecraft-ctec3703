@@ -18,11 +18,15 @@ import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
+import com.google.android.material.progressindicator.LinearProgressIndicator
 
 class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
     private lateinit var tvBeansValue: TextView
     private lateinit var tvBeansMeta: TextView
+    private lateinit var tvBeansProgressValue: TextView
+    private lateinit var progressBeansHome: LinearProgressIndicator
     private lateinit var cardBeansBalance: MaterialCardView
     private lateinit var cardRewardsSection: MaterialCardView
 
@@ -49,6 +53,8 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
         tvBeansValue = view.findViewById(R.id.tvBeansValue)
         tvBeansMeta = view.findViewById(R.id.tvBeansMeta)
+        tvBeansProgressValue = view.findViewById(R.id.tvBeansProgressValue)
+        progressBeansHome = view.findViewById(R.id.progressBeansHome)
         cardBeansBalance = view.findViewById(R.id.cardBeansBalance)
         cardRewardsSection = view.findViewById(R.id.cardRewardsSection)
 
@@ -114,7 +120,12 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
             val topCoffees = db.feedbackDao().getTopRatedProductsByFamily("COFFEE", 3)
             val topCakes = db.feedbackDao().getTopRatedProductsByFamily("CAKE", 3)
 
-            val rewardItems = buildRewardPreviewItems(customer.beansBalance, customer.nextBeansBonusThreshold, rewardProducts)
+            val rewardItems = buildRewardPreviewItems(
+                customer.beansBalance,
+                customer.beansBoosterProgress,
+                customer.pendingBeansBoosters,
+                rewardProducts
+            )
             val newArrivalItems = newProducts.map { product ->
                 CustomerHomeCarouselItem(
                     title = product.name,
@@ -162,8 +173,17 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
                 if (!isAdded) return@withContext
 
                 tvBeansValue.text = "${customer.beansBalance} beans"
-                tvBeansMeta.text =
-                    "Next bean booster unlocks at ${customer.nextBeansBonusThreshold} beans."
+
+                val boosterProgress = customer.beansBoosterProgress.coerceIn(0, 9)
+                progressBeansHome.max = 10
+                progressBeansHome.progress = boosterProgress
+                tvBeansMeta.text = "Bean booster progress"
+                tvBeansProgressValue.text =
+                    if (customer.pendingBeansBoosters > 0) {
+                        "${customer.pendingBeansBoosters} ready • ${boosterProgress}/10"
+                    } else {
+                        "${boosterProgress}/10"
+                    }
 
                 rewardsAdapter.submitList(rewardItems)
                 newArrivalsAdapter.submitList(newArrivalItems)
@@ -187,16 +207,17 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
     private fun buildRewardPreviewItems(
         beansBalance: Int,
-        nextBeansBonusThreshold: Int,
+        beansBoosterProgress: Int,
+        pendingBeansBoosters: Int,
         rewardProducts: List<Product>
     ): List<CustomerHomeCarouselItem> {
         val items = mutableListOf<CustomerHomeCarouselItem>()
 
         items += CustomerHomeCarouselItem(
             title = "5 Bean Booster",
-            subtitle = "Claim 5 extra beans when you reach your next milestone.",
-            metaLine = "Next milestone: $nextBeansBonusThreshold beans",
-            badgeLabel = "REWARD"
+            subtitle = "Every 10 earned beans unlock a +5 bean booster.",
+            metaLine = BeansBoosterManager.rewardMetaLine(beansBoosterProgress, pendingBeansBoosters),
+            badgeLabel = if (pendingBeansBoosters > 0) "READY" else "REWARD"
         )
 
         items += CustomerHomeCarouselItem(

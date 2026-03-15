@@ -28,7 +28,14 @@ object CartManager {
     private val _itemCount = MutableStateFlow(0)
     val itemCount: StateFlow<Int> = _itemCount
 
+    private fun normalizeRewardQuantities() {
+        items.values
+            .filter { it.isReward && it.quantity > 1 }
+            .forEach { it.quantity = 1 }
+    }
+
     private fun refreshItemCount() {
+        normalizeRewardQuantities()
         _itemCount.value = items.values.sumOf { it.quantity }
     }
 
@@ -55,18 +62,35 @@ object CartManager {
     }
 
     fun addExisting(item: CartItem) {
+        if (item.isReward) {
+            refreshItemCount()
+            return
+        }
+
         val existing = items[item.lineKey]
         if (existing == null) {
             items[item.lineKey] = item.copy(quantity = 1)
         } else {
             existing.quantity += 1
         }
+
         refreshItemCount()
     }
 
-    fun addReward(sourceProduct: Product, rewardType: String, beansCostPerUnit: Int) {
+    fun addReward(
+        sourceProduct: Product,
+        rewardType: String,
+        beansCostPerUnit: Int
+    ): Boolean {
+        normalizeRewardQuantities()
+
         val key = "reward_${rewardType}_${sourceProduct.productId}"
         val existing = items[key]
+
+        if (existing != null) {
+            refreshItemCount()
+            return false
+        }
 
         val rewardDisplayName = when (rewardType) {
             "FREE_COFFEE", "FREE_CAKE" -> "Reward: ${sourceProduct.name}"
@@ -78,21 +102,71 @@ object CartManager {
             price = 0.0
         )
 
-        if (existing == null) {
-            items[key] = CartItem(
-                lineKey = key,
-                product = rewardProduct,
-                quantity = 1,
-                unitPrice = 0.0,
-                isReward = true,
-                rewardType = rewardType,
-                beansCostPerUnit = beansCostPerUnit
-            )
-        } else {
-            existing.quantity += 1
-        }
+        items[key] = CartItem(
+            lineKey = key,
+            product = rewardProduct,
+            quantity = 1,
+            unitPrice = 0.0,
+            isReward = true,
+            rewardType = rewardType,
+            beansCostPerUnit = beansCostPerUnit
+        )
 
         refreshItemCount()
+        return true
+    }
+
+    fun addRewardCustomisedProduct(
+        sourceProduct: Product,
+        rewardType: String,
+        beansCostPerUnit: Int,
+        option: ProductOption,
+        addOns: List<AddOn>
+    ): Boolean {
+        normalizeRewardQuantities()
+
+        val sortedAddOns = addOns.sortedBy { it.addOnId }
+        val addOnKey = sortedAddOns.joinToString("_") { it.addOnId.toString() }
+
+        val key = "reward_custom_${rewardType}_${sourceProduct.productId}_${option.optionId}_$addOnKey"
+        val existing = items[key]
+
+        if (existing != null) {
+            refreshItemCount()
+            return false
+        }
+
+        val rewardDisplayName = "Reward: ${sourceProduct.name}"
+        val rewardProduct = sourceProduct.copy(
+            name = rewardDisplayName,
+            price = 0.0
+        )
+
+        val finalPrice = option.extraPrice + sortedAddOns.sumOf { it.price }
+        val finalCalories = option.estimatedCalories + sortedAddOns.sumOf { it.estimatedCalories }
+        val addOnSummary = if (sortedAddOns.isEmpty()) {
+            null
+        } else {
+            sortedAddOns.joinToString(", ") { it.name }
+        }
+
+        items[key] = CartItem(
+            lineKey = key,
+            product = rewardProduct,
+            quantity = 1,
+            unitPrice = finalPrice,
+            isReward = true,
+            rewardType = rewardType,
+            beansCostPerUnit = beansCostPerUnit,
+            selectedOptionLabel = option.displayLabel,
+            selectedOptionSizeValue = option.sizeValue,
+            selectedOptionSizeUnit = option.sizeUnit,
+            selectedAddOnsSummary = addOnSummary,
+            estimatedCalories = finalCalories
+        )
+
+        refreshItemCount()
+        return true
     }
 
     fun addCustomisedProduct(
@@ -150,14 +224,26 @@ object CartManager {
         refreshItemCount()
     }
 
-    fun getItems(): List<CartItem> = items.values.toList()
+    fun getItems(): List<CartItem> {
+        normalizeRewardQuantities()
+        refreshItemCount()
+        return items.values.toList()
+    }
 
-    fun total(): Double = items.values.sumOf { it.unitPrice * it.quantity }
+    fun total(): Double {
+        normalizeRewardQuantities()
+        return items.values.sumOf { it.unitPrice * it.quantity }
+    }
 
-    fun beansToSpend(): Int = items.values.sumOf { it.beansCostPerUnit * it.quantity }
+    fun beansToSpend(): Int {
+        normalizeRewardQuantities()
+        return items.values.sumOf { it.beansCostPerUnit * it.quantity }
+    }
 
-    fun purchasedProductCountForBeans(): Int =
-        items.values
+    fun purchasedProductCountForBeans(): Int {
+        normalizeRewardQuantities()
+        return items.values
             .filter { !it.isReward }
             .sumOf { it.quantity }
+    }
 }

@@ -20,7 +20,7 @@ import uk.ac.dmu.koffeecraft.data.repository.OrderRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
-
+import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
     private var selectedPaymentType: String = "CARD"
@@ -110,7 +110,20 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                 )
 
                 val updatedBeansBalance = customer.beansBalance - beansToSpend + beansToEarn
-                db.customerDao().update(customer.copy(beansBalance = updatedBeansBalance))
+
+                val boosterState = BeansBoosterManager.applyEarnedBeans(
+                    currentProgress = customer.beansBoosterProgress,
+                    currentPendingBoosters = customer.pendingBeansBoosters,
+                    earnedBeans = beansToEarn
+                )
+
+                db.customerDao().update(
+                    customer.copy(
+                        beansBalance = updatedBeansBalance,
+                        beansBoosterProgress = boosterState.progress,
+                        pendingBeansBoosters = boosterState.pendingBoosters
+                    )
+                )
 
                 CartManager.clear()
 

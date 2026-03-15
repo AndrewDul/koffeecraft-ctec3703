@@ -1614,3 +1614,113 @@ Customer inbox titles and delivery categories continue to come from the existing
 - `fragment_customer_inbox.xml`
 - `item_customer_inbox.xml`
 
+## Menu and rewards system refinement
+
+I refined both the customer Menu experience and the customer Rewards/Beans experience so they now feel more consistent with the premium KoffeeCraft UI and behave more realistically.
+
+### Menu redesign
+I redesigned the customer Menu so product interaction now happens directly inside the product card instead of relying on the earlier visible customise-button-first flow.
+
+The new menu approach uses:
+- premium warm background
+- premium filter chips for category switching
+- premium product cards with favourite heart support
+- inline expand/collapse behaviour on card tap
+
+Each product card now shows a cleaner collapsed state with:
+- product name
+- description
+- standard size
+- from price
+- favourite heart
+
+When expanded, the same card now displays:
+- size choices
+- extra add-ons
+- live calories
+- live allergens
+- extras total
+- final total
+- save favourite combo
+- add to cart
+
+Only one product card stays expanded at a time, which keeps the menu cleaner and closer to a real customer app experience.
+
+Unavailable products are also visually softened and marked as unavailable rather than being removed completely.
+
+### Rewards screen polish
+I kept the rewards logic structure but refined the presentation so the screen now better matches the rest of the app.
+
+The rewards screen now includes:
+- premium background
+- dedicated `Rewards` title
+- improved helper text
+- subtle card strokes
+- premium action buttons
+
+This keeps the screen visually aligned with:
+- Cart
+- Checkout
+- Inbox
+- Settings
+- Customer Home
+
+### Bean booster redesign
+I replaced the earlier user-facing threshold style with a progress-based booster model.
+
+Instead of showing a large historic milestone such as a very high next threshold value, the app now presents:
+- progress toward the next booster
+- optional pending booster readiness
+
+This is clearer and feels more natural in a customer rewards system.
+
+The logic is now based on:
+- earned beans contributing to progress
+- progress rolling over every 10 earned beans
+- pending boosters being stored until claimed
+- spending beans not resetting booster progress
+
+### Rewards and cart consistency
+I fixed the reward flow so reward items are now treated differently from normal paid products inside the cart.
+
+Reward items:
+- should not inflate in quantity
+- should reserve the correct number of beans
+- should not distort cart badge totals
+- should not distort the `Available now` / `Reserved in cart` bean summary
+
+### Free coffee and free cake customisation direction
+I extended the rewards flow toward a more premium free-product experience.
+
+The intended reward behaviour now supports the idea that:
+- the base reward item is free
+- size upgrades may add extra cost
+- add-ons may add extra cost
+- total price is calculated from upgrades only, not from the full base product price
+
+This creates a more realistic free reward customisation flow and matches the app’s broader customisation system.
+
+### Home page bean card refinement
+I also aligned the home page bean card more closely with the rewards experience by adding visual booster progress support.
+
+This keeps the reward journey more visible without requiring the customer to open the rewards screen every time.
+
+### Files involved
+- `ProductDao.kt`
+- `fragment_menu.xml`
+- `item_product.xml`
+- `MenuFragment.kt`
+- `ProductAdapter.kt`
+- `fragment_customer_rewards.xml`
+- `CustomerRewardsFragment.kt`
+- `RewardProductPickerAdapter.kt`
+- `dialog_reward_product_picker.xml`
+- `item_reward_product_picker.xml`
+- `ProductCustomizationBottomSheet.kt`
+- `CartManager.kt`
+- `CheckoutFragment.kt`
+- `CustomerHomeFragment.kt`
+- `Customer.kt`
+- `KoffeeCraftDatabase.kt`
+- `BeansBoosterManager.kt`
+

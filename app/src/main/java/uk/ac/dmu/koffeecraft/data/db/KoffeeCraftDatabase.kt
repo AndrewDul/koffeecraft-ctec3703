@@ -67,7 +67,7 @@ import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
         CustomerFavouritePreset::class,
         CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -540,6 +540,51 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                 )
             }
         }
+        private val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                addColumnIfMissing(db, "customers", "beansBoosterProgress", "INTEGER NOT NULL DEFAULT 0")
+                addColumnIfMissing(db, "customers", "pendingBeansBoosters", "INTEGER NOT NULL DEFAULT 0")
+
+                db.execSQL(
+                    """
+            UPDATE customers
+            SET beansBoosterProgress = CASE
+                WHEN beansBalance < 0 THEN 0
+                ELSE beansBalance % 10
+            END,
+            pendingBeansBoosters = 0
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            UPDATE products
+            SET rewardEnabled = 1
+            WHERE category = 'COFFEE'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM products
+                  WHERE category = 'COFFEE'
+                    AND rewardEnabled = 1
+              )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            UPDATE products
+            SET rewardEnabled = 1
+            WHERE category = 'CAKE'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM products
+                  WHERE category = 'CAKE'
+                    AND rewardEnabled = 1
+              )
+            """.trimIndent()
+                )
+            }
+        }
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -560,7 +605,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_9_10,
                         MIGRATION_10_11,
                         MIGRATION_11_12,
-                        MIGRATION_12_13
+                        MIGRATION_12_13,
+                        MIGRATION_13_14
                     )
                     .addCallback(SeedCallback())
                     .build()
