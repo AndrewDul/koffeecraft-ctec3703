@@ -144,11 +144,10 @@ data class OrderFeedbackItem(
     val comment: String?
 ) {
     val isCrafted: Boolean
-        get() = !selectedOptionLabel.isNullOrBlank() ||
-                selectedOptionSizeValue != null ||
-                !selectedOptionSizeUnit.isNullOrBlank() ||
-                !selectedAddOnsSummary.isNullOrBlank() ||
-                estimatedCalories != null
+        get() = !selectedAddOnsSummary.isNullOrBlank() ||
+                (!selectedOptionLabel.isNullOrBlank() &&
+                        selectedOptionSizeValue != null &&
+                        !selectedOptionSizeUnit.isNullOrBlank())
 }
 
 data class OrderDisplayItem(
@@ -162,9 +161,8 @@ data class OrderDisplayItem(
     val estimatedCalories: Int?
 ) {
     val isCrafted: Boolean
-        get() = !selectedOptionLabel.isNullOrBlank() ||
-                selectedOptionSizeValue != null ||
-                !selectedOptionSizeUnit.isNullOrBlank() ||
-                !selectedAddOnsSummary.isNullOrBlank() ||
-                estimatedCalories != null
+        get() = !selectedAddOnsSummary.isNullOrBlank() ||
+                (!selectedOptionLabel.isNullOrBlank() &&
+                        selectedOptionSizeValue != null &&
+                        !selectedOptionSizeUnit.isNullOrBlank())
 }

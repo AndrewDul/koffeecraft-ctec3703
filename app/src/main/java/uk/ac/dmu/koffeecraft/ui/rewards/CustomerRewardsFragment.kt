@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,10 +18,10 @@ import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
-import android.view.LayoutInflater
-import androidx.appcompat.app.AlertDialog
 
-import uk.ac.dmu.koffeecraft.ui.menu.ProductCustomizationBottomSheet
+
+
+
 class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
 
     private lateinit var tvBeansCount: TextView
@@ -217,42 +217,11 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
                     return@withContext
                 }
 
-                val dialogView = LayoutInflater.from(requireContext())
-                    .inflate(R.layout.dialog_reward_product_picker, null, false)
-
-                val tvPickerTitle = dialogView.findViewById<TextView>(R.id.tvPickerTitle)
-                val tvPickerSubtitle = dialogView.findViewById<TextView>(R.id.tvPickerSubtitle)
-                val rvPicker = dialogView.findViewById<RecyclerView>(R.id.rvRewardProductPicker)
-
-                tvPickerTitle.text = if (category == "COFFEE") {
-                    "Choose your free coffee"
-                } else {
-                    "Choose your free cake"
-                }
-
-                tvPickerSubtitle.text =
-                    "Pick one reward item and customise it. The base item is free — you only pay for size upgrades and extras."
-
-                rvPicker.layoutManager = LinearLayoutManager(requireContext())
-
-                lateinit var dialog: AlertDialog
-
-                val pickerAdapter = RewardProductPickerAdapter(options) { selected ->
-                    dialog.dismiss()
-
-                    ProductCustomizationBottomSheet.newRewardInstance(
-                        productId = selected.productId,
-                        rewardType = rewardType,
-                        beansCost = beansCost
-                    ).show(parentFragmentManager, "reward_customize")
-                }
-
-                rvPicker.adapter = pickerAdapter
-
-                dialog = MaterialAlertDialogBuilder(requireContext())
-                    .setView(dialogView)
-                    .setNegativeButton("Cancel", null)
-                    .show()
+                RewardProductPickerBottomSheet.newInstance(
+                    category = category,
+                    rewardType = rewardType,
+                    beansCost = beansCost
+                ).show(parentFragmentManager, "reward_picker")
             }
         }
     }

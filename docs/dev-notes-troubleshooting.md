@@ -859,4 +859,89 @@ I removed the duplicate import and restored a complete reward-aware `CartManager
 **Result**
 The rewards module and reward cart flow can compile against the same cart API again.
 
+---
 
+## 43) Standard products were incorrectly shown as crafted
+
+**Problem**  
+I noticed that standard products from the menu were shown with the `Crafted` label in Cart and My Orders even when I had not customised them.
+
+**What was happening**  
+Default option data and calculated values were enough to make some items look customised, even when the user had not changed anything.
+
+**Fix**  
+I tightened the crafted-state rule so an item is only treated as crafted when:
+- a non-default option is selected, or
+- at least one add-on is selected
+
+I also adjusted the cart flow so unchanged default selections are treated as standard products instead of customised ones.
+
+**Result**  
+Standard products no longer show the crafted label incorrectly in Cart and My Orders.
+
+---
+
+## 44) Reward customisation showed the normal product price instead of a free base item
+
+**Problem**  
+I noticed that when I opened `Free Coffee` or `Free Cake`, the reward customisation screen showed the normal base product price instead of `£0.00`.
+
+**Cause**  
+The reward customisation summary still calculated the total using the normal product base price.
+
+**Fix**  
+I changed reward pricing so:
+- the base reward item starts from `£0.00`
+- only option surcharges and add-ons increase the total
+
+**Result**  
+The reward screen now matches the intended reward rule: the base item is free and the customer only pays for upgrades or extras.
+
+---
+
+## 45) Reward flow used two different UI patterns
+
+**Problem**  
+I noticed that reward selection used a regular dialog first, but reward customisation used a bottom sheet after that.
+
+**Why it was a problem**  
+This made the reward journey feel inconsistent and visually disconnected.
+
+**Fix**  
+I replaced the reward picker dialog with a dedicated bottom sheet so both steps now use the same bottom-sheet interaction style.
+
+**Result**  
+The reward flow now feels more consistent and matches the premium bottom-sheet style already used in the app.
+
+---
+
+## 46) CustomerRewardsFragment failed to compile after reward flow refactor
+
+**Problem**  
+After integrating the new reward picker flow, the project failed to compile with a Kotlin syntax error in `CustomerRewardsFragment.kt`.
+
+**Symptom**  
+The compiler reported:
+- `Syntax error: Expecting member declaration`
+
+**Cause**  
+Old dialog-based reward logic and the new bottom-sheet logic became mixed in the same fragment during integration, which left invalid structure in the file.
+
+**Fix**  
+I replaced the fragment with a clean version that keeps only the current reward flow and removes the mixed old/new dialog code.
+
+**Result**  
+The fragment compiled correctly again and the reward flow became structurally cleaner.
+
+---
+
+## 47) Standard favourites looked less informative than saved custom favourites
+
+**Problem**  
+I noticed that standard favourites did not show calories in the collapsed card, which made them look less complete than saved custom favourites.
+
+**Fix**  
+I added collapsed calories to the standard favourites card layout and binding logic.
+
+**Result**  
+The favourites screen now feels more visually balanced and consistent.

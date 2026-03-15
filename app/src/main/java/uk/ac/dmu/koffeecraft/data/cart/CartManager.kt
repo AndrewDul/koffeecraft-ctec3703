@@ -24,7 +24,9 @@ data class CartItem(
 object CartManager {
 
     private val items = linkedMapOf<String, CartItem>()
-
+    private fun isMeaningfullyCustomised(option: ProductOption, addOns: List<AddOn>): Boolean {
+        return !option.isDefault || addOns.isNotEmpty()
+    }
     private val _itemCount = MutableStateFlow(0)
     val itemCount: StateFlow<Int> = _itemCount
 
@@ -126,6 +128,15 @@ object CartManager {
         normalizeRewardQuantities()
 
         val sortedAddOns = addOns.sortedBy { it.addOnId }
+
+        if (!isMeaningfullyCustomised(option, sortedAddOns)) {
+            return addReward(
+                sourceProduct = sourceProduct,
+                rewardType = rewardType,
+                beansCostPerUnit = beansCostPerUnit
+            )
+        }
+
         val addOnKey = sortedAddOns.joinToString("_") { it.addOnId.toString() }
 
         val key = "reward_custom_${rewardType}_${sourceProduct.productId}_${option.optionId}_$addOnKey"
@@ -175,6 +186,12 @@ object CartManager {
         addOns: List<AddOn>
     ) {
         val sortedAddOns = addOns.sortedBy { it.addOnId }
+
+        if (!isMeaningfullyCustomised(option, sortedAddOns)) {
+            add(product)
+            return
+        }
+
         val addOnKey = sortedAddOns.joinToString("_") { it.addOnId.toString() }
 
         val key = "custom_${product.productId}_${option.optionId}_$addOnKey"

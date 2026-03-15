@@ -148,7 +148,7 @@ class OrdersAdapter(
                 tvDetailLineTotal.text = formatMoney(lineTotal)
                 tvDetailQuantityPrice.text = "Qty ${detail.quantity} • ${formatMoney(detail.unitPrice)} each"
 
-                val optionText = buildOptionText(detail)
+                val optionText = if (detail.isCrafted) buildOptionText(detail) else null
                 if (optionText.isNullOrBlank()) {
                     tvDetailCustomOption.visibility = View.GONE
                 } else {
@@ -167,7 +167,11 @@ class OrdersAdapter(
                     tvDetailCalories.visibility = View.GONE
                 } else {
                     tvDetailCalories.visibility = View.VISIBLE
-                    tvDetailCalories.text = "Approx. ${detail.estimatedCalories} kcal"
+                    tvDetailCalories.text = if (detail.isCrafted) {
+                        "Approx. ${detail.estimatedCalories} kcal"
+                    } else {
+                        "${detail.estimatedCalories} kcal"
+                    }
                 }
 
                 layoutOrderDetails.addView(detailView)

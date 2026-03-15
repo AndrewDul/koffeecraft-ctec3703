@@ -183,15 +183,24 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
             }
 
             val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
+            val hasMeaningfulCustomisation = !option.isDefault || selectedAddOns.isNotEmpty()
 
             if (rewardMode) {
-                CartManager.addRewardCustomisedProduct(
-                    sourceProduct = product,
-                    rewardType = rewardType ?: "CUSTOM_REWARD",
-                    beansCostPerUnit = rewardBeansCost,
-                    option = option,
-                    addOns = selectedAddOns
-                )
+                if (hasMeaningfulCustomisation) {
+                    CartManager.addRewardCustomisedProduct(
+                        sourceProduct = product,
+                        rewardType = rewardType ?: "CUSTOM_REWARD",
+                        beansCostPerUnit = rewardBeansCost,
+                        option = option,
+                        addOns = selectedAddOns
+                    )
+                } else {
+                    CartManager.addReward(
+                        sourceProduct = product,
+                        rewardType = rewardType ?: "CUSTOM_REWARD",
+                        beansCostPerUnit = rewardBeansCost
+                    )
+                }
 
                 Toast.makeText(requireContext(), "Reward added to cart.", Toast.LENGTH_SHORT).show()
             } else {
@@ -302,7 +311,8 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
         val option = selectedOption ?: return
         val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
 
-        val totalPrice = product.price + option.extraPrice + selectedAddOns.sumOf { it.price }
+        val basePrice = if (rewardMode) 0.0 else product.price
+        val totalPrice = basePrice + option.extraPrice + selectedAddOns.sumOf { it.price }
         val totalCalories = option.estimatedCalories + selectedAddOns.sumOf { it.estimatedCalories }
 
         val allergenNames = (

@@ -45,11 +45,11 @@ class CartAdapter(
         private val btnMinus: TextView = itemView.findViewById(R.id.btnMinus)
 
         fun bind(item: CartItem, onPlus: (CartItem) -> Unit, onMinus: (CartItem) -> Unit) {
-            val isCrafted = !item.selectedOptionLabel.isNullOrBlank() ||
-                    item.selectedOptionSizeValue != null ||
-                    !item.selectedOptionSizeUnit.isNullOrBlank() ||
-                    !item.selectedAddOnsSummary.isNullOrBlank() ||
-                    item.estimatedCalories != null
+            val hasAddOns = !item.selectedAddOnsSummary.isNullOrBlank()
+            val hasOptionSelection = !item.selectedOptionLabel.isNullOrBlank() &&
+                    item.selectedOptionSizeValue != null &&
+                    !item.selectedOptionSizeUnit.isNullOrBlank()
+            val isCrafted = hasAddOns || hasOptionSelection
 
             tvName.text = item.product.name
             tvCraftedBadge.visibility = if (isCrafted) View.VISIBLE else View.GONE

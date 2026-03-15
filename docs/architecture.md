@@ -1724,3 +1724,111 @@ This keeps the reward journey more visible without requiring the customer to ope
 - `KoffeeCraftDatabase.kt`
 - `BeansBoosterManager.kt`
 
+---
+
+## Rewards flow, crafted-state rules, and favourites UI refinement
+
+I refined several connected parts of the customer experience to improve pricing correctness, crafted-state accuracy, and visual consistency.
+
+### 1. Standard favourites card refinement
+
+I updated the standard favourites card so the collapsed state now also shows calories.
+
+#### What changed
+- I added collapsed calories to standard favourites
+- I kept the existing price/action layout
+- I aligned the collapsed information density more closely with saved custom favourites
+
+#### Why I changed it
+I changed this because the standard favourites card looked visually lighter and less informative than the saved custom favourites card.  
+Adding calories improves consistency and makes the favourites screen feel more complete.
+
+---
+
+### 2. Crafted-state rules in cart and orders
+
+I refined the crafted-state logic so products are only treated as crafted when the user actually changes the default configuration.
+
+#### Previous behaviour
+Previously, a product could appear as crafted even when the user selected the default option and no add-ons.
+
+#### New behaviour
+A product is now treated as crafted only when at least one of the following is true:
+- a non-default size/option is selected
+- at least one add-on is selected
+
+#### Technical decision
+I kept this logic inside the existing cart/order flow rather than introducing a new Room field such as `isCustomised`.
+
+#### Why I changed it
+I changed it this way because:
+- it fixes the visible crafted badge problem without a schema migration
+- it keeps the behaviour aligned with the real user action
+- it avoids marking standard products as customised when they are actually unchanged
+
+#### Result
+- standard menu products no longer show crafted badges incorrectly
+- cart presentation is more truthful
+- order history presentation is more accurate
+
+---
+
+### 3. Reward customisation pricing
+
+I corrected reward pricing so free drink and free cake rewards now start from a zero-cost base item.
+
+#### Previous behaviour
+The reward customisation screen displayed the normal product base price even when the reward should have made the base item free.
+
+#### New behaviour
+The reward customisation flow now works like this:
+- base reward product price = `£0.00`
+- size upgrades add only the option surcharge
+- add-ons add only their own surcharge
+
+#### Why I changed it
+I changed this because the previous behaviour was inconsistent with the intended business rule for rewards.  
+The customer should only pay for upgrades or extras, not for the rewarded base item itself.
+
+#### Result
+This makes the reward system easier to understand and more consistent with the beans logic.
+
+---
+
+### 4. Reward picker UI consistency
+
+I replaced the reward selection dialog with a dedicated bottom sheet.
+
+#### Previous behaviour
+The initial reward product choice used a regular dialog, while the next customisation step used a bottom sheet.  
+This made the reward flow feel visually inconsistent.
+
+#### New behaviour
+Both reward steps now follow the same bottom-sheet interaction style:
+- reward item selection opens as a bottom sheet
+- reward customisation opens as a bottom sheet
+- both use the same warm premium visual direction
+
+#### Why I changed it
+I changed this to improve UI consistency and make the reward journey feel like one connected flow instead of two different interaction patterns.
+
+#### Files involved
+- `CustomerRewardsFragment.kt`
+- `RewardProductPickerBottomSheet.kt`
+- `sheet_reward_product_picker.xml`
+- `ProductCustomizationBottomSheet.kt`
+
+---
+
+### 5. Flow-level impact
+
+These refinements affect several connected customer features:
+- favourites
+- cart
+- reward selection
+- reward customisation
+- order history
+
+
+
+

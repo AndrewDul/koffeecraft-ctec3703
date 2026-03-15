@@ -61,6 +61,7 @@ class StandardFavouriteAdapter(
         private val tvDescription: TextView = itemView.findViewById(R.id.tvFavouriteDescription)
         private val tvMeta: TextView = itemView.findViewById(R.id.tvFavouriteMeta)
         private val tvPriceValue: TextView = itemView.findViewById(R.id.tvFavouritePriceValue)
+        private val tvCaloriesValue: TextView = itemView.findViewById(R.id.tvFavouriteCaloriesValue)
         private val tvCustomizeCollapsed: TextView = itemView.findViewById(R.id.tvFavouriteCustomizeCollapsed)
         private val tvBuyAgainCollapsed: TextView = itemView.findViewById(R.id.tvFavouriteBuyAgainCollapsed)
 
@@ -72,7 +73,6 @@ class StandardFavouriteAdapter(
         private val tvExpandedPriceValue: TextView = itemView.findViewById(R.id.tvExpandedPriceValue)
 
         private val tvRemove: TextView = itemView.findViewById(R.id.tvFavouriteRemove)
-
 
         fun bind(
             item: StandardFavouriteCard,
@@ -86,6 +86,7 @@ class StandardFavouriteAdapter(
             tvDescription.text = item.description
             tvMeta.text = "${item.familyLabel} • Standard favourite"
             tvPriceValue.text = formatMoney(item.price)
+            tvCaloriesValue.text = item.standardCaloriesText
 
             tvExpandedStandardSizeValue.text = item.standardSizeText
             tvExpandedCaloriesValue.text = item.standardCaloriesText
