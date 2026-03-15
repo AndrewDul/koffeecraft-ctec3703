@@ -3,7 +3,6 @@ package uk.ac.dmu.koffeecraft.ui.feedback
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.util.Locale
@@ -34,13 +33,19 @@ class FeedbackProductsAdapter(
 
     class FeedbackProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvProductName: TextView = itemView.findViewById(R.id.tvProductName)
-        private val tvMeta: TextView = itemView.findViewById(R.id.tvMeta)
+        private val tvCraftedBadge: TextView = itemView.findViewById(R.id.tvCraftedBadge)
+        private val tvQuantityValue: TextView = itemView.findViewById(R.id.tvQuantityValue)
+        private val tvPriceValue: TextView = itemView.findViewById(R.id.tvPriceValue)
         private val tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
-        private val btnOpenFeedback: Button = itemView.findViewById(R.id.btnOpenFeedback)
+        private val tvOpenFeedbackAction: TextView = itemView.findViewById(R.id.tvOpenFeedbackAction)
 
         fun bind(item: OrderFeedbackItem, onOpen: (OrderFeedbackItem) -> Unit) {
+            val lineTotal = item.quantity * item.unitPrice
+
             tvProductName.text = item.productName
-            tvMeta.text = "Qty: ${item.quantity} • ${String.format(Locale.UK, "£%.2f", item.unitPrice)}"
+            tvCraftedBadge.visibility = if (item.isCrafted) View.VISIBLE else View.GONE
+            tvQuantityValue.text = item.quantity.toString()
+            tvPriceValue.text = String.format(Locale.UK, "£%.2f", lineTotal)
 
             val isRated = item.feedbackId != null
             tvStatus.text = if (isRated) {
@@ -50,10 +55,10 @@ class FeedbackProductsAdapter(
                 "Not rated yet"
             }
 
-            btnOpenFeedback.text = if (isRated) "Edit feedback" else "Leave feedback"
+            tvOpenFeedbackAction.text = if (isRated) "Edit feedback" else "Leave feedback"
 
             itemView.setOnClickListener { onOpen(item) }
-            btnOpenFeedback.setOnClickListener { onOpen(item) }
+            tvOpenFeedbackAction.setOnClickListener { onOpen(item) }
         }
     }
 }

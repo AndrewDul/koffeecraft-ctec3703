@@ -683,3 +683,52 @@ The collapsed notification card now displays:
 - remove action
 
 in a clean and visually stable premium layout.
+
+## 35) Checkout primary action text became invisible
+
+**Problem**
+The checkout primary action was clickable, but the button text was not visible.
+
+**Cause**
+The `MaterialButton` used a custom `android:background` together with:
+- `app:backgroundTint="@android:color/transparent"`
+
+This created a styling conflict, so the button still occupied layout space and responded to clicks, but the visual rendering of the text/background became unreliable.
+
+**Fix**
+I removed the manual drawable background from the `MaterialButton` and styled the button using normal Material properties instead:
+- `app:backgroundTint`
+- `app:cornerRadius`
+- `app:strokeColor`
+- `app:strokeWidth`
+
+**Result**
+The checkout action text is now clearly visible and the button keeps a stable premium appearance.
+
+## 36) Feedback flow needed crafted state for purchased products
+
+**Problem**
+The redesigned feedback screens needed to display whether a purchased product had been customised, so the UI could show the `Crafted` badge consistently.
+
+**Cause**
+The existing purchased-product feedback projection focused only on:
+- product identity
+- quantity
+- unit price
+- rating/comment state
+
+It did not yet expose the customisation metadata required to determine whether the purchased product should be treated as crafted.
+
+**Fix**
+I extended the Room projection used by the feedback flow so it now also includes:
+- selected option label
+- selected option size value
+- selected option size unit
+- selected add-ons summary
+- estimated calories
+
+I also added an `isCrafted` derived property to the projection model.
+
+**Result**
+The feedback product list and the individual product feedback screen can now show the `Crafted` badge correctly for customised purchased items.
+

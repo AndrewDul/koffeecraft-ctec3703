@@ -51,14 +51,20 @@
 
                 <TextView
                     android:id="@+id/tvCustomerCartBadge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="22dp"
                     android:layout_gravity="end|top"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="2dp"
+                    android:minWidth="22dp"
+                    android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
                     android:text="0"
-                    android:textSize="10sp"
+                    android:textColor="#FFF8F2"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:background="@android:drawable/btn_default_small"
                     android:visibility="gone" />
             </FrameLayout>
 
@@ -76,14 +82,20 @@
 
                 <TextView
                     android:id="@+id/tvCustomerInboxBadge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="22dp"
                     android:layout_gravity="end|top"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="2dp"
+                    android:minWidth="22dp"
+                    android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
                     android:text="0"
-                    android:textSize="10sp"
+                    android:textColor="#FFF8F2"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:background="@android:drawable/btn_default_small"
                     android:visibility="gone" />
             </FrameLayout>
 
@@ -101,14 +113,20 @@
 
                 <TextView
                     android:id="@+id/tvCustomerNotificationBadge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="22dp"
                     android:layout_gravity="end|top"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="2dp"
+                    android:minWidth="22dp"
+                    android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
                     android:text="0"
-                    android:textSize="10sp"
+                    android:textColor="#FFF8F2"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:background="@android:drawable/btn_default_small"
                     android:visibility="gone" />
             </FrameLayout>
 

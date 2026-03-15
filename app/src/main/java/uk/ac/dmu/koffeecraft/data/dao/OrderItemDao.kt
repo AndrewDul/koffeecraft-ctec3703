@@ -32,6 +32,11 @@ interface OrderItemDao {
         p.description AS productDescription,
         oi.quantity AS quantity,
         oi.unitPrice AS unitPrice,
+        oi.selectedOptionLabel AS selectedOptionLabel,
+        oi.selectedOptionSizeValue AS selectedOptionSizeValue,
+        oi.selectedOptionSizeUnit AS selectedOptionSizeUnit,
+        oi.selectedAddOnsSummary AS selectedAddOnsSummary,
+        oi.estimatedCalories AS estimatedCalories,
         f.feedbackId AS feedbackId,
         f.rating AS rating,
         f.comment AS comment
@@ -53,6 +58,11 @@ interface OrderItemDao {
         p.description AS productDescription,
         oi.quantity AS quantity,
         oi.unitPrice AS unitPrice,
+        oi.selectedOptionLabel AS selectedOptionLabel,
+        oi.selectedOptionSizeValue AS selectedOptionSizeValue,
+        oi.selectedOptionSizeUnit AS selectedOptionSizeUnit,
+        oi.selectedAddOnsSummary AS selectedAddOnsSummary,
+        oi.estimatedCalories AS estimatedCalories,
         f.feedbackId AS feedbackId,
         f.rating AS rating,
         f.comment AS comment
@@ -74,6 +84,11 @@ interface OrderItemDao {
         p.description AS productDescription,
         oi.quantity AS quantity,
         oi.unitPrice AS unitPrice,
+        oi.selectedOptionLabel AS selectedOptionLabel,
+        oi.selectedOptionSizeValue AS selectedOptionSizeValue,
+        oi.selectedOptionSizeUnit AS selectedOptionSizeUnit,
+        oi.selectedAddOnsSummary AS selectedAddOnsSummary,
+        oi.estimatedCalories AS estimatedCalories,
         f.feedbackId AS feedbackId,
         f.rating AS rating,
         f.comment AS comment
@@ -119,10 +134,22 @@ data class OrderFeedbackItem(
     val productDescription: String,
     val quantity: Int,
     val unitPrice: Double,
+    val selectedOptionLabel: String?,
+    val selectedOptionSizeValue: Int?,
+    val selectedOptionSizeUnit: String?,
+    val selectedAddOnsSummary: String?,
+    val estimatedCalories: Int?,
     val feedbackId: Long?,
     val rating: Int?,
     val comment: String?
-)
+) {
+    val isCrafted: Boolean
+        get() = !selectedOptionLabel.isNullOrBlank() ||
+                selectedOptionSizeValue != null ||
+                !selectedOptionSizeUnit.isNullOrBlank() ||
+                !selectedAddOnsSummary.isNullOrBlank() ||
+                estimatedCalories != null
+}
 
 data class OrderDisplayItem(
     val productName: String,

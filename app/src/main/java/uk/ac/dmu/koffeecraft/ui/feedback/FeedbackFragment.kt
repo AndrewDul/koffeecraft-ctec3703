@@ -2,7 +2,6 @@ package uk.ac.dmu.koffeecraft.ui.feedback
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -10,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,14 +30,17 @@ class FeedbackFragment : Fragment(R.layout.fragment_feedback) {
         val tvSubtitle = view.findViewById<TextView>(R.id.tvSubtitle)
         val tvEmpty = view.findViewById<TextView>(R.id.tvEmpty)
         val rv = view.findViewById<RecyclerView>(R.id.rvFeedbackProducts)
-        val btnBack = view.findViewById<Button>(R.id.btnBack)
+        val btnBack = view.findViewById<MaterialButton>(R.id.btnBack)
 
-        tvTitle.text = "Feedback for Order #$orderId"
-        tvSubtitle.text = "Select a product to leave feedback or edit an existing review."
+        tvTitle.text = "Feedback for Order"
+        tvSubtitle.text = "Order #$orderId"
 
-        btnBack.setOnClickListener { findNavController().navigateUp() }
+        btnBack.setOnClickListener {
+            findNavController().navigateUp()
+        }
 
         rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.setHasFixedSize(false)
 
         adapter = FeedbackProductsAdapter(
             items = emptyList(),

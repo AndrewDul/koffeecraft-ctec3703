@@ -1338,3 +1338,126 @@ The Customer Notifications screen now:
 - `item_customer_notification.xml`
 - `item_customer_notification_detail.xml`
 
+## Cart, Checkout, Order Status, and Feedback premium customer flow update
+
+I redesigned the late-stage customer order flow so the transition from cart to payment, order tracking, and feedback now feels much closer to a real premium mobile app.
+
+### Cart redesign
+I upgraded the Cart screen from a simple functional list into a more polished order review flow.
+
+Each cart item now presents:
+- product name
+- `Crafted` badge for customised items
+- size information
+- add-ons
+- calories
+- price per item
+- line total
+- a cleaner quantity stepper with subtle `-` and `+` controls
+
+I intentionally did not include allergen data in cart cards, because the screen should stay focused on ordering clarity rather than becoming overloaded.
+
+I also redesigned the summary area so it now includes:
+- `Order total`
+- optional beans spending information
+- `Proceed to checkout`
+- `Browse menu`
+
+### Top bar badge redesign
+I upgraded the customer top bar counters for:
+- cart
+- inbox
+- notifications
+
+The badges now use a warmer premium visual style with:
+- improved shape
+- stronger readability
+- removal of the old plain grey appearance
+
+### Checkout redesign
+I redesigned Checkout into a more premium payment confirmation screen.
+
+I replaced the basic payment choice UI with two pill-style selectable options:
+- `Card`
+- `Cash`
+
+This creates a cleaner and more modern interaction than traditional radio buttons.
+
+I also added:
+- a premium header card
+- clearer payment method grouping
+- a dedicated total summary card
+- a stronger primary action using `Proceed to pay`
+
+### Order Status redesign
+I redesigned the order status screen so it now uses the same premium visual language as:
+- My Orders
+- Favourites
+- Notifications
+- Cart
+- Checkout
+
+The screen now includes:
+- premium header card
+- status chip
+- order number
+- current status display
+- `Back to menu`
+- `Leave feedback`
+
+### Feedback availability behaviour
+I changed the feedback action behaviour so the customer can always see the `Leave feedback` button, but it only becomes enabled when the order reaches `COLLECTED`.
+
+This gives the user better visibility of the feature while still preserving the business rule around review timing.
+
+### Feedback list redesign
+I redesigned `Feedback for Order` into a premium product list.
+
+Each purchased product card now shows:
+- product name
+- quantity
+- price
+- current rating state
+- `Crafted` badge for customised purchased items
+- `Leave feedback` or `Edit feedback`
+
+### Product feedback redesign
+I redesigned the individual product feedback screen into structured premium sections.
+
+The screen now separates:
+- product information
+- crafted state
+- order number and quantity
+- rating input
+- comment input
+- action buttons
+
+This gives the feedback flow a clearer hierarchy and a more finished product feel.
+
+### Data support for crafted feedback
+To support the premium feedback flow correctly, I extended the purchased-product feedback projection so the feedback UI can detect whether a purchased item was customised.
+
+This makes it possible to show the `Crafted` badge consistently in:
+- feedback product list
+- individual product feedback screen
+
+### Files involved
+- `activity_main.xml`
+- `fragment_cart.xml`
+- `item_cart.xml`
+- `CartAdapter.kt`
+- `CartFragment.kt`
+- `fragment_checkout.xml`
+- `CheckoutFragment.kt`
+- `fragment_order_status.xml`
+- `OrderStatusFragment.kt`
+- `OrderItemDao.kt`
+- `fragment_feedback.xml`
+- `FeedbackFragment.kt`
+- `item_feedback_product.xml`
+- `FeedbackProductsAdapter.kt`
+- `fragment_product_feedback.xml`
+- `ProductFeedbackFragment.kt`
+- `bg_topbar_badge.xml`
+- `bg_cart_quantity_button.xml`
+

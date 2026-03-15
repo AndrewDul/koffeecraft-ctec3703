@@ -1,15 +1,15 @@
 package uk.ac.dmu.koffeecraft.ui.checkout
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,21 +23,39 @@ import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
+    private var selectedPaymentType: String = "CARD"
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tvTotal = view.findViewById<TextView>(R.id.tvTotal)
-        val rbCard = view.findViewById<RadioButton>(R.id.rbCard)
-        val btnPay = view.findViewById<Button>(R.id.btnPay)
-        val btnBackToCart = view.findViewById<Button>(R.id.btnBackToCart)
+        val tvTotalValue = view.findViewById<TextView>(R.id.tvTotalValue)
+        val tvBeans = view.findViewById<TextView>(R.id.tvBeans)
+        val tvPaymentCard = view.findViewById<TextView>(R.id.tvPaymentCard)
+        val tvPaymentCash = view.findViewById<TextView>(R.id.tvPaymentCash)
+        val btnPay = view.findViewById<MaterialButton>(R.id.btnPay)
+        val btnBackToCart = view.findViewById<MaterialButton>(R.id.btnBackToCart)
 
         val initialTotal = CartManager.total()
         val initialBeansToSpend = CartManager.beansToSpend()
 
-        tvTotal.text = if (initialBeansToSpend > 0) {
-            "Total: £%.2f\nBeans to spend: %d".format(initialTotal, initialBeansToSpend)
+        tvTotalValue.text = String.format("£%.2f", initialTotal)
+        if (initialBeansToSpend > 0) {
+            tvBeans.visibility = View.VISIBLE
+            tvBeans.text = "Beans to spend: $initialBeansToSpend"
         } else {
-            "Total: £%.2f".format(initialTotal)
+            tvBeans.visibility = View.GONE
+        }
+
+        updatePaymentSelectionUi(tvPaymentCard, tvPaymentCash)
+
+        tvPaymentCard.setOnClickListener {
+            selectedPaymentType = "CARD"
+            updatePaymentSelectionUi(tvPaymentCard, tvPaymentCash)
+        }
+
+        tvPaymentCash.setOnClickListener {
+            selectedPaymentType = "CASH"
+            updatePaymentSelectionUi(tvPaymentCard, tvPaymentCash)
         }
 
         btnBackToCart.setOnClickListener {
@@ -51,7 +69,6 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                 return@setOnClickListener
             }
 
-            val paymentType = if (rbCard.isChecked) "CARD" else "CASH"
             val total = CartManager.total()
             val beansToSpend = CartManager.beansToSpend()
             val beansToEarn = CartManager.purchasedProductCountForBeans()
@@ -85,28 +102,22 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                     return@launch
                 }
 
-                val items = cartItems.map {
-                    it.product.productId to (it.quantity to it.unitPrice)
-                }
-
                 val orderId = repo.placeOrder(
                     customerId = customerId,
                     items = cartItems,
-                    paymentType = paymentType,
+                    paymentType = selectedPaymentType,
                     totalAmount = total
                 )
 
                 val updatedBeansBalance = customer.beansBalance - beansToSpend + beansToEarn
-                db.customerDao().update(
-                    customer.copy(beansBalance = updatedBeansBalance)
-                )
+                db.customerDao().update(customer.copy(beansBalance = updatedBeansBalance))
 
                 CartManager.clear()
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         requireContext(),
-                        "Payment successful (simulated).",
+                        "Payment successful.",
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -125,6 +136,25 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                     )
                 }
             }
+        }
+    }
+
+    private fun updatePaymentSelectionUi(cardView: TextView, cashView: TextView) {
+        val selectedBg = R.drawable.bg_orders_filter_chip_selected
+        val unselectedBg = R.drawable.bg_orders_filter_chip
+
+        if (selectedPaymentType == "CARD") {
+            cardView.setBackgroundResource(selectedBg)
+            cashView.setBackgroundResource(unselectedBg)
+
+            cardView.setTextColor(Color.parseColor("#2E2018"))
+            cashView.setTextColor(Color.parseColor("#6E5A4D"))
+        } else {
+            cashView.setBackgroundResource(selectedBg)
+            cardView.setBackgroundResource(unselectedBg)
+
+            cashView.setTextColor(Color.parseColor("#2E2018"))
+            cardView.setTextColor(Color.parseColor("#6E5A4D"))
         }
     }
 }

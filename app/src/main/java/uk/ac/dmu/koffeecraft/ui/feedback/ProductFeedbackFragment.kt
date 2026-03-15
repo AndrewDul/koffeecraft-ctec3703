@@ -2,7 +2,6 @@ package uk.ac.dmu.koffeecraft.ui.feedback
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.RatingBar
 import android.widget.TextView
@@ -11,6 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,11 +28,12 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
 
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
+    private lateinit var tvCraftedBadge: TextView
     private lateinit var ratingBar: RatingBar
     private lateinit var etComment: EditText
     private lateinit var tvError: TextView
-    private lateinit var btnSave: Button
-    private lateinit var btnBack: Button
+    private lateinit var btnSave: MaterialButton
+    private lateinit var btnBack: MaterialButton
 
     private var currentItem: OrderFeedbackItem? = null
 
@@ -44,6 +45,7 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
 
         tvTitle = view.findViewById(R.id.tvTitle)
         tvSubtitle = view.findViewById(R.id.tvSubtitle)
+        tvCraftedBadge = view.findViewById(R.id.tvCraftedBadge)
         ratingBar = view.findViewById(R.id.ratingBar)
         etComment = view.findViewById(R.id.etComment)
         tvError = view.findViewById(R.id.tvError)
@@ -86,15 +88,11 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
 
                 tvTitle.text = item.productName
                 tvSubtitle.text = "Order #${item.orderId} • Quantity: ${item.quantity}"
+                tvCraftedBadge.visibility = if (item.isCrafted) View.VISIBLE else View.GONE
 
                 ratingBar.rating = (item.rating ?: 5).toFloat()
                 etComment.setText(item.comment.orEmpty())
-
-                btnSave.text = if (item.feedbackId == null) {
-                    "Submit & Next"
-                } else {
-                    "Save changes"
-                }
+                btnSave.text = "Submit & Next"
             }
         }
     }

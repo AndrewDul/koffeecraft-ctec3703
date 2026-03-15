@@ -1,43 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F5EBDD"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#FFF8F2"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="1dp"
+        app:strokeColor="#E3D4C6"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cart"
+                android:textColor="#2E2018"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Review your order before checkout."
+                android:textColor="#6E5A4D"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Cart"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="Your cart is empty."
+        android:textColor="#7A6558"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvCart"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="14dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp"/>
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingBottom="12dp" />
 
-    <TextView
-        android:id="@+id/tvTotal"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardCartSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Total: £0.00"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginTop="8dp"/>
+        app:cardBackgroundColor="#FFF8F2"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="1dp"
+        app:strokeColor="#E3D4C6"
+        app:strokeWidth="1dp">
 
-    <Button
-        android:id="@+id/btnCheckout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Checkout"
-        android:layout_marginTop="8dp"/>
-    <Button
-        android:id="@+id/btnBackToMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Back to Menu"
-        android:layout_marginTop="8dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Order total"
+                    android:textColor="#7A6558"
+                    android:textSize="12sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvTotalValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="£0.00"
+                    android:textColor="#2E2018"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvBeans"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Beans to spend: 0"
+                android:textColor="#7A6558"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCheckout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:text="Proceed to checkout"
+                android:textAllCaps="false"
+                android:textColor="#FFF8F2"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="#5F7F5B"
+                app:cornerRadius="28dp"
+                app:elevation="0dp"
+                app:strokeWidth="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBackToMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:text="Browse menu"
+                android:textAllCaps="false"
+                android:textColor="#2E2018"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="#F3E8DD"
+                app:cornerRadius="28dp"
+                app:elevation="0dp"
+                app:strokeColor="#DDC9B8"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>
