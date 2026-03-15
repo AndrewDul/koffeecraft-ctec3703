@@ -768,3 +768,26 @@ I added dedicated screens for:
 The customer settings experience now feels more complete, more realistic, and more consistent with the rest of the premium KoffeeCraft UI.
 
 
+## 38) Customer inbox unread state was being cleared too early
+
+**Problem**
+The inbox redesign introduced `Read` and `Unread` filters, but the unread state would not remain meaningful because messages were being marked as read too early.
+
+**Cause**
+The customer inbox screen marked all messages as read immediately when the screen opened.
+
+This meant:
+- unread messages lost their unread state before the customer actually opened them
+- the `Unread` filter would become much less useful
+- the inbox behaviour did not reflect real reading behaviour
+
+**Fix**
+I removed the automatic `markAllAsRead` behaviour from inbox screen entry and changed the logic so a message is marked as read only when the customer opens the card.
+
+**Result**
+The inbox now supports meaningful:
+- `Read`
+- `Unread`
+
+filtering, and the read state better reflects actual customer interaction.
+

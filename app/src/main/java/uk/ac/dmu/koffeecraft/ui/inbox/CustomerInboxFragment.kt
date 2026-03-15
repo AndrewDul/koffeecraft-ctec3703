@@ -1,5 +1,9 @@
 package uk.ac.dmu.koffeecraft.ui.inbox
 
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -17,8 +21,27 @@ import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
 
+    private enum class InboxFilter {
+        ALL,
+        READ,
+        UNREAD,
+        PROMO,
+        IMPORTANT,
+        SERVICE
+    }
+
     private lateinit var adapter: CustomerInboxAdapter
     private lateinit var tvEmpty: TextView
+
+    private lateinit var tvFilterAll: TextView
+    private lateinit var tvFilterRead: TextView
+    private lateinit var tvFilterUnread: TextView
+    private lateinit var tvFilterPromo: TextView
+    private lateinit var tvFilterImportant: TextView
+    private lateinit var tvFilterService: TextView
+
+    private var allItems: List<InboxMessage> = emptyList()
+    private var currentFilter: InboxFilter = InboxFilter.ALL
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -28,9 +51,18 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
         val rv = view.findViewById<RecyclerView>(R.id.rvCustomerInbox)
         tvEmpty = view.findViewById(R.id.tvEmpty)
 
+        tvFilterAll = view.findViewById(R.id.tvFilterAll)
+        tvFilterRead = view.findViewById(R.id.tvFilterRead)
+        tvFilterUnread = view.findViewById(R.id.tvFilterUnread)
+        tvFilterPromo = view.findViewById(R.id.tvFilterPromo)
+        tvFilterImportant = view.findViewById(R.id.tvFilterImportant)
+        tvFilterService = view.findViewById(R.id.tvFilterService)
+
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
         rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.setHasFixedSize(false)
+        rv.clipToPadding = false
 
         adapter = CustomerInboxAdapter(
             items = emptyList(),
@@ -38,26 +70,106 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     db.inboxMessageDao().deleteById(item.inboxMessageId)
                 }
+            },
+            onOpen = { item ->
+                if (!item.isRead) {
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        db.inboxMessageDao().markAsRead(item.inboxMessageId)
+                    }
+                }
             }
         )
         rv.adapter = adapter
 
+        setupFilters()
+        updateFilterChipStyles()
         attachSwipeToDelete(rv, db)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            db.inboxMessageDao().markAllAsRead(customerId)
-        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.inboxMessageDao().observeInboxForCustomer(customerId).collect { items ->
-                adapter.submitList(items)
-                tvEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                allItems = items
+                applyFilter()
             }
         }
     }
 
+    private fun setupFilters() {
+        tvFilterAll.setOnClickListener {
+            currentFilter = InboxFilter.ALL
+            applyFilter()
+        }
+
+        tvFilterRead.setOnClickListener {
+            currentFilter = InboxFilter.READ
+            applyFilter()
+        }
+
+        tvFilterUnread.setOnClickListener {
+            currentFilter = InboxFilter.UNREAD
+            applyFilter()
+        }
+
+        tvFilterPromo.setOnClickListener {
+            currentFilter = InboxFilter.PROMO
+            applyFilter()
+        }
+
+        tvFilterImportant.setOnClickListener {
+            currentFilter = InboxFilter.IMPORTANT
+            applyFilter()
+        }
+
+        tvFilterService.setOnClickListener {
+            currentFilter = InboxFilter.SERVICE
+            applyFilter()
+        }
+    }
+
+    private fun applyFilter() {
+        val filtered = when (currentFilter) {
+            InboxFilter.ALL -> allItems
+            InboxFilter.READ -> allItems.filter { it.isRead }
+            InboxFilter.UNREAD -> allItems.filter { !it.isRead }
+            InboxFilter.PROMO -> allItems.filter { it.deliveryType.startsWith("PROMO") }
+            InboxFilter.IMPORTANT -> allItems.filter { it.deliveryType.startsWith("IMPORTANT") }
+            InboxFilter.SERVICE -> allItems.filter { it.deliveryType.startsWith("SERVICE") }
+        }
+
+        adapter.submitList(filtered)
+        updateFilterChipStyles()
+
+        tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        tvEmpty.text = if (allItems.isEmpty()) {
+            "No messages yet."
+        } else {
+            "No messages match this filter."
+        }
+    }
+
+    private fun updateFilterChipStyles() {
+        styleFilterChip(tvFilterAll, currentFilter == InboxFilter.ALL)
+        styleFilterChip(tvFilterRead, currentFilter == InboxFilter.READ)
+        styleFilterChip(tvFilterUnread, currentFilter == InboxFilter.UNREAD)
+        styleFilterChip(tvFilterPromo, currentFilter == InboxFilter.PROMO)
+        styleFilterChip(tvFilterImportant, currentFilter == InboxFilter.IMPORTANT)
+        styleFilterChip(tvFilterService, currentFilter == InboxFilter.SERVICE)
+    }
+
+    private fun styleFilterChip(view: TextView, selected: Boolean) {
+        if (selected) {
+            view.setBackgroundResource(R.drawable.bg_orders_filter_chip_selected)
+            view.setTextColor(Color.parseColor("#2E2018"))
+        } else {
+            view.setBackgroundResource(R.drawable.bg_orders_filter_chip)
+            view.setTextColor(Color.parseColor("#6E5A4D"))
+        }
+    }
+
     private fun attachSwipeToDelete(rv: RecyclerView, db: KoffeeCraftDatabase) {
-        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        val callback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -70,8 +182,62 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
                     db.inboxMessageDao().deleteById(item.inboxMessageId)
                 }
             }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                drawSwipeBackground(c, viewHolder.itemView, dX)
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
         }
 
         ItemTouchHelper(callback).attachToRecyclerView(rv)
     }
+
+    private fun drawSwipeBackground(canvas: Canvas, itemView: View, dX: Float) {
+        if (dX == 0f) return
+
+        val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#B98C73")
+        }
+
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#FFF8F2")
+            textAlign = Paint.Align.CENTER
+            textSize = dp(14f)
+            isFakeBoldText = true
+        }
+
+        val top = itemView.top + dp(8f)
+        val bottom = itemView.bottom - dp(8f)
+
+        val rect = if (dX > 0) {
+            RectF(
+                itemView.left + dp(8f),
+                top,
+                itemView.left + dX - dp(4f),
+                bottom
+            )
+        } else {
+            RectF(
+                itemView.right + dX + dp(4f),
+                top,
+                itemView.right - dp(8f),
+                bottom
+            )
+        }
+
+        canvas.drawRoundRect(rect, dp(22f), dp(22f), backgroundPaint)
+
+        val textY = rect.centerY() - ((textPaint.descent() + textPaint.ascent()) / 2f)
+        canvas.drawText("Remove", rect.centerX(), textY, textPaint)
+    }
+
+    private fun dp(value: Float): Float = value * requireContext().resources.displayMetrics.density
 }

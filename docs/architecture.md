@@ -1550,3 +1550,67 @@ This keeps Settings visually aligned with:
 - `fragment_customer_delete_account.xml`
 - `nav_graph.xml`
 
+## Customer Inbox redesign
+
+I redesigned the customer inbox so it now matches the premium customer UI used across the rest of KoffeeCraft.
+
+### Main inbox layout
+The inbox screen now includes:
+- a premium header card
+- warm coffee-tone background styling
+- grouped top filters for:
+  - `All`
+  - `Read`
+  - `Unread`
+  - `Promo`
+  - `Important`
+  - `Service`
+
+This makes the inbox easier to scan and more consistent with other customer-facing screens such as:
+- Notifications
+- Cart
+- Checkout
+- Settings
+
+### Inbox cards
+Each inbox message now uses a more premium rounded card style and shows:
+- title
+- date and time
+- read state chip
+- optional category chip
+- message body
+- `Read more / Read less`
+- remove `X`
+
+### Category chip behaviour
+I added category chip support based on the stored delivery type of the inbox message.
+
+The inbox now shows:
+- `Promo` for promotional messages
+- `Important` for important admin messages
+- `Service` for service-related messages
+
+I intentionally kept the category chip hidden for:
+- custom general messages
+- welcome messages
+
+This keeps the UI cleaner and avoids unnecessary badge clutter.
+
+### Read and unread behaviour
+I changed the inbox logic so messages are no longer marked as read immediately when the customer enters the screen.
+
+Instead, a message becomes read when the customer actually opens the card.
+
+This makes the `Read` and `Unread` filters meaningful and better reflects real customer behaviour.
+
+### Admin compatibility
+I did not change the admin inbox sending flow.
+
+Customer inbox titles and delivery categories continue to come from the existing admin-side message generation logic, which keeps the inbox redesign compatible with the current admin system.
+
+### Files involved
+- `CustomerInboxFragment.kt`
+- `CustomerInboxAdapter.kt`
+- `fragment_customer_inbox.xml`
+- `item_customer_inbox.xml`
+
