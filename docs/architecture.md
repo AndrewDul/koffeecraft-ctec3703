@@ -2607,3 +2607,67 @@ This change improves the communication architecture in the following way:
 That separation makes the admin side more scalable, easier to reason about, and much more polished from both a UX and portfolio perspective.
 
 
+## Premium redesign of the admin notifications flow
+
+At this stage, I refined the **Admin Notifications** screen so it now feels visually and structurally aligned with the rest of the premium KoffeeCraft admin experience.
+
+### What I changed
+
+I redesigned the screen from a plain operational list into a more polished **action queue** view.
+
+The updated notifications area now includes:
+
+- a premium header card
+- a queue summary section
+- warmer coffee-tone cards
+- clearer information hierarchy
+- status chips for order progress
+- more readable metadata
+- cleaner action buttons for operational next steps
+
+### Notification item improvements
+
+I rebuilt each admin notification card so it now presents information in a more production-style layout.
+
+Each card now gives the admin a clearer visual understanding of:
+
+- the current order status
+- what action is needed
+- when the notification was created
+- whether the item is still actionable or ready to be cleared
+
+I also improved the action wording to make the screen feel more realistic and task-oriented.
+
+The main action labels now reflect the actual order progression:
+
+- Move to Preparing
+- Move to Ready
+- Mark as Collected
+
+### What I kept unchanged
+
+I kept the existing logic intact so this was a UX and presentation improvement rather than a behavioural rewrite.
+
+That means:
+
+- only collected notifications can be removed
+- swipe delete still works only for collected notifications
+- placed / preparing / ready notifications still use the same next-step order progression logic
+- admin notifications are still marked as read when the screen is opened
+
+### Why this improves the architecture and UX
+
+This change improves the admin-side experience in two ways.
+
+First, it makes the notifications screen feel like a real **operational queue**, which is more suitable for a premium back-office coffee app.
+
+Second, it keeps the behaviour stable while improving the visual structure, so the feature now fits much better alongside the already refined admin areas such as:
+
+- dashboard
+- orders
+- menu management
+- inbox / direct messaging
+- campaign studio
+
+As a result, the notifications feature now supports the same premium product identity instead of feeling like a temporary utility screen.
+

@@ -456,44 +456,130 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         product: Product,
         onSaved: () -> Unit
     ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_manage_sizes, null)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvManageSizesTitle)
+        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvManageSizesSubtitle)
+        val btnAddSizeOption = dialogView.findViewById<MaterialButton>(R.id.btnAddSizeOption)
+        val tvSizesEmpty = dialogView.findViewById<TextView>(R.id.tvSizesEmpty)
+        val containerSizeOptions = dialogView.findViewById<LinearLayout>(R.id.containerSizeOptions)
+
+        tvTitle.text = "Manage sizes for ${product.name}"
+        tvSubtitle.text = if (product.isCoffee) {
+            "Review, edit, and add drink size options for this product."
+        } else {
+            "Review, edit, and add portion options for this product."
+        }
+
+        fun refreshSizesContent() {
+            populateManageSizesDialog(
+                db = db,
+                product = product,
+                container = containerSizeOptions,
+                tvEmpty = tvSizesEmpty,
+                onSaved = onSaved
+            )
+        }
+
+        btnAddSizeOption.setOnClickListener {
+            showOptionFormDialog(db, product, null) {
+                refreshSizesContent()
+                onSaved()
+            }
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
+            .create()
+
+        dialog.setOnShowListener {
+            refreshSizesContent()
+        }
+
+        dialog.show()
+    }
+    private fun populateManageSizesDialog(
+        db: KoffeeCraftDatabase,
+        product: Product,
+        container: LinearLayout,
+        tvEmpty: TextView,
+        onSaved: () -> Unit
+    ) {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val options = db.productOptionDao().getForProduct(product.productId)
 
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
 
-                val labels = options.map {
-                    buildString {
-                        append(it.displayLabel)
+                container.removeAllViews()
+                tvEmpty.visibility = if (options.isEmpty()) View.VISIBLE else View.GONE
+
+                options.forEach { option ->
+                    val itemView = LayoutInflater.from(requireContext())
+                        .inflate(R.layout.item_admin_size_option, container, false)
+
+                    val tvSizeName = itemView.findViewById<TextView>(R.id.tvSizeName)
+                    val tvSizeMeta = itemView.findViewById<TextView>(R.id.tvSizeMeta)
+                    val tvSizeState = itemView.findViewById<TextView>(R.id.tvSizeState)
+                    val btnEditSize = itemView.findViewById<MaterialButton>(R.id.btnEditSize)
+                    val btnDeleteSize = itemView.findViewById<MaterialButton>(R.id.btnDeleteSize)
+
+                    tvSizeName.text = option.displayLabel
+                    tvSizeMeta.text = buildString {
+                        append(option.sizeValue)
+                        append(" ")
+                        append(option.sizeUnit.lowercase())
                         append(" • ")
-                        append(it.sizeValue)
-                        append(it.sizeUnit.lowercase())
-                        if (it.extraPrice > 0.0) {
-                            append(" • +£%.2f".format(it.extraPrice))
-                        }
-                        if (it.isDefault) {
-                            append(" • Default")
+                        append(
+                            if (option.extraPrice > 0.0) {
+                                "+£%.2f".format(option.extraPrice)
+                            } else {
+                                "Included"
+                            }
+                        )
+                        append(" • ")
+                        append(option.estimatedCalories)
+                        append(" kcal")
+                    }
+
+                    tvSizeState.text = if (option.isDefault) {
+                        "Default option"
+                    } else {
+                        "Optional size"
+                    }
+
+                    btnEditSize.setOnClickListener {
+                        showOptionFormDialog(db, product, option) {
+                            populateManageSizesDialog(db, product, container, tvEmpty, onSaved)
+                            onSaved()
                         }
                     }
-                }.toMutableList()
 
-                labels.add("+ Add new size option")
-
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Manage sizes")
-                    .setItems(labels.toTypedArray()) { _, which ->
-                        if (which == options.size) {
-                            showOptionFormDialog(db, product, null, onSaved)
-                        } else {
-                            showSizeOptionActionsDialog(db, product, options[which], onSaved)
-                        }
+                    btnDeleteSize.setOnClickListener {
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Delete size option?")
+                            .setMessage("This will remove \"${option.displayLabel}\" from ${product.name}.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Delete") { _, _ ->
+                                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                    db.productOptionDao().deleteById(option.optionId)
+                                    withContext(Dispatchers.Main) {
+                                        if (!isAdded) return@withContext
+                                        Toast.makeText(requireContext(), "Size option deleted.", Toast.LENGTH_SHORT).show()
+                                        populateManageSizesDialog(db, product, container, tvEmpty, onSaved)
+                                        onSaved()
+                                    }
+                                }
+                            }
+                            .show()
                     }
-                    .setNegativeButton("Close", null)
-                    .show()
+
+                    container.addView(itemView)
+                }
             }
         }
     }
-
     private fun showSizeOptionActionsDialog(
         db: KoffeeCraftDatabase,
         product: Product,
@@ -1206,25 +1292,34 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         product: Product,
         onSaved: () -> Unit
     ) {
-        val actions = arrayOf(
-            "Manage product allergens",
-            "Manage extra allergens",
-            "Allergen library"
-        )
+        val dialogView = layoutInflater.inflate(R.layout.dialog_manage_allergens_hub, null)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvManageAllergensTitle)
+        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvManageAllergensSubtitle)
+        val btnProductAllergens = dialogView.findViewById<MaterialButton>(R.id.btnProductAllergens)
+        val btnExtraAllergens = dialogView.findViewById<MaterialButton>(R.id.btnExtraAllergens)
+        val btnAllergenLibrary = dialogView.findViewById<MaterialButton>(R.id.btnAllergenLibrary)
+
+        tvTitle.text = "Manage allergens for ${product.name}"
+        tvSubtitle.text = "Choose which allergen area you want to manage for this product."
+
+        btnProductAllergens.setOnClickListener {
+            showManageProductAllergensDialog(db, product, onSaved)
+        }
+
+        btnExtraAllergens.setOnClickListener {
+            showSelectExtraForAllergensDialog(db, product, onSaved)
+        }
+
+        btnAllergenLibrary.setOnClickListener {
+            showAllergenLibraryDialog(db, onSaved)
+        }
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Manage allergens")
-            .setItems(actions) { _, which ->
-                when (which) {
-                    0 -> showManageProductAllergensDialog(db, product, onSaved)
-                    1 -> showSelectExtraForAllergensDialog(db, product, onSaved)
-                    2 -> showAllergenLibraryDialog(db, onSaved)
-                }
-            }
-            .setNegativeButton("Close", null)
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
             .show()
     }
-
     private fun showManageProductAllergensDialog(
         db: KoffeeCraftDatabase,
         product: Product,

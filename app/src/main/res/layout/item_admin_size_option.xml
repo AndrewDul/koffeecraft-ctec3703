@@ -3,103 +3,81 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="#FFF8F2"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="1dp"
-    app:strokeColor="#E3D4C6"
+    android:layout_marginTop="10dp"
+    app:cardBackgroundColor="#FAF4EE"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#E6D8CC"
     app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="14dp">
+        android:padding="16dp">
 
         <TextView
-            android:id="@+id/tvStatusChip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_order_status_chip"
-            android:paddingStart="10dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="4dp"
-            android:text="Placed"
-            android:textColor="#5C473A"
-            android:textSize="10sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvTitle"
+            android:id="@+id/tvSizeName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Order #123 needs action"
+            android:text="Large"
             android:textColor="#2E2018"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvMessage"
+            android:id="@+id/tvSizeMeta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Order #123 is currently placed and waiting for the next operational step."
+            android:layout_marginTop="4dp"
+            android:text="400 ml • +£0.50 • 180 kcal"
             android:textColor="#6E5A4D"
             android:textSize="13sp" />
 
         <TextView
-            android:id="@+id/tvMeta"
+            android:id="@+id/tvSizeState"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Created 17 Mar 2026, 09:45 • Admin action queue"
-            android:textColor="#7A6558"
-            android:textSize="12sp" />
-
-        <View
-            android:id="@+id/dividerActions"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="14dp"
-            android:background="#EADFD4"
-            android:visibility="gone" />
+            android:layout_marginTop="4dp"
+            android:text="Default option"
+            android:textColor="#8A5A2B"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/layoutActionRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:orientation="vertical">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNext"
+                android:id="@+id/btnEditSize"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="Move to Preparing"
+                android:minHeight="46dp"
+                android:text="Edit size option"
                 android:textAllCaps="false"
                 android:textColor="#FFF8F2"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 app:backgroundTint="#9A7655"
-                app:cornerRadius="26dp"
+                app:cornerRadius="24dp"
                 app:elevation="0dp"
                 app:strokeWidth="0dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDelete"
+                android:id="@+id/btnDeleteSize"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="Remove notification"
+                android:minHeight="46dp"
+                android:text="Delete size option"
                 android:textAllCaps="false"
                 android:textColor="#5A4638"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 app:backgroundTint="#F2E5D8"
-                app:cornerRadius="26dp"
+                app:cornerRadius="24dp"
                 app:elevation="0dp"
                 app:strokeColor="#DDC9B8"
                 app:strokeWidth="1dp" />
