@@ -6,9 +6,17 @@ import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
 class AuthRepository(private val db: KoffeeCraftDatabase) {
 
+    enum class UserRole {
+        CUSTOMER,
+        ADMIN
+    }
+
     sealed class LoginResult {
-        data class CustomerSuccess(val customerId: Long) : LoginResult()
-        data class AdminSuccess(val adminId: Long) : LoginResult()
+        data class Success(
+            val userId: Long,
+            val role: UserRole
+        ) : LoginResult()
+
         data class Error(val message: String) : LoginResult()
     }
 
@@ -21,33 +29,46 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
         val cleanEmail = email.trim().lowercase()
 
         if (cleanEmail.isBlank() || password.isEmpty()) {
+            password.fill('\u0000')
             return LoginResult.Error("Email and password are required.")
         }
 
         val admin = db.adminDao().findByEmail(cleanEmail)
         if (admin != null) {
-            val ok = PasswordHasher.verify(password, admin.passwordSalt, admin.passwordHash)
+            val isValidPassword = PasswordHasher.verify(password, admin.passwordSalt, admin.passwordHash)
             password.fill('\u0000')
+
             return when {
-                !ok -> LoginResult.Error("Invalid credentials.")
-                !admin.isActive -> LoginResult.Error("This admin account is inactive.")
-                else -> LoginResult.AdminSuccess(admin.adminId)
+                !isValidPassword -> LoginResult.Error("Invalid email or password.")
+                !admin.isActive -> LoginResult.Error(
+                    "This admin account is inactive. Please contact an active administrator."
+                )
+                else -> LoginResult.Success(
+                    userId = admin.adminId,
+                    role = UserRole.ADMIN
+                )
             }
         }
 
         val customer = db.customerDao().findByEmail(cleanEmail)
         if (customer != null) {
-            val ok = PasswordHasher.verify(password, customer.passwordSalt, customer.passwordHash)
+            val isValidPassword = PasswordHasher.verify(password, customer.passwordSalt, customer.passwordHash)
             password.fill('\u0000')
-            return if (ok) {
-                LoginResult.CustomerSuccess(customer.customerId)
-            } else {
-                LoginResult.Error("Invalid credentials.")
+
+            return when {
+                !isValidPassword -> LoginResult.Error("Invalid email or password.")
+                !customer.isActive -> LoginResult.Error(
+                    "This account is deactivated. Please contact KoffeeCraft support."
+                )
+                else -> LoginResult.Success(
+                    userId = customer.customerId,
+                    role = UserRole.CUSTOMER
+                )
             }
         }
 
         password.fill('\u0000')
-        return LoginResult.Error("Account not found.")
+        return LoginResult.Error("Invalid email or password.")
     }
 
     suspend fun registerCustomer(

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    app:cardBackgroundColor="#FAF4EE"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#E6D8CC"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvExtraAllergenName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vanilla syrup"
+            android:textColor="#2E2018"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvExtraAllergenMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="£0.40 • 35 kcal • Active"
+            android:textColor="#6E5A4D"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvExtraAllergenState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="No allergens linked yet"
+            android:textColor="#8A5A2B"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnManageExtraAllergens"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:minHeight="46dp"
+            android:text="Manage allergens"
+            android:textAllCaps="false"
+            android:textColor="#FFF8F2"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:backgroundTint="#9A7655"
+            app:cornerRadius="24dp"
+            app:elevation="0dp"
+            app:strokeWidth="0dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

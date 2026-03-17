@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -17,11 +20,13 @@ import uk.ac.dmu.koffeecraft.AdminActivity
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
+
+    private lateinit var vm: LoginViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -36,6 +41,10 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         val appContext = requireContext().applicationContext
         val db = KoffeeCraftDatabase.getInstance(appContext)
+        val repo = AuthRepository(db)
+
+        vm = ViewModelProvider(this, LoginViewModelFactory(repo))[LoginViewModel::class.java]
+
         CartManager.attachContext(appContext)
 
         tvGoToRegister.setOnClickListener {
@@ -46,6 +55,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             tilEmail.error = null
             tilPassword.error = null
             tvError.visibility = View.GONE
+            vm.clearError()
 
             val email = etEmail.text?.toString()?.trim()?.lowercase().orEmpty()
             val password = etPassword.text?.toString().orEmpty()
@@ -64,103 +74,72 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
             if (hasError) return@setOnClickListener
 
-            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                val admin = db.adminDao().findByEmail(email)
-                if (admin != null) {
-                    val adminOk = verifyPassword(
-                        rawPassword = password,
-                        salt = admin.passwordSalt,
-                        expectedHash = admin.passwordHash
+            vm.login(email = email, password = password)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.state.collect { state ->
+                    renderLoginState(
+                        state = state,
+                        btnSignIn = btnSignIn,
+                        tvError = tvError
                     )
 
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
+                    val success = state.loginSuccess ?: return@collect
 
-                        when {
-                            !adminOk -> {
-                                tvError.text = "Invalid email or password."
-                                tvError.visibility = View.VISIBLE
-                            }
+                    when (success.role) {
+                        AuthRepository.UserRole.ADMIN -> {
+                            SessionManager.setAdmin(success.userId)
+                            RememberedSessionStore.saveAdminSession(appContext, success.userId)
+                            CartManager.clearInMemoryOnly()
 
-                            !admin.isActive -> {
-                                tvError.text = "This admin account is inactive. Please contact an active administrator."
-                                tvError.visibility = View.VISIBLE
-                            }
+                            vm.consumeLoginSuccess()
 
-                            else -> {
-                                SessionManager.setAdmin(admin.adminId)
-                                RememberedSessionStore.saveAdminSession(appContext, admin.adminId)
-                                CartManager.clearInMemoryOnly()
+                            val intent = Intent(requireContext(), AdminActivity::class.java)
+                            startActivity(intent)
+                            requireActivity().finish()
+                        }
 
-                                val intent = Intent(requireContext(), AdminActivity::class.java)
-                                startActivity(intent)
-                                requireActivity().finish()
+                        AuthRepository.UserRole.CUSTOMER -> {
+                            SessionManager.setCustomer(success.userId)
+                            RememberedSessionStore.saveCustomerSession(
+                                context = appContext,
+                                customerId = success.userId,
+                                onboardingPending = false
+                            )
+
+                            vm.consumeLoginSuccess()
+
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                CartManager.restorePersistedCart(
+                                    context = appContext,
+                                    customerId = success.userId,
+                                    db = db
+                                )
+
+                                withContext(Dispatchers.Main) {
+                                    if (!isAdded) return@withContext
+                                    findNavController().navigate(R.id.action_login_to_menu)
+                                }
                             }
                         }
-                    }
-                    return@launch
-                }
-
-                val customer = db.customerDao().findByEmail(email)
-                if (customer == null) {
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        tvError.text = "Invalid email or password."
-                        tvError.visibility = View.VISIBLE
-                    }
-                    return@launch
-                }
-
-                val customerOk = verifyPassword(
-                    rawPassword = password,
-                    salt = customer.passwordSalt,
-                    expectedHash = customer.passwordHash
-                )
-
-                if (!customer.isActive) {
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        tvError.text = "This account is deactivated. Please contact KoffeeCraft support."
-                        tvError.visibility = View.VISIBLE
-                    }
-                    return@launch
-                }
-
-                if (customerOk) {
-                    SessionManager.setCustomer(customer.customerId)
-                    RememberedSessionStore.saveCustomerSession(
-                        context = appContext,
-                        customerId = customer.customerId,
-                        onboardingPending = false
-                    )
-
-                    CartManager.restorePersistedCart(
-                        context = appContext,
-                        customerId = customer.customerId,
-                        db = db
-                    )
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        findNavController().navigate(R.id.action_login_to_menu)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        tvError.text = "Invalid email or password."
-                        tvError.visibility = View.VISIBLE
                     }
                 }
             }
         }
     }
 
-    private fun verifyPassword(
-        rawPassword: String,
-        salt: String,
-        expectedHash: String
-    ): Boolean {
-        val actualHash = PasswordHasher.hashPasswordBase64(rawPassword.toCharArray(), salt)
-        return actualHash == expectedHash
+    private fun renderLoginState(
+        state: LoginViewModel.UiState,
+        btnSignIn: MaterialButton,
+        tvError: TextView
+    ) {
+        btnSignIn.isEnabled = !state.isLoading
+        btnSignIn.text = if (state.isLoading) "Signing in..." else "Sign in"
+        btnSignIn.alpha = if (state.isLoading) 0.75f else 1f
+
+        tvError.text = state.error.orEmpty()
+        tvError.visibility = if (state.error.isNullOrBlank()) View.GONE else View.VISIBLE
     }
 }

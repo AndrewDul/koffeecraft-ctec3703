@@ -598,7 +598,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Send Promo"
+                            android:text="Campaign Studio"
                             android:textColor="#2E2018"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -607,7 +607,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Create targeted inbox campaigns and offers."
+                            android:text="Create targeted campaigns, offers, and bonus beans."
                             android:textColor="#6E5A4D"
                             android:textSize="12sp" />
                     </LinearLayout>

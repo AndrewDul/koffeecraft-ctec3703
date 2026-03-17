@@ -6,44 +6,55 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
+
+    data class LoginSuccess(
+        val userId: Long,
+        val role: AuthRepository.UserRole
+    )
 
     data class UiState(
         val isLoading: Boolean = false,
         val error: String? = null,
-        val navigateToMenu: Boolean = false,
-        val navigateToAdmin: Boolean = false
+        val loginSuccess: LoginSuccess? = null
     )
 
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state
 
     fun login(email: String, password: String) {
+        if (_state.value.isLoading) return
+
         _state.value = UiState(isLoading = true)
 
         viewModelScope.launch {
-            val result = repo.login(email, password.toCharArray())
-
-            _state.value = when (result) {
-                is AuthRepository.LoginResult.AdminSuccess -> {
-                    SessionManager.setAdmin(result.adminId)
-                    UiState(navigateToAdmin = true)
+            when (val result = repo.login(email, password.toCharArray())) {
+                is AuthRepository.LoginResult.Success -> {
+                    _state.value = UiState(
+                        isLoading = false,
+                        loginSuccess = LoginSuccess(
+                            userId = result.userId,
+                            role = result.role
+                        )
+                    )
                 }
 
-                is AuthRepository.LoginResult.CustomerSuccess -> {
-                    SessionManager.setCustomer(result.customerId)
-                    UiState(navigateToMenu = true)
+                is AuthRepository.LoginResult.Error -> {
+                    _state.value = UiState(
+                        isLoading = false,
+                        error = result.message
+                    )
                 }
-
-                is AuthRepository.LoginResult.Error ->
-                    UiState(error = result.message)
             }
         }
     }
 
-    fun consumeNavigation() {
-        _state.value = _state.value.copy(navigateToMenu = false, navigateToAdmin = false)
+    fun consumeLoginSuccess() {
+        _state.value = _state.value.copy(loginSuccess = null)
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
     }
 }

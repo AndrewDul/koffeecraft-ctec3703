@@ -1301,14 +1301,30 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         val btnAllergenLibrary = dialogView.findViewById<MaterialButton>(R.id.btnAllergenLibrary)
 
         tvTitle.text = "Manage allergens for ${product.name}"
-        tvSubtitle.text = "Choose which allergen area you want to manage for this product."
+        tvSubtitle.text = if (product.isMerch) {
+            "This product can use direct allergen disclosures. Extra allergens are not used for merch items."
+        } else {
+            "Manage direct product allergens, review allergen links for extras, or open the shared allergen library."
+        }
+
+        if (product.isMerch) {
+            btnExtraAllergens.isEnabled = false
+            btnExtraAllergens.alpha = 0.55f
+            btnExtraAllergens.text = "Extra allergens not used for merch"
+        } else {
+            btnExtraAllergens.isEnabled = true
+            btnExtraAllergens.alpha = 1f
+            btnExtraAllergens.text = "Manage extra allergens"
+        }
 
         btnProductAllergens.setOnClickListener {
             showManageProductAllergensDialog(db, product, onSaved)
         }
 
         btnExtraAllergens.setOnClickListener {
-            showSelectExtraForAllergensDialog(db, product, onSaved)
+            if (!product.isMerch) {
+                showSelectExtraForAllergensDialog(db, product, onSaved)
+            }
         }
 
         btnAllergenLibrary.setOnClickListener {
@@ -1320,6 +1336,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             .setPositiveButton("Close", null)
             .show()
     }
+
     private fun showManageProductAllergensDialog(
         db: KoffeeCraftDatabase,
         product: Product,
@@ -1332,41 +1349,25 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
 
-                if (allergens.isEmpty()) {
-                    Toast.makeText(requireContext(), "No allergens in library yet.", Toast.LENGTH_SHORT).show()
-                    showAllergenLibraryDialog(db, onSaved)
-                    return@withContext
-                }
-
-                val checked = BooleanArray(allergens.size) { index ->
-                    selectedIds.contains(allergens[index].allergenId)
-                }
-
-                val labels = allergens.map { it.name }.toTypedArray()
-
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Product allergens")
-                    .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
-                        checked[which] = isChecked
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .setNeutralButton("Allergen library") { _, _ ->
+                showAllergenChecklistDialog(
+                    title = "Product allergens",
+                    subtitle = "Select the allergens that apply directly to ${product.name}.",
+                    allergens = allergens,
+                    selectedIds = selectedIds,
+                    emptyMessage = "No allergens are available in the library yet. Add your first allergen to start linking product disclosures.",
+                    onOpenLibrary = {
                         showAllergenLibraryDialog(db) {
                             onSaved()
                             showManageProductAllergensDialog(db, product, onSaved)
                         }
-                    }
-                    .setPositiveButton("Save") { _, _ ->
+                    },
+                    onSaveSelection = { checkedIds ->
                         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                            val refs = allergens.mapIndexedNotNull { index, allergen ->
-                                if (checked[index]) {
-                                    ProductAllergenCrossRef(
-                                        productId = product.productId,
-                                        allergenId = allergen.allergenId
-                                    )
-                                } else {
-                                    null
-                                }
+                            val refs = checkedIds.map { allergenId ->
+                                ProductAllergenCrossRef(
+                                    productId = product.productId,
+                                    allergenId = allergenId
+                                )
                             }
 
                             db.allergenDao().deleteProductRefs(product.productId)
@@ -1376,12 +1377,16 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
                             withContext(Dispatchers.Main) {
                                 if (!isAdded) return@withContext
-                                Toast.makeText(requireContext(), "Product allergens updated.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Product allergens updated.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 onSaved()
                             }
                         }
                     }
-                    .show()
+                )
             }
         }
     }
@@ -1391,35 +1396,85 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         product: Product,
         onSaved: () -> Unit
     ) {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val addOns = db.addOnDao().getAssignedForProduct(product.productId)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_select_extra_for_allergens, null)
 
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvExtraAllergensTitle)
+        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvExtraAllergensSubtitle)
+        val btnOpenLibrary = dialogView.findViewById<MaterialButton>(R.id.btnOpenAllergenLibraryForExtras)
+        val tvEmpty = dialogView.findViewById<TextView>(R.id.tvExtraAllergensEmpty)
+        val container = dialogView.findViewById<LinearLayout>(R.id.containerExtraAllergens)
 
-                if (addOns.isEmpty()) {
-                    Toast.makeText(requireContext(), "No extras assigned to this product yet.", Toast.LENGTH_SHORT).show()
-                    return@withContext
+        tvTitle.text = "Extra allergens for ${product.name}"
+        tvSubtitle.text = "Choose an assigned extra and manage the allergen disclosures linked to it."
+
+        fun refreshExtraAllergenContent() {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                val addOns = db.addOnDao().getAssignedForProduct(product.productId)
+                val allergenMap = addOns.associateWith { addOn ->
+                    db.allergenDao().getForAddOn(addOn.addOnId)
                 }
 
-                val labels = addOns.map { addOn ->
-                    buildString {
-                        append(addOn.name)
-                        if (!addOn.isActive) {
-                            append(" • Disabled")
-                        }
-                    }
-                }.toTypedArray()
+                withContext(Dispatchers.Main) {
+                    if (!isAdded) return@withContext
 
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Choose extra")
-                    .setItems(labels) { _, which ->
-                        showManageAddOnAllergensDialog(db, addOns[which], onSaved)
+                    container.removeAllViews()
+                    tvEmpty.visibility = if (addOns.isEmpty()) View.VISIBLE else View.GONE
+
+                    addOns.forEach { addOn ->
+                        val linkedAllergens = allergenMap[addOn].orEmpty()
+
+                        val itemView = LayoutInflater.from(requireContext())
+                            .inflate(R.layout.item_admin_extra_allergen_entry, container, false)
+
+                        val tvExtraName = itemView.findViewById<TextView>(R.id.tvExtraAllergenName)
+                        val tvExtraMeta = itemView.findViewById<TextView>(R.id.tvExtraAllergenMeta)
+                        val tvExtraState = itemView.findViewById<TextView>(R.id.tvExtraAllergenState)
+                        val btnManage = itemView.findViewById<MaterialButton>(R.id.btnManageExtraAllergens)
+
+                        tvExtraName.text = addOn.name
+                        tvExtraMeta.text = String.format(
+                            Locale.UK,
+                            "£%.2f • %d kcal • %s",
+                            addOn.price,
+                            addOn.estimatedCalories,
+                            if (addOn.isActive) "Active" else "Disabled"
+                        )
+                        tvExtraState.text = if (linkedAllergens.isEmpty()) {
+                            "No allergens linked yet"
+                        } else {
+                            linkedAllergens.joinToString(", ") { it.name }
+                        }
+
+                        btnManage.setOnClickListener {
+                            showManageAddOnAllergensDialog(db, addOn) {
+                                refreshExtraAllergenContent()
+                                onSaved()
+                            }
+                        }
+
+                        container.addView(itemView)
                     }
-                    .setNegativeButton("Close", null)
-                    .show()
+                }
             }
         }
+
+        btnOpenLibrary.setOnClickListener {
+            showAllergenLibraryDialog(db) {
+                refreshExtraAllergenContent()
+                onSaved()
+            }
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
+            .create()
+
+        dialog.setOnShowListener {
+            refreshExtraAllergenContent()
+        }
+
+        dialog.show()
     }
 
     private fun showManageAddOnAllergensDialog(
@@ -1434,41 +1489,25 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
 
-                if (allergens.isEmpty()) {
-                    Toast.makeText(requireContext(), "No allergens in library yet.", Toast.LENGTH_SHORT).show()
-                    showAllergenLibraryDialog(db, onSaved)
-                    return@withContext
-                }
-
-                val checked = BooleanArray(allergens.size) { index ->
-                    selectedIds.contains(allergens[index].allergenId)
-                }
-
-                val labels = allergens.map { it.name }.toTypedArray()
-
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("${addOn.name} allergens")
-                    .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
-                        checked[which] = isChecked
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .setNeutralButton("Allergen library") { _, _ ->
+                showAllergenChecklistDialog(
+                    title = "${addOn.name} allergens",
+                    subtitle = "Select the allergens that apply to this extra.",
+                    allergens = allergens,
+                    selectedIds = selectedIds,
+                    emptyMessage = "No allergens are available in the library yet. Add your first allergen before linking it to this extra.",
+                    onOpenLibrary = {
                         showAllergenLibraryDialog(db) {
                             onSaved()
                             showManageAddOnAllergensDialog(db, addOn, onSaved)
                         }
-                    }
-                    .setPositiveButton("Save") { _, _ ->
+                    },
+                    onSaveSelection = { checkedIds ->
                         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                            val refs = allergens.mapIndexedNotNull { index, allergen ->
-                                if (checked[index]) {
-                                    AddOnAllergenCrossRef(
-                                        addOnId = addOn.addOnId,
-                                        allergenId = allergen.allergenId
-                                    )
-                                } else {
-                                    null
-                                }
+                            val refs = checkedIds.map { allergenId ->
+                                AddOnAllergenCrossRef(
+                                    addOnId = addOn.addOnId,
+                                    allergenId = allergenId
+                                )
                             }
 
                             db.allergenDao().deleteAddOnRefs(addOn.addOnId)
@@ -1478,46 +1517,147 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
                             withContext(Dispatchers.Main) {
                                 if (!isAdded) return@withContext
-                                Toast.makeText(requireContext(), "Extra allergens updated.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Extra allergens updated.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 onSaved()
                             }
                         }
                     }
-                    .show()
+                )
             }
         }
+    }
+
+    private fun showAllergenChecklistDialog(
+        title: String,
+        subtitle: String,
+        allergens: List<Allergen>,
+        selectedIds: Set<Long>,
+        emptyMessage: String,
+        onOpenLibrary: () -> Unit,
+        onSaveSelection: (Set<Long>) -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_manage_allergen_selection, null)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvAllergenSelectionTitle)
+        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvAllergenSelectionSubtitle)
+        val btnOpenLibrary = dialogView.findViewById<MaterialButton>(R.id.btnOpenAllergenLibrary)
+        val tvEmpty = dialogView.findViewById<TextView>(R.id.tvAllergenSelectionEmpty)
+        val container = dialogView.findViewById<LinearLayout>(R.id.containerAllergenSelection)
+
+        tvTitle.text = title
+        tvSubtitle.text = subtitle
+        tvEmpty.text = emptyMessage
+
+        val checkedIds = selectedIds.toMutableSet()
+
+        btnOpenLibrary.setOnClickListener {
+            onOpenLibrary()
+        }
+
+        container.removeAllViews()
+        tvEmpty.visibility = if (allergens.isEmpty()) View.VISIBLE else View.GONE
+
+        allergens.forEach { allergen ->
+            val itemView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_admin_allergen_toggle, container, false)
+
+            val tvName = itemView.findViewById<TextView>(R.id.tvAllergenName)
+            val tvMeta = itemView.findViewById<TextView>(R.id.tvAllergenMeta)
+            val cbAssigned = itemView.findViewById<CheckBox>(R.id.cbAllergenAssigned)
+
+            val isSelected = checkedIds.contains(allergen.allergenId)
+
+            tvName.text = allergen.name
+            tvMeta.text = if (isSelected) {
+                "Currently linked"
+            } else {
+                "Available in allergen library"
+            }
+
+            cbAssigned.isChecked = isSelected
+            cbAssigned.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    checkedIds.add(allergen.allergenId)
+                    tvMeta.text = "Currently linked"
+                } else {
+                    checkedIds.remove(allergen.allergenId)
+                    tvMeta.text = "Available in allergen library"
+                }
+            }
+
+            itemView.setOnClickListener {
+                cbAssigned.isChecked = !cbAssigned.isChecked
+            }
+
+            container.addView(itemView)
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Save") { _, _ ->
+                onSaveSelection(checkedIds.toSet())
+            }
+            .show()
     }
 
     private fun showAllergenLibraryDialog(
         db: KoffeeCraftDatabase,
         onSaved: () -> Unit
     ) {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val allergens = db.allergenDao().getAll()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_allergen_library, null)
 
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
+        val btnAddAllergen = dialogView.findViewById<MaterialButton>(R.id.btnAddAllergenFromLibrary)
+        val tvEmpty = dialogView.findViewById<TextView>(R.id.tvAllergenLibraryEmpty)
+        val container = dialogView.findViewById<LinearLayout>(R.id.containerAllergenLibrary)
 
-                val labels = allergens.map { it.name }.toMutableList()
-                labels.add("+ Add new allergen")
+        fun refreshLibraryContent() {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                val allergens = db.allergenDao().getAll()
 
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Allergen library")
-                    .setItems(labels.toTypedArray()) { _, which ->
-                        if (which == allergens.size) {
-                            showAddAllergenDialog(db, onSaved)
-                        } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "Allergen available: ${allergens[which].name}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                withContext(Dispatchers.Main) {
+                    if (!isAdded) return@withContext
+
+                    container.removeAllViews()
+                    tvEmpty.visibility = if (allergens.isEmpty()) View.VISIBLE else View.GONE
+
+                    allergens.forEach { allergen ->
+                        val itemView = LayoutInflater.from(requireContext())
+                            .inflate(R.layout.item_admin_allergen_library, container, false)
+
+                        val tvName = itemView.findViewById<TextView>(R.id.tvLibraryAllergenName)
+                        val tvMeta = itemView.findViewById<TextView>(R.id.tvLibraryAllergenMeta)
+
+                        tvName.text = allergen.name
+                        tvMeta.text = "Available in the shared allergen library"
+
+                        container.addView(itemView)
                     }
-                    .setNegativeButton("Close", null)
-                    .show()
+                }
             }
         }
+
+        btnAddAllergen.setOnClickListener {
+            showAddAllergenDialog(db) {
+                refreshLibraryContent()
+                onSaved()
+            }
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
+            .create()
+
+        dialog.setOnShowListener {
+            refreshLibraryContent()
+        }
+
+        dialog.show()
     }
 
     private fun showAddAllergenDialog(

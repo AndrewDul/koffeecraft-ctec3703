@@ -86,7 +86,7 @@ class AdminHomeFragment : Fragment(R.layout.fragment_admin_home) {
         }
 
         view.findViewById<View>(R.id.cardSendPromo).setOnClickListener {
-            findNavController().navigate(R.id.adminInboxFragment)
+            findNavController().navigate(R.id.adminCampaignStudioFragment)
         }
 
         view.findViewById<View>(R.id.cardReviewFeedback).setOnClickListener {

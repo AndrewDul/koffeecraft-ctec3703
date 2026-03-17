@@ -2671,3 +2671,26 @@ Second, it keeps the behaviour stable while improving the visual structure, so t
 
 As a result, the notifications feature now supports the same premium product identity instead of feeling like a temporary utility screen.
 
+## Admin flow cleanup and login architecture refactor
+
+I cleaned up the remaining legacy admin navigation layer so the project now reflects the real runtime structure more accurately.
+
+Previously, the app still contained an older admin navigation path inside the main customer/auth navigation graph, even though the actual admin experience had already been moved to `AdminActivity` with its own `admin_nav_graph`. I removed that old path to avoid having two architectural approaches to the same admin flow. This made the separation between customer navigation and admin navigation much clearer and reduced confusion in the project structure.
+
+I also aligned the Admin Home quick action flow with the intended admin communication model. The promo-related quick action previously opened Admin Inbox, which no longer matched the current separation of responsibilities. I changed that entry so it now opens Campaign Studio instead. This keeps the admin messaging structure more consistent:
+- Admin Inbox is used for direct 1:1 communication
+- Campaign Studio is used for targeted campaigns, offers, loyalty actions, and bonus beans
+
+I then refactored the login architecture because authentication responsibilities were split across multiple layers. Although `AuthRepository` and `LoginViewModel` already existed, `LoginFragment` was still performing a large part of the authentication work directly. I moved the core login logic into `AuthRepository` and made `LoginViewModel` responsible for exposing login state, success results, and errors. After that, I reduced `LoginFragment` to UI-level responsibilities only, such as:
+- validating input fields
+- rendering loading and error state
+- performing Android-specific actions after successful login, such as session persistence, cart restoration, navigation, and launching `AdminActivity`
+
+This refactor improved architectural consistency and reduced duplicated logic. It also made the login flow easier to maintain and easier to extend in the future without having authentication rules scattered across the fragment and repository layers.
+
+Overall impact:
+- cleaner separation between customer/auth flow and admin flow
+- cleaner separation between Admin Inbox and Campaign Studio
+- removal of obsolete legacy navigation remnants
+- a more maintainable and production-like login architecture
+- stronger architectural consistency for both assessment quality and portfolio quality
