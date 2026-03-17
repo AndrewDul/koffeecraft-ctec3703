@@ -2,8 +2,6 @@ package uk.ac.dmu.koffeecraft.ui.admin.orders
 
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -11,11 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.Dispatchers
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
@@ -28,6 +26,13 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     private lateinit var tvEmpty: TextView
     private lateinit var tvFeedSummary: TextView
 
+    private lateinit var tvSearchByOrderId: TextView
+    private lateinit var tvSearchByCustomerId: TextView
+    private lateinit var tvSearchHint: TextView
+    private lateinit var tilSearch: TextInputLayout
+    private lateinit var etSearch: TextInputEditText
+    private lateinit var btnFind: MaterialButton
+
     private lateinit var tvStatusAll: TextView
     private lateinit var tvStatusPlaced: TextView
     private lateinit var tvStatusPreparing: TextView
@@ -38,7 +43,8 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     private lateinit var tvSortOldest: TextView
 
     private var currentStatusFilter: String? = null
-    private var currentQuery: String = ""
+    private var currentSubmittedQuery: String = ""
+    private var currentSearchMode: SearchMode = SearchMode.ORDER_ID
     private var sortDir: String = "DESC"
 
     private var collectJob: Job? = null
@@ -47,6 +53,11 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     private var expandedOrderId: Long? = null
     private var loadingOrderId: Long? = null
     private val detailCache = mutableMapOf<Long, AdminOrderDetailsUi>()
+
+    private enum class SearchMode {
+        ORDER_ID,
+        CUSTOMER_ID
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -57,12 +68,15 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
         tvEmpty = view.findViewById(R.id.tvEmpty)
         tvFeedSummary = view.findViewById(R.id.tvFeedSummary)
 
-        val etSearch = view.findViewById<TextInputEditText>(R.id.etSearch)
-
         bindFilterViews(view)
         setupFilterDefaults()
 
         rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.isNestedScrollingEnabled = false
+        rv.setHasFixedSize(false)
+        rv.itemAnimator = null
+        rv.setHasFixedSize(false)
+        rv.itemAnimator = null
 
         adapter = AdminOrdersAdapter(
             items = emptyList(),
@@ -74,21 +88,22 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
         )
         rv.adapter = adapter
 
+        setupSearchModeClicks()
         setupFilterClicks()
+        setupSearchActions()
+
+        applySearchMode(SearchMode.ORDER_ID)
         startCollecting()
-
-        etSearch.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                currentQuery = s?.toString()?.trim().orEmpty()
-                startCollecting()
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-        })
     }
 
     private fun bindFilterViews(view: View) {
+        tvSearchByOrderId = view.findViewById(R.id.tvSearchByOrderId)
+        tvSearchByCustomerId = view.findViewById(R.id.tvSearchByCustomerId)
+        tvSearchHint = view.findViewById(R.id.tvSearchHint)
+        tilSearch = view.findViewById(R.id.tilSearch)
+        etSearch = view.findViewById(R.id.etSearch)
+        btnFind = view.findViewById(R.id.btnFind)
+
         tvStatusAll = view.findViewById(R.id.tvStatusAll)
         tvStatusPlaced = view.findViewById(R.id.tvStatusPlaced)
         tvStatusPreparing = view.findViewById(R.id.tvStatusPreparing)
@@ -101,8 +116,58 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
     private fun setupFilterDefaults() {
         currentStatusFilter = null
+        currentSubmittedQuery = ""
+        currentSearchMode = SearchMode.ORDER_ID
         sortDir = "DESC"
         updateFilterChipStyles()
+    }
+
+    private fun setupSearchModeClicks() {
+        tvSearchByOrderId.setOnClickListener {
+            applySearchMode(SearchMode.ORDER_ID)
+        }
+
+        tvSearchByCustomerId.setOnClickListener {
+            applySearchMode(SearchMode.CUSTOMER_ID)
+        }
+    }
+
+    private fun applySearchMode(mode: SearchMode) {
+        currentSearchMode = mode
+
+        setChipSelected(tvSearchByOrderId, mode == SearchMode.ORDER_ID)
+        setChipSelected(tvSearchByCustomerId, mode == SearchMode.CUSTOMER_ID)
+
+        when (mode) {
+            SearchMode.ORDER_ID -> {
+                tvSearchHint.text = "Find order by order ID"
+                tilSearch.hint = "Enter order ID"
+                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            }
+
+            SearchMode.CUSTOMER_ID -> {
+                tvSearchHint.text = "Find orders by customer ID"
+                tilSearch.hint = "Enter customer ID"
+                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            }
+        }
+
+        etSearch.setText("")
+        currentSubmittedQuery = ""
+        startCollecting()
+    }
+
+    private fun setupSearchActions() {
+        btnFind.setOnClickListener {
+            currentSubmittedQuery = etSearch.text?.toString()?.trim().orEmpty()
+            startCollecting()
+        }
+
+        etSearch.setOnEditorActionListener { _, _, _ ->
+            currentSubmittedQuery = etSearch.text?.toString()?.trim().orEmpty()
+            startCollecting()
+            true
+        }
     }
 
     private fun setupFilterClicks() {
@@ -150,6 +215,9 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     }
 
     private fun updateFilterChipStyles() {
+        setChipSelected(tvSearchByOrderId, currentSearchMode == SearchMode.ORDER_ID)
+        setChipSelected(tvSearchByCustomerId, currentSearchMode == SearchMode.CUSTOMER_ID)
+
         setChipSelected(tvStatusAll, currentStatusFilter == null)
         setChipSelected(tvStatusPlaced, currentStatusFilter == "PLACED")
         setChipSelected(tvStatusPreparing, currentStatusFilter == "PREPARING")
@@ -180,7 +248,12 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
         collectJob = viewLifecycleOwner.lifecycleScope.launch {
             db.orderDao()
-                .observeAdminOrdersFiltered(currentStatusFilter, currentQuery, sortDir)
+                .observeAdminOrdersFiltered(
+                    status = currentStatusFilter,
+                    query = currentSubmittedQuery,
+                    searchMode = currentSearchMode.name,
+                    sortDir = sortDir
+                )
                 .collect { rows ->
                     currentRows = rows
 
@@ -226,7 +299,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     }
 
     private fun loadOrderDetails(orderId: Long) {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             val order = db.orderDao().getById(orderId)
             val customer = db.customerDao().getInboxTargetByOrderId(orderId)
             val payment = db.paymentDao().getLatestForOrder(orderId)
@@ -234,7 +307,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
             val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(orderId)
 
             if (order == null || customer == null) {
-                withContext(Dispatchers.Main) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     detailCache.remove(orderId)
                     if (expandedOrderId == orderId) {
                         loadingOrderId = null
@@ -273,7 +346,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
                 items = itemLines
             )
 
-            withContext(Dispatchers.Main) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 detailCache[orderId] = details
                 if (expandedOrderId == orderId) {
                     loadingOrderId = null
@@ -289,12 +362,12 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     ) {
         if (row.status == targetStatus) return
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             db.orderDao().updateStatus(row.orderId, targetStatus)
 
             detailCache.remove(row.orderId)
 
-            withContext(Dispatchers.Main) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 if (expandedOrderId == row.orderId) {
                     loadingOrderId = row.orderId
                     submitAdapterState()

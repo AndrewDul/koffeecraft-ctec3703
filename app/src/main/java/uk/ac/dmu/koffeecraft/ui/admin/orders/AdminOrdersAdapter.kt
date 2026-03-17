@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
@@ -25,17 +26,42 @@ class AdminOrdersAdapter(
 
     private val formatter = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.UK)
 
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long = items[position].orderId
+
     fun submitState(
         items: List<AdminOrderRow>,
         expandedOrderId: Long?,
         loadingOrderId: Long?,
         detailByOrderId: Map<Long, AdminOrderDetailsUi>
     ) {
+        val oldItems = this.items
+        val oldExpanded = this.expandedOrderId
+        val oldLoading = this.loadingOrderId
+        val oldDetails = this.detailByOrderId
+
+        val diffResult = DiffUtil.calculateDiff(
+            OrdersDiffCallback(
+                oldItems = oldItems,
+                newItems = items,
+                oldExpandedOrderId = oldExpanded,
+                newExpandedOrderId = expandedOrderId,
+                oldLoadingOrderId = oldLoading,
+                newLoadingOrderId = loadingOrderId,
+                oldDetailByOrderId = oldDetails,
+                newDetailByOrderId = detailByOrderId
+            )
+        )
+
         this.items = items
         this.expandedOrderId = expandedOrderId
         this.loadingOrderId = loadingOrderId
         this.detailByOrderId = detailByOrderId
-        notifyDataSetChanged()
+
+        diffResult.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -113,7 +139,6 @@ class AdminOrdersAdapter(
 
             dividerExpanded.visibility = if (isExpanded) View.VISIBLE else View.GONE
             layoutExpanded.visibility = if (isExpanded) View.VISIBLE else View.GONE
-
             tvLoadingDetails.visibility = if (isExpanded && isLoading) View.VISIBLE else View.GONE
 
             if (isExpanded && details != null && !isLoading) {
@@ -131,25 +156,15 @@ class AdminOrdersAdapter(
         }
 
         private fun buildCustomerLine(row: AdminOrderRow): String {
-            return if (row.customerDisplayName.isBlank()) {
-                row.customerEmail
-            } else {
-                "${row.customerDisplayName} • ${row.customerEmail}"
-            }
+            return if (row.customerDisplayName.isBlank()) row.customerEmail
+            else "${row.customerDisplayName} • ${row.customerEmail}"
         }
 
         private fun buildSummaryLine(row: AdminOrderRow): String {
             val summaryParts = mutableListOf<String>()
             summaryParts += "${row.itemCount} item${if (row.itemCount == 1) "" else "s"}"
-
-            if (row.craftedLineCount > 0) {
-                summaryParts += "${row.craftedLineCount} crafted"
-            }
-
-            if (row.rewardLineCount > 0) {
-                summaryParts += "${row.rewardLineCount} reward"
-            }
-
+            if (row.craftedLineCount > 0) summaryParts += "${row.craftedLineCount} crafted"
+            if (row.rewardLineCount > 0) summaryParts += "${row.rewardLineCount} reward"
             return summaryParts.joinToString(" • ")
         }
 
@@ -226,19 +241,9 @@ class AdminOrdersAdapter(
                 tvDetailQuantityPrice.text = "Qty ${item.quantity} • ${formatCurrency(item.unitPrice)} each"
 
                 val optionParts = mutableListOf<String>()
-
-                if (item.isReward) {
-                    optionParts += "Reward item"
-                }
-
-                if (item.isCrafted) {
-                    optionParts += "Crafted"
-                }
-
-                if (!item.selectedOptionLabel.isNullOrBlank()) {
-                    optionParts += item.selectedOptionLabel
-                }
-
+                if (item.isReward) optionParts += "Reward item"
+                if (item.isCrafted) optionParts += "Crafted"
+                if (!item.selectedOptionLabel.isNullOrBlank()) optionParts += item.selectedOptionLabel
                 if (item.selectedOptionSizeValue != null && !item.selectedOptionSizeUnit.isNullOrBlank()) {
                     optionParts += "${item.selectedOptionSizeValue}${item.selectedOptionSizeUnit}"
                 }
@@ -259,7 +264,7 @@ class AdminOrdersAdapter(
 
                 if (item.estimatedCalories != null) {
                     tvDetailCalories.visibility = View.VISIBLE
-                    tvDetailCalories.text = "Approx. ${item.estimatedCalories} kcal"
+                    tvDetailCalories.text = "${item.estimatedCalories} kcal"
                 } else {
                     tvDetailCalories.visibility = View.GONE
                 }
@@ -269,149 +274,135 @@ class AdminOrdersAdapter(
         }
 
         private fun bindTimeline(status: String) {
-            val normalized = status.uppercase(Locale.UK)
-
-            val placedActive = normalized in setOf("PLACED", "PREPARING", "READY", "COLLECTED")
-            val preparingActive = normalized in setOf("PREPARING", "READY", "COLLECTED")
-            val readyActive = normalized in setOf("READY", "COLLECTED")
-            val collectedActive = normalized == "COLLECTED"
-
-            setJourneyStep(tvStepPlaced, placedActive)
-            setJourneyStep(tvStepPreparing, preparingActive)
-            setJourneyStep(tvStepReady, readyActive)
-            setJourneyStep(tvStepCollected, collectedActive)
+            bindStep(tvStepPlaced, status in listOf("PLACED", "PREPARING", "READY", "COLLECTED"))
+            bindStep(tvStepPreparing, status in listOf("PREPARING", "READY", "COLLECTED"))
+            bindStep(tvStepReady, status in listOf("READY", "COLLECTED"))
+            bindStep(tvStepCollected, status == "COLLECTED")
         }
 
-        private fun bindActions(
-            row: AdminOrderRow,
-            status: String
-        ) {
-            val normalized = status.uppercase(Locale.UK)
+        private fun bindStep(view: TextView, reached: Boolean) {
+            view.alpha = if (reached) 1f else 0.45f
+        }
 
-            enableAction(
-                view = tvActionPreparing,
-                label = "Move to Preparing",
-                enabled = normalized == "PLACED"
-            ) {
-                onStatusAction(row, "PREPARING")
-            }
-
-            enableAction(
-                view = tvActionReady,
-                label = "Mark Ready",
-                enabled = normalized == "PREPARING"
-            ) {
-                onStatusAction(row, "READY")
-            }
-
-            enableAction(
-                view = tvActionCollected,
-                label = "Mark Collected",
-                enabled = normalized == "READY"
-            ) {
-                onStatusAction(row, "COLLECTED")
+        private fun bindActions(row: AdminOrderRow, status: String) {
+            when (status) {
+                "PLACED" -> {
+                    enableAction(tvActionPreparing, "Move to Preparing") { onStatusAction(row, "PREPARING") }
+                    disableAction(tvActionReady, "Mark Ready", true)
+                    disableAction(tvActionCollected, "Mark Collected", true)
+                }
+                "PREPARING" -> {
+                    disableAction(tvActionPreparing, "Preparing", true)
+                    enableAction(tvActionReady, "Mark Ready") { onStatusAction(row, "READY") }
+                    disableAction(tvActionCollected, "Mark Collected", true)
+                }
+                "READY" -> {
+                    disableAction(tvActionPreparing, "Preparing", true)
+                    disableAction(tvActionReady, "Ready", true)
+                    enableAction(tvActionCollected, "Mark Collected") { onStatusAction(row, "COLLECTED") }
+                }
+                "COLLECTED" -> {
+                    disableAction(tvActionPreparing, "Preparing", true)
+                    disableAction(tvActionReady, "Ready", true)
+                    disableAction(tvActionCollected, "Collected", true)
+                }
+                else -> {
+                    disableAction(tvActionPreparing, "Move to Preparing", false)
+                    disableAction(tvActionReady, "Mark Ready", false)
+                    disableAction(tvActionCollected, "Mark Collected", false)
+                }
             }
         }
 
-        private fun bindNoteChip(view: TextView, isVisible: Boolean) {
-            view.visibility = if (isVisible) View.VISIBLE else View.GONE
-        }
-
-        private fun enableAction(
-            view: TextView,
-            label: String,
-            enabled: Boolean,
-            onClick: () -> Unit
-        ) {
+        private fun enableAction(view: TextView, label: String, onClick: () -> Unit) {
             view.text = label
-
-            if (enabled) {
-                view.isEnabled = true
-                view.alpha = 1f
-                view.setBackgroundResource(R.drawable.bg_secondary_pill_button)
-                view.setTextColor(Color.parseColor("#5A4638"))
-                view.setOnClickListener { onClick() }
-            } else {
-                disableAction(view, label, true)
-            }
+            view.alpha = 1f
+            view.isEnabled = true
+            view.setOnClickListener { onClick() }
         }
 
-        private fun disableAction(
-            view: TextView,
-            label: String,
-            keepVisible: Boolean
-        ) {
+        private fun disableAction(view: TextView, label: String, dimmed: Boolean) {
             view.text = label
+            view.alpha = if (dimmed) 0.5f else 0.75f
             view.isEnabled = false
-            view.alpha = if (keepVisible) 0.45f else 0f
-            view.setBackgroundResource(R.drawable.bg_orders_filter_chip)
-            view.setTextColor(Color.parseColor("#7A6558"))
             view.setOnClickListener(null)
         }
 
-        private fun setJourneyStep(view: TextView, isActive: Boolean) {
-            view.setBackgroundResource(
-                if (isActive) R.drawable.bg_orders_filter_chip_selected
-                else R.drawable.bg_orders_filter_chip
-            )
-            view.setTextColor(
-                if (isActive) Color.parseColor("#2E2018")
-                else Color.parseColor("#7A6558")
-            )
-            view.alpha = if (isActive) 1f else 0.92f
-        }
-
         private fun bindStatusChip(view: TextView, status: String) {
-            view.text = formatStatus(status)
-            val background = view.background.mutate() as GradientDrawable
-
-            when (status.uppercase(Locale.UK)) {
-                "READY" -> {
-                    background.setColor(Color.parseColor("#DCE9DA"))
-                    view.setTextColor(Color.parseColor("#36533E"))
-                }
-
-                "PREPARING" -> {
-                    background.setColor(Color.parseColor("#F2E4D3"))
-                    view.setTextColor(Color.parseColor("#7A5634"))
-                }
-
-                "PLACED" -> {
-                    background.setColor(Color.parseColor("#E8DDD4"))
-                    view.setTextColor(Color.parseColor("#6A4D3A"))
-                }
-
-                "COLLECTED" -> {
-                    background.setColor(Color.parseColor("#DFE7D8"))
-                    view.setTextColor(Color.parseColor("#3D5640"))
-                }
-
-                else -> {
-                    background.setColor(Color.parseColor("#E9DFD6"))
-                    view.setTextColor(Color.parseColor("#5C473A"))
-                }
+            val (fillColor, textColor) = when (status.uppercase(Locale.UK)) {
+                "PLACED" -> "#F3E8D2" to "#7B5B2A"
+                "PREPARING" -> "#E8DCC9" to "#6A4B3B"
+                "READY" -> "#DCEBDA" to "#3F6A3B"
+                "COLLECTED" -> "#E0E0E0" to "#4B4B4B"
+                else -> "#EEE8E1" to "#6E5A4D"
             }
+
+            val shape = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 999f
+                setColor(Color.parseColor(fillColor))
+            }
+
+            view.background = shape
+            view.text = status.replaceFirstChar { it.uppercase() }
+            view.setTextColor(Color.parseColor(textColor))
         }
 
-        private fun formatStatus(status: String): String {
-            return status
+        private fun bindNoteChip(view: TextView, visible: Boolean) {
+            view.visibility = if (visible) View.VISIBLE else View.GONE
+        }
+
+        private fun formatPaymentType(type: String): String {
+            return type
+                .replace('_', ' ')
                 .lowercase(Locale.UK)
-                .split("_")
-                .joinToString(" ") { part ->
-                    part.replaceFirstChar { it.titlecase(Locale.UK) }
-                }
+                .replaceFirstChar { it.uppercase(Locale.UK) }
         }
 
-        private fun formatCurrency(value: Double): String {
-            return String.format(Locale.UK, "£%.2f", value)
+        private fun formatCurrency(amount: Double): String {
+            return "£%.2f".format(Locale.UK, amount)
         }
+    }
+}
 
-        private fun formatPaymentType(paymentType: String): String {
-            return when (paymentType.uppercase(Locale.UK)) {
-                "CARD" -> "Card"
-                "CASH" -> "Cash"
-                else -> paymentType.lowercase(Locale.UK).replaceFirstChar { it.titlecase(Locale.UK) }
-            }
-        }
+private class OrdersDiffCallback(
+    private val oldItems: List<AdminOrderRow>,
+    private val newItems: List<AdminOrderRow>,
+    private val oldExpandedOrderId: Long?,
+    private val newExpandedOrderId: Long?,
+    private val oldLoadingOrderId: Long?,
+    private val newLoadingOrderId: Long?,
+    private val oldDetailByOrderId: Map<Long, AdminOrderDetailsUi>,
+    private val newDetailByOrderId: Map<Long, AdminOrderDetailsUi>
+) : DiffUtil.Callback() {
+
+    override fun getOldListSize(): Int = oldItems.size
+
+    override fun getNewListSize(): Int = newItems.size
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        return oldItems[oldItemPosition].orderId == newItems[newItemPosition].orderId
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val oldRow = oldItems[oldItemPosition]
+        val newRow = newItems[newItemPosition]
+
+        if (oldRow != newRow) return false
+
+        val orderId = oldRow.orderId
+        val oldExpanded = oldExpandedOrderId == orderId
+        val newExpanded = newExpandedOrderId == orderId
+        if (oldExpanded != newExpanded) return false
+
+        val oldLoading = oldLoadingOrderId == orderId
+        val newLoading = newLoadingOrderId == orderId
+        if (oldLoading != newLoading) return false
+
+        val oldDetails = oldDetailByOrderId[orderId]
+        val newDetails = newDetailByOrderId[orderId]
+        if (oldDetails != newDetails) return false
+
+        return true
     }
 }

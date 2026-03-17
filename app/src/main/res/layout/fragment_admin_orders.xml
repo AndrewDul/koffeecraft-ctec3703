@@ -78,21 +78,92 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Search by order ID or customer ID, then narrow the queue by status or time order."
+                    android:text="Choose whether you want to find by Order ID or Customer ID, then narrow the queue by status or time order."
                     android:textColor="#6E5A4D"
                     android:textSize="13sp" />
 
-                <com.google.android.material.textfield.TextInputLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp">
+                    android:layout_marginTop="14dp"
+                    android:text="Find orders by"
+                    android:textColor="#7A6558"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvSearchByOrderId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_orders_filter_chip_selected"
+                        android:paddingStart="14dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="10dp"
+                        android:text="By order ID"
+                        android:textColor="#2E2018"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSearchByCustomerId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_orders_filter_chip"
+                        android:paddingStart="14dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="10dp"
+                        android:text="By customer ID"
+                        android:textColor="#6E5A4D"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSearchHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Find order by order ID"
+                    android:textColor="#7A6558"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="Enter order ID">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSearch"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Search by Order ID or Customer ID" />
+                        android:inputType="number" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFind"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:minHeight="50dp"
+                    android:text="Find"
+                    android:textAllCaps="false"
+                    android:textColor="#FFF8F2"
+                    android:textStyle="bold"
+                    app:backgroundTint="#9A7655"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -262,10 +333,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:clipToPadding="false"
             android:nestedScrollingEnabled="false"
             android:overScrollMode="never"
-            android:paddingBottom="8dp" />
+            android:scrollbars="none" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

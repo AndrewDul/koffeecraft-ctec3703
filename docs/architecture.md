@@ -2740,3 +2740,24 @@ Overall impact:
 - increased consistency between settings and checkout
 - strengthened the premium feel of the customer experience without adding a real payment gateway
 
+## Orders Control search refinement and scrolling adjustments
+
+I refined the Orders Control search flow so it is more consistent with the way the admin inbox already works.
+
+Previously, the orders screen used a single search field that tried to match multiple identifier types at once. This made the behaviour less explicit and less aligned with the rest of the admin experience. I changed that so the screen now separates search intent more clearly by introducing dedicated search mode chips for:
+- Order ID
+- Customer ID
+
+I also added a dedicated Find action so the screen behaves more like an intentional admin lookup tool rather than filtering too broadly from one shared search path. This makes the search flow easier to understand and closer to the inbox interaction pattern.
+
+At the layout level, I also adjusted the Orders Control screen structure to improve overall scroll behaviour and make the screen easier to use. The goal was to keep the full screen naturally scrollable while preserving the premium filter section and improving general usability.
+
+This area still needs another optimisation pass because the screen can still feel heavy in some situations. The search and scrolling behaviour is now more usable, but the remaining stutter should still be investigated further.
+
+Overall impact:
+- improved clarity of the Orders Control search flow
+- better consistency between Orders Control and Admin Inbox
+- clearer search intent for Order ID and Customer ID lookups
+- improved screen usability and scroll behaviour
+- identified Orders Control performance as a remaining area for further refinement
+

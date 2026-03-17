@@ -112,9 +112,8 @@ interface OrderDao {
         WHERE (:status IS NULL OR o.status = :status)
           AND (
             :query IS NULL OR :query = '' OR
-            CAST(o.orderId AS TEXT) LIKE '%' || :query || '%' OR
-            CAST(o.customerId AS TEXT) LIKE '%' || :query || '%' OR
-            LOWER(c.email) LIKE '%' || LOWER(:query) || '%'
+            (:searchMode = 'ORDER_ID' AND CAST(o.orderId AS TEXT) = :query) OR
+            (:searchMode = 'CUSTOMER_ID' AND CAST(o.customerId AS TEXT) = :query)
           )
         ORDER BY
           CASE WHEN :sortDir = 'ASC' THEN o.createdAt END ASC,
@@ -124,8 +123,10 @@ interface OrderDao {
     fun observeAdminOrdersFiltered(
         status: String?,
         query: String?,
+        searchMode: String,
         sortDir: String
     ): Flow<List<AdminOrderRow>>
+
 
     @Query("SELECT * FROM orders WHERE orderId = :orderId LIMIT 1")
     suspend fun getById(orderId: Long): Order?
