@@ -2093,5 +2093,194 @@ This gives the interface a cleaner premium feel, reduces visual clutter, and kee
 
 
 
+## Admin feedback redesign into Feedback Insights dashboard
 
+I redesigned the admin feedback area into a full **Feedback Insights** dashboard so the screen feels more like a real analytics and moderation panel rather than a simple review list.
 
+The goal of this change was to improve both the visual quality and the usefulness of the admin-side feedback workflow. Instead of forcing the admin to scan raw review entries first, the screen now opens with a summary of key feedback metrics and a clearer view of customer sentiment.
+
+### New feedback overview section
+
+At the top of the screen, I added a premium summary area with six overview cards:
+
+- **Overall Average**
+- **Coffee Average**
+- **Cake Average**
+- **Total Reviews**
+- **Reviews With Comments**
+- **Hidden Comments**
+
+This gives the admin immediate visibility into the most important feedback statistics without needing to search or filter manually.
+
+### Rating breakdown section
+
+I added a dedicated **Rating Breakdown** card that shows the distribution of:
+
+- **5★**
+- **4★**
+- **3★**
+- **2★**
+- **1★**
+
+Each rating row uses a progress-style visual layout so the admin can quickly understand overall sentiment trends. This makes the screen feel more like a true management dashboard and also supports the assessment requirement that the admin should be able to review feedback and see rating information in a meaningful way.
+
+### Filter redesign
+
+I removed the previous spinner-based filter controls and replaced them with a more premium chip-style filtering system.
+
+The new filter areas cover:
+
+- **Rating**
+- **Comment**
+- **Category**
+- **Sort**
+
+This change improves usability, reduces the technical “school project” feeling of the screen, and keeps the admin interface visually aligned with the rest of the more polished KoffeeCraft UI.
+
+### Review feed redesign
+
+I upgraded the old feedback list into a more premium review feed using expandable cards.
+
+Each feedback card now shows:
+
+- product name
+- product category
+- rating
+- visibility state
+- customer ID
+- order ID
+- review date
+- comment preview
+
+When expanded, the card reveals:
+
+- full review content
+- moderation state
+- updated date
+- moderation actions
+
+This gives the admin a cleaner moderation workflow while keeping the list visually elegant and easier to scan.
+
+### Moderation action refinement
+
+I replaced the older utility-style feedback actions with softer premium moderation controls.
+
+Instead of relying on plain technical buttons, the expanded review cards now present more polished actions for:
+
+- **Hide / Unhide comment**
+- **Delete review**
+
+This improves the visual consistency of the admin side and keeps the moderation flow aligned with the premium design language used across the rest of the app.
+
+### DAO and data support for insights
+
+To support the new screen properly, I extended `FeedbackDao` with additional queries for:
+
+- feedback overview values
+- rating breakdown values
+
+This means the admin feedback screen is no longer only a review list. It now acts as a lightweight analytics surface that combines moderation and insight in one place.
+
+### Stability fix
+
+During implementation, I also fixed a crash caused by incorrect empty-state view binding in the admin feedback screen.
+
+The layout used a `MaterialCardView` as the empty-state container, but the fragment was binding it as a `TextView`. I corrected the binding to match the actual view type, which resolved the crash when opening the screen.
+
+## Persistent session and customer cart restore update
+
+I added a persistent session layer so the app can restore the correct signed-in state after restart instead of relying only on in-memory session values.
+
+### Persistent login session
+
+I introduced a dedicated remembered session store using `SharedPreferences`.
+
+The remembered session now saves:
+
+- `userId`
+- `role`
+- `isLoggedIn`
+- `onboardingPending`
+
+This allows the app to reopen the correct flow after restart:
+
+- **CUSTOMER** → customer flow
+- **CUSTOMER with unfinished onboarding** → onboarding flow
+- **ADMIN** → admin flow
+
+### Session validation on startup
+
+I updated the startup logic so the app does not trust remembered session data blindly.
+
+When the app starts, it now:
+
+1. reads the remembered session
+2. restores the role and user ID into memory
+3. validates the remembered account against the current database state
+4. clears the remembered session if the account no longer exists or is inactive
+
+This makes the session restore flow more robust and prevents invalid or outdated session data from reopening protected app areas.
+
+### Onboarding resume support
+
+I extended the remembered customer session with an `onboardingPending` flag.
+
+This means that if a newly registered customer closes the app before finishing onboarding, the app can reopen the onboarding flow correctly instead of sending the user directly to the main customer area.
+
+Once onboarding is completed, the remembered session is updated so the normal customer flow is restored on future launches.
+
+### Persistent customer cart
+
+I added a dedicated persistent cart store so the customer cart is no longer memory-only.
+
+The cart is now saved per customer account using snapshot-based cart persistence.  
+Each stored cart line keeps the technical data needed for safe reconstruction, including:
+
+- product ID
+- quantity
+- unit price
+- reward state
+- reward type
+- beans cost
+- selected option ID
+- selected option display data
+- selected add-on IDs
+- add-on summary
+- estimated calories
+
+This allows the app to restore both standard and customised cart lines more reliably.
+
+### Cart restore validation
+
+I designed the cart restore flow to validate stored cart lines against the current database state before restoring them.
+
+During restore, the app checks whether:
+
+- the product still exists
+- the product is still active
+- the selected option still exists and belongs to the product
+- the selected add-ons are still valid and assigned to the product
+- reward items are still reward-eligible
+
+If a stored line is no longer valid, it is skipped instead of being restored blindly.
+
+This keeps the cart consistent with the live app data and reduces the risk of broken cart state after menu changes.
+
+### Customer-only cart restore
+
+The persistent cart restore logic only applies to the **customer** role.
+
+The admin side does not have its own cart and does not restore any cart data.  
+When entering admin flow, I only clear any residual in-memory customer cart state to keep role separation clean and prevent stale customer cart state from remaining in memory.
+
+### Logout and account removal consistency
+
+I updated logout and account removal behaviour so session state and in-memory cart state are cleared consistently.
+
+This helps keep the app lifecycle cleaner and ensures that remembered login and cart behaviour stay predictable across:
+
+- logout
+- restart
+- onboarding completion
+- account deletion
+- role switching

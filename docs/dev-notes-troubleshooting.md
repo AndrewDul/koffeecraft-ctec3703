@@ -945,3 +945,36 @@ I added collapsed calories to the standard favourites card layout and binding lo
 
 **Result**  
 The favourites screen now feels more visually balanced and consistent.
+
+
+## 48) Admin Feedback crash after opening Feedback Insights
+
+### Problem
+
+After opening the new **Feedback Insights** screen from the admin bottom navigation, the application crashed immediately instead of loading the screen.
+
+### Cause
+
+The crash was caused by an incorrect view binding type inside `AdminFeedbackFragment`.
+
+In the layout, the empty state container used the ID `tvEmpty`, but this view was actually a `MaterialCardView`.
+
+In the fragment code, I was binding that same ID as a `TextView`, which caused a runtime type cast failure when the screen opened.
+
+### Fix
+
+I corrected the binding in `AdminFeedbackFragment` so the empty state is treated as a generic `View` container instead of a `TextView`.
+
+I also updated the visibility handling logic to show and hide that card correctly through the new view reference.
+
+### Result
+
+The `Feedback Insights` screen now opens correctly without crashing.
+
+The admin feedback dashboard loads as expected, including:
+
+- overview cards
+- rating breakdown
+- premium filter chips
+- feedback list
+- empty state handling

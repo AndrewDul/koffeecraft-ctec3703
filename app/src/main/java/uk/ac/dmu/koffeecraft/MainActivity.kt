@@ -1,6 +1,7 @@
 package uk.ac.dmu.koffeecraft
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,15 +11,19 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
@@ -34,6 +39,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        CartManager.attachContext(applicationContext)
+        val rememberedSession = RememberedSessionStore.restoreIntoMemory(applicationContext)
+
         setContentView(R.layout.activity_main)
 
         NotificationHelper.ensureChannels(this)
@@ -120,11 +129,94 @@ class MainActivity : AppCompatActivity() {
                 startBadgeObserversIfNeeded()
             }
         }
+
+        if (savedInstanceState == null) {
+            bootstrapRememberedSession(navController, rememberedSession)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         startBadgeObserversIfNeeded()
+    }
+
+    private fun bootstrapRememberedSession(
+        navController: NavController,
+        rememberedSession: RememberedSessionStore.RememberedSession?
+    ) {
+        if (rememberedSession == null) return
+
+        val db = KoffeeCraftDatabase.getInstance(applicationContext)
+
+        lifecycleScope.launch {
+            when (rememberedSession.role) {
+                RememberedSessionStore.Role.ADMIN -> {
+                    val admin = withContext(Dispatchers.IO) {
+                        db.adminDao().getById(rememberedSession.userId)
+                    }
+
+                    if (admin == null || !admin.isActive) {
+                        SessionManager.clear()
+                        RememberedSessionStore.clear(applicationContext)
+                        CartManager.clearInMemoryOnly()
+                        return@launch
+                    }
+
+                    SessionManager.setAdmin(admin.adminId)
+                    CartManager.clearInMemoryOnly()
+
+                    startActivity(Intent(this@MainActivity, AdminActivity::class.java))
+                    finish()
+                }
+
+                RememberedSessionStore.Role.CUSTOMER -> {
+                    val customer = withContext(Dispatchers.IO) {
+                        db.customerDao().getById(rememberedSession.userId)
+                    }
+
+                    if (customer == null || !customer.isActive) {
+                        SessionManager.clear()
+                        RememberedSessionStore.clear(applicationContext)
+                        CartManager.clearInMemoryOnly()
+                        return@launch
+                    }
+
+                    SessionManager.setCustomer(customer.customerId)
+
+                    withContext(Dispatchers.IO) {
+                        CartManager.restorePersistedCart(
+                            context = applicationContext,
+                            customerId = customer.customerId,
+                            db = db
+                        )
+                    }
+
+                    if (rememberedSession.onboardingPending) {
+                        navController.navigate(
+                            R.id.onboardingFragment,
+                            bundleOf("customerId" to customer.customerId),
+                            navOptions {
+                                launchSingleTop = true
+                                popUpTo(R.id.welcomeFragment) {
+                                    inclusive = true
+                                }
+                            }
+                        )
+                    } else {
+                        navController.navigate(
+                            R.id.customerHomeFragment,
+                            null,
+                            navOptions {
+                                launchSingleTop = true
+                                popUpTo(R.id.welcomeFragment) {
+                                    inclusive = true
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun navigateIfNeeded(navController: NavController, destinationId: Int) {

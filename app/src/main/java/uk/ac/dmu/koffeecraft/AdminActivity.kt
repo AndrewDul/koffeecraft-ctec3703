@@ -1,5 +1,6 @@
 package uk.ac.dmu.koffeecraft
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -10,13 +11,28 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class AdminActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        CartManager.attachContext(applicationContext)
+        RememberedSessionStore.restoreIntoMemory(applicationContext)
+
+        val currentAdminId = SessionManager.currentAdminId
+        if (!SessionManager.isAdmin || currentAdminId == null) {
+            redirectToMain()
+            return
+        }
+
         setContentView(R.layout.activity_admin)
 
         val navHost = supportFragmentManager.findFragmentById(R.id.adminNavHost) as NavHostFragment
@@ -56,6 +72,19 @@ class AdminActivity : AppCompatActivity() {
         val db = KoffeeCraftDatabase.getInstance(applicationContext)
 
         lifecycleScope.launch {
+            val admin = withContext(Dispatchers.IO) {
+                db.adminDao().getById(currentAdminId)
+            }
+
+            if (admin == null || !admin.isActive) {
+                SessionManager.clear()
+                RememberedSessionStore.clear(applicationContext)
+                redirectToMain()
+                return@launch
+            }
+        }
+
+        lifecycleScope.launch {
             db.notificationDao().observeUnreadAdminCount().collect { count ->
                 if (count > 0) {
                     tvBadge.visibility = View.VISIBLE
@@ -75,6 +104,11 @@ class AdminActivity : AppCompatActivity() {
 
             bottomNav.visibility = View.VISIBLE
         }
+    }
+
+    private fun redirectToMain() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 
     private fun navigateIfNeeded(navController: NavController, destinationId: Int) {

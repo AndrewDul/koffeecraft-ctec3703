@@ -1,10 +1,13 @@
 package uk.ac.dmu.koffeecraft.data.cart
 
+import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 data class CartItem(
     val lineKey: String,
@@ -14,9 +17,11 @@ data class CartItem(
     val isReward: Boolean = false,
     val rewardType: String? = null,
     val beansCostPerUnit: Int = 0,
+    val selectedOptionId: Long? = null,
     val selectedOptionLabel: String? = null,
     val selectedOptionSizeValue: Int? = null,
     val selectedOptionSizeUnit: String? = null,
+    val selectedAddOnIds: List<Long> = emptyList(),
     val selectedAddOnsSummary: String? = null,
     val estimatedCalories: Int? = null
 )
@@ -24,11 +29,18 @@ data class CartItem(
 object CartManager {
 
     private val items = linkedMapOf<String, CartItem>()
+    private lateinit var appContext: Context
+
+    private val _itemCount = MutableStateFlow(0)
+    val itemCount: StateFlow<Int> = _itemCount
+
+    fun attachContext(context: Context) {
+        appContext = context.applicationContext
+    }
+
     private fun isMeaningfullyCustomised(option: ProductOption, addOns: List<AddOn>): Boolean {
         return !option.isDefault || addOns.isNotEmpty()
     }
-    private val _itemCount = MutableStateFlow(0)
-    val itemCount: StateFlow<Int> = _itemCount
 
     private fun normalizeRewardQuantities() {
         items.values
@@ -36,9 +48,25 @@ object CartManager {
             .forEach { it.quantity = 1 }
     }
 
-    private fun refreshItemCount() {
+    private fun refreshItemCount(persist: Boolean = true) {
         normalizeRewardQuantities()
         _itemCount.value = items.values.sumOf { it.quantity }
+
+        if (persist) {
+            persistCurrentCartForSession()
+        }
+    }
+
+    private fun persistCurrentCartForSession() {
+        if (!::appContext.isInitialized) return
+        if (SessionManager.isAdmin) return
+
+        val customerId = SessionManager.currentCustomerId ?: return
+        RememberedCartStore.saveCartForCustomer(
+            context = appContext,
+            customerId = customerId,
+            items = items.values.toList()
+        )
     }
 
     fun add(product: Product) {
@@ -60,12 +88,12 @@ object CartManager {
     }
 
     fun add(product: Product, quantity: Int) {
-        repeat(quantity) { add(product) }
+        repeat(quantity.coerceAtLeast(0)) { add(product) }
     }
 
     fun addExisting(item: CartItem) {
         if (item.isReward) {
-            refreshItemCount()
+            refreshItemCount(persist = false)
             return
         }
 
@@ -90,7 +118,7 @@ object CartManager {
         val existing = items[key]
 
         if (existing != null) {
-            refreshItemCount()
+            refreshItemCount(persist = false)
             return false
         }
 
@@ -138,18 +166,16 @@ object CartManager {
         }
 
         val addOnKey = sortedAddOns.joinToString("_") { it.addOnId.toString() }
-
         val key = "reward_custom_${rewardType}_${sourceProduct.productId}_${option.optionId}_$addOnKey"
-        val existing = items[key]
 
+        val existing = items[key]
         if (existing != null) {
-            refreshItemCount()
+            refreshItemCount(persist = false)
             return false
         }
 
-        val rewardDisplayName = "Reward: ${sourceProduct.name}"
         val rewardProduct = sourceProduct.copy(
-            name = rewardDisplayName,
+            name = "Reward: ${sourceProduct.name}",
             price = 0.0
         )
 
@@ -169,9 +195,11 @@ object CartManager {
             isReward = true,
             rewardType = rewardType,
             beansCostPerUnit = beansCostPerUnit,
+            selectedOptionId = option.optionId,
             selectedOptionLabel = option.displayLabel,
             selectedOptionSizeValue = option.sizeValue,
             selectedOptionSizeUnit = option.sizeUnit,
+            selectedAddOnIds = sortedAddOns.map { it.addOnId },
             selectedAddOnsSummary = addOnSummary,
             estimatedCalories = finalCalories
         )
@@ -193,7 +221,6 @@ object CartManager {
         }
 
         val addOnKey = sortedAddOns.joinToString("_") { it.addOnId.toString() }
-
         val key = "custom_${product.productId}_${option.optionId}_$addOnKey"
         val existing = items[key]
 
@@ -211,9 +238,11 @@ object CartManager {
                 product = product,
                 quantity = 1,
                 unitPrice = finalPrice,
+                selectedOptionId = option.optionId,
                 selectedOptionLabel = option.displayLabel,
                 selectedOptionSizeValue = option.sizeValue,
                 selectedOptionSizeUnit = option.sizeUnit,
+                selectedAddOnIds = sortedAddOns.map { it.addOnId },
                 selectedAddOnsSummary = addOnSummary,
                 estimatedCalories = finalCalories
             )
@@ -241,24 +270,136 @@ object CartManager {
         refreshItemCount()
     }
 
+    fun clearInMemoryOnly() {
+        items.clear()
+        refreshItemCount(persist = false)
+    }
+
+    fun clearPersistedCartForCustomer(
+        context: Context,
+        customerId: Long
+    ) {
+        RememberedCartStore.clearCartForCustomer(context.applicationContext, customerId)
+    }
+
+    suspend fun restorePersistedCart(
+        context: Context,
+        customerId: Long,
+        db: KoffeeCraftDatabase
+    ) {
+        attachContext(context)
+
+        val snapshots = RememberedCartStore.loadCartForCustomer(appContext, customerId)
+        val restoredItems = linkedMapOf<String, CartItem>()
+
+        snapshots.forEach { snapshot ->
+            val restored = buildRestoredCartItem(snapshot, db)
+            if (restored != null) {
+                restoredItems[restored.lineKey] = restored
+            }
+        }
+
+        items.clear()
+        items.putAll(restoredItems)
+        refreshItemCount(persist = false)
+
+        RememberedCartStore.saveCartForCustomer(
+            context = appContext,
+            customerId = customerId,
+            items = items.values.toList()
+        )
+    }
+
+    private suspend fun buildRestoredCartItem(
+        snapshot: RememberedCartStore.CartItemSnapshot,
+        db: KoffeeCraftDatabase
+    ): CartItem? {
+        val product = db.productDao().getById(snapshot.productId) ?: return null
+        if (!product.isActive) return null
+
+        val optionId = snapshot.selectedOptionId
+        if (optionId != null) {
+            val option = db.productOptionDao().getById(optionId) ?: return null
+            if (option.productId != product.productId) return null
+        }
+
+        if (snapshot.selectedAddOnIds.isNotEmpty()) {
+            val activeAssignedAddOns = db.addOnDao().getActiveForProduct(product.productId)
+            val activeAssignedIds = activeAssignedAddOns.map { it.addOnId }.toSet()
+
+            val allAddOnsStillValid = snapshot.selectedAddOnIds.all { it in activeAssignedIds }
+            if (!allAddOnsStillValid) return null
+        }
+
+        if (snapshot.isReward && !product.rewardEnabled) {
+            return null
+        }
+
+        val displayProduct = buildDisplayProductForRestore(
+            sourceProduct = product,
+            isReward = snapshot.isReward,
+            rewardType = snapshot.rewardType,
+            hasCustomisation = optionId != null || snapshot.selectedAddOnIds.isNotEmpty()
+        )
+
+        return CartItem(
+            lineKey = snapshot.lineKey,
+            product = displayProduct,
+            quantity = snapshot.quantity.coerceAtLeast(1),
+            unitPrice = snapshot.unitPrice,
+            isReward = snapshot.isReward,
+            rewardType = snapshot.rewardType,
+            beansCostPerUnit = snapshot.beansCostPerUnit,
+            selectedOptionId = snapshot.selectedOptionId,
+            selectedOptionLabel = snapshot.selectedOptionLabel,
+            selectedOptionSizeValue = snapshot.selectedOptionSizeValue,
+            selectedOptionSizeUnit = snapshot.selectedOptionSizeUnit,
+            selectedAddOnIds = snapshot.selectedAddOnIds,
+            selectedAddOnsSummary = snapshot.selectedAddOnsSummary,
+            estimatedCalories = snapshot.estimatedCalories
+        )
+    }
+
+    private fun buildDisplayProductForRestore(
+        sourceProduct: Product,
+        isReward: Boolean,
+        rewardType: String?,
+        hasCustomisation: Boolean
+    ): Product {
+        if (!isReward) return sourceProduct
+
+        val shouldPrefixRewardName = hasCustomisation ||
+                rewardType == "FREE_COFFEE" ||
+                rewardType == "FREE_CAKE" ||
+                rewardType == "CUSTOM_REWARD"
+
+        return sourceProduct.copy(
+            name = if (shouldPrefixRewardName) "Reward: ${sourceProduct.name}" else sourceProduct.name,
+            price = 0.0
+        )
+    }
+
     fun getItems(): List<CartItem> {
         normalizeRewardQuantities()
-        refreshItemCount()
+        refreshItemCount(persist = false)
         return items.values.toList()
     }
 
     fun total(): Double {
         normalizeRewardQuantities()
+        refreshItemCount(persist = false)
         return items.values.sumOf { it.unitPrice * it.quantity }
     }
 
     fun beansToSpend(): Int {
         normalizeRewardQuantities()
+        refreshItemCount(persist = false)
         return items.values.sumOf { it.beansCostPerUnit * it.quantity }
     }
 
     fun purchasedProductCountForBeans(): Int {
         normalizeRewardQuantities()
+        refreshItemCount(persist = false)
         return items.values
             .filter { !it.isReward }
             .sumOf { it.quantity }

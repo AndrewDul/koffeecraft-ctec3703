@@ -15,7 +15,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.MainActivity
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 
@@ -73,7 +75,9 @@ class AdminSettingsFragment : Fragment(R.layout.fragment_admin_settings) {
         }
 
         rowSignOut.setOnClickListener {
+            CartManager.clearInMemoryOnly()
             SessionManager.clear()
+            RememberedSessionStore.clear(requireContext().applicationContext)
             startActivity(Intent(requireContext(), MainActivity::class.java))
             requireActivity().finish()
         }

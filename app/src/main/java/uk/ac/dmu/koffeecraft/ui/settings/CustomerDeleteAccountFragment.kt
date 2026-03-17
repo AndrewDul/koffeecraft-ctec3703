@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
@@ -137,8 +138,9 @@ class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
 
-                SessionManager.clear()
                 CartManager.clear()
+                SessionManager.clear()
+                RememberedSessionStore.clear(requireContext().applicationContext)
 
                 Toast.makeText(requireContext(), "Account deleted permanently.", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_global_logout)

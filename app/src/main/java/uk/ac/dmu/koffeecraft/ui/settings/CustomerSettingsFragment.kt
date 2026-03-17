@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerSettingsFragment : Fragment(R.layout.fragment_customer_settings) {
@@ -66,8 +67,9 @@ class CustomerSettingsFragment : Fragment(R.layout.fragment_customer_settings) {
         }
 
         view.findViewById<MaterialButton>(R.id.btnSignOut).setOnClickListener {
+            CartManager.clearInMemoryOnly()
             SessionManager.clear()
-            CartManager.clear()
+            RememberedSessionStore.clear(requireContext().applicationContext)
             findNavController().navigate(R.id.action_global_logout)
         }
     }

@@ -12,9 +12,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AppNotification
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
 
@@ -49,6 +52,8 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
         super.onViewCreated(view, savedInstanceState)
 
         val customerId = requireArguments().getLong("customerId")
+        val appContext = requireContext().applicationContext
+        CartManager.attachContext(appContext)
 
         val tvIcon = view.findViewById<TextView>(R.id.tvIntroIcon)
         val tvTitle = view.findViewById<TextView>(R.id.tvIntroTitle)
@@ -59,7 +64,7 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
         val dot3 = view.findViewById<View>(R.id.dot3)
         val switchPromoOnboarding = view.findViewById<SwitchMaterial>(R.id.switchPromoOnboarding)
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val db = KoffeeCraftDatabase.getInstance(appContext)
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val customer = db.customerDao().getById(customerId)
@@ -136,7 +141,8 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
     }
 
     private fun finishOnboarding(customerId: Long) {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val appContext = requireContext().applicationContext
+        val db = KoffeeCraftDatabase.getInstance(appContext)
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val customer = db.customerDao().getById(customerId)
@@ -181,6 +187,13 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
 
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
+
+                SessionManager.setCustomer(customerId)
+                RememberedSessionStore.saveCustomerSession(
+                    context = appContext,
+                    customerId = customerId,
+                    onboardingPending = false
+                )
 
                 findNavController().navigate(
                     R.id.customerHomeFragment,

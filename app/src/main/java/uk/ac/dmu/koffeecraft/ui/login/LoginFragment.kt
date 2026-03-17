@@ -15,7 +15,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.AdminActivity
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
@@ -32,7 +34,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val btnSignIn = view.findViewById<MaterialButton>(R.id.btnSignIn)
         val tvGoToRegister = view.findViewById<TextView>(R.id.tvGoToRegister)
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val appContext = requireContext().applicationContext
+        val db = KoffeeCraftDatabase.getInstance(appContext)
+        CartManager.attachContext(appContext)
 
         tvGoToRegister.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_register)
@@ -43,7 +47,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             tilPassword.error = null
             tvError.visibility = View.GONE
 
-            val email = etEmail.text?.toString()?.trim().orEmpty()
+            val email = etEmail.text?.toString()?.trim()?.lowercase().orEmpty()
             val password = etPassword.text?.toString().orEmpty()
 
             var hasError = false
@@ -85,6 +89,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
                             else -> {
                                 SessionManager.setAdmin(admin.adminId)
+                                RememberedSessionStore.saveAdminSession(appContext, admin.adminId)
+                                CartManager.clearInMemoryOnly()
+
                                 val intent = Intent(requireContext(), AdminActivity::class.java)
                                 startActivity(intent)
                                 requireActivity().finish()
@@ -109,6 +116,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     salt = customer.passwordSalt,
                     expectedHash = customer.passwordHash
                 )
+
                 if (!customer.isActive) {
                     withContext(Dispatchers.Main) {
                         if (!isAdded) return@withContext
@@ -118,13 +126,27 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     return@launch
                 }
 
-                withContext(Dispatchers.Main) {
-                    if (!isAdded) return@withContext
+                if (customerOk) {
+                    SessionManager.setCustomer(customer.customerId)
+                    RememberedSessionStore.saveCustomerSession(
+                        context = appContext,
+                        customerId = customer.customerId,
+                        onboardingPending = false
+                    )
 
-                    if (customerOk) {
-                        SessionManager.setCustomer(customer.customerId)
+                    CartManager.restorePersistedCart(
+                        context = appContext,
+                        customerId = customer.customerId,
+                        db = db
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        if (!isAdded) return@withContext
                         findNavController().navigate(R.id.action_login_to_menu)
-                    } else {
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        if (!isAdded) return@withContext
                         tvError.text = "Invalid email or password."
                         tvError.visibility = View.VISIBLE
                     }

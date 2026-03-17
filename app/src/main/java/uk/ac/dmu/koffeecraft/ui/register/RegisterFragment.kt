@@ -18,8 +18,10 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class RegisterFragment : Fragment(R.layout.fragment_register) {
@@ -30,9 +32,12 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val appContext = requireContext().applicationContext
+        val db = KoffeeCraftDatabase.getInstance(appContext)
         val repo = AuthRepository(db)
         vm = ViewModelProvider(this, RegisterViewModelFactory(repo))[RegisterViewModel::class.java]
+
+        CartManager.attachContext(appContext)
 
         val tilFirst = view.findViewById<TextInputLayout>(R.id.tilFirstName)
         val tilLast = view.findViewById<TextInputLayout>(R.id.tilLastName)
@@ -201,6 +206,12 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                 if (state.success && state.registeredCustomerId != null && !hasNavigatedAfterSuccess) {
                     hasNavigatedAfterSuccess = true
                     SessionManager.setCustomer(state.registeredCustomerId)
+                    RememberedSessionStore.saveCustomerSession(
+                        context = appContext,
+                        customerId = state.registeredCustomerId,
+                        onboardingPending = true
+                    )
+                    CartManager.clearInMemoryOnly()
 
                     findNavController().navigate(
                         R.id.onboardingFragment,

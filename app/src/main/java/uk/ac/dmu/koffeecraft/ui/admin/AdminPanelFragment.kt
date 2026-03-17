@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class AdminPanelFragment : Fragment(R.layout.fragment_admin_panel) {
@@ -15,8 +16,9 @@ class AdminPanelFragment : Fragment(R.layout.fragment_admin_panel) {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
+            CartManager.clearInMemoryOnly()
             SessionManager.clear()
-            CartManager.clear()
+            RememberedSessionStore.clear(requireContext().applicationContext)
             findNavController().navigate(R.id.action_global_logout)
         }
     }
