@@ -48,54 +48,56 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPrimaryAction"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/bg_primary_pill_button"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minHeight="42dp"
+                android:minHeight="46dp"
                 android:text="Assign"
                 android:textAllCaps="false"
                 android:textColor="#FFF8F2"
                 android:textSize="12sp"
-                app:cornerRadius="20dp" />
+                android:textStyle="bold"
+                app:backgroundTint="#9A7655"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                app:strokeWidth="0dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSecondaryAction"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_secondary_pill_button"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minHeight="42dp"
+                android:layout_marginTop="8dp"
+                android:minHeight="46dp"
                 android:text="Edit"
                 android:textAllCaps="false"
-                android:textColor="#6B4423"
+                android:textColor="#5A4638"
                 android:textSize="12sp"
-                app:cornerRadius="20dp" />
+                android:textStyle="bold"
+                app:backgroundTint="#F2E5D8"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                app:strokeColor="#DDC9B8"
+                app:strokeWidth="1dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTertiaryAction"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_secondary_pill_button"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minHeight="42dp"
+                android:layout_marginTop="8dp"
+                android:minHeight="46dp"
                 android:text="Disable"
                 android:textAllCaps="false"
-                android:textColor="#6B4423"
+                android:textColor="#5A4638"
                 android:textSize="12sp"
-                app:cornerRadius="20dp" />
+                android:textStyle="bold"
+                app:backgroundTint="#F2E5D8"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                app:strokeColor="#DDC9B8"
+                app:strokeWidth="1dp" />
         </LinearLayout>
 
     </LinearLayout>

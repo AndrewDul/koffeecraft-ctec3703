@@ -22,8 +22,8 @@
         android:title="Feedback" />
 
     <item
-        android:id="@+id/adminInboxFragment"
-        android:icon="@android:drawable/ic_dialog_email"
-        android:title="Inbox" />
+        android:id="@+id/adminCampaignStudioFragment"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="Studio" />
 
 </menu>

@@ -1,6 +1,5 @@
 package uk.ac.dmu.koffeecraft
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -11,28 +10,13 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class AdminActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        CartManager.attachContext(applicationContext)
-        RememberedSessionStore.restoreIntoMemory(applicationContext)
-
-        val currentAdminId = SessionManager.currentAdminId
-        if (!SessionManager.isAdmin || currentAdminId == null) {
-            redirectToMain()
-            return
-        }
-
         setContentView(R.layout.activity_admin)
 
         val navHost = supportFragmentManager.findFragmentById(R.id.adminNavHost) as NavHostFragment
@@ -40,6 +24,7 @@ class AdminActivity : AppCompatActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.adminBottomNav)
 
+        val btnInbox = findViewById<ImageButton>(R.id.btnAdminInbox)
         val btnNotifications = findViewById<ImageButton>(R.id.btnAdminNotifications)
         val btnSettings = findViewById<ImageButton>(R.id.btnAdminSettings)
         val tvBadge = findViewById<TextView>(R.id.tvAdminNotificationBadge)
@@ -49,7 +34,7 @@ class AdminActivity : AppCompatActivity() {
             R.id.adminOrdersFragment,
             R.id.adminMenuFragment,
             R.id.adminFeedbackFragment,
-            R.id.adminInboxFragment
+            R.id.adminCampaignStudioFragment
         )
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -61,6 +46,10 @@ class AdminActivity : AppCompatActivity() {
             navigateFromBottom(navController, item.itemId, force = true)
         }
 
+        btnInbox.setOnClickListener {
+            navigateIfNeeded(navController, R.id.adminInboxFragment)
+        }
+
         btnNotifications.setOnClickListener {
             navigateIfNeeded(navController, R.id.adminNotificationsFragment)
         }
@@ -70,19 +59,6 @@ class AdminActivity : AppCompatActivity() {
         }
 
         val db = KoffeeCraftDatabase.getInstance(applicationContext)
-
-        lifecycleScope.launch {
-            val admin = withContext(Dispatchers.IO) {
-                db.adminDao().getById(currentAdminId)
-            }
-
-            if (admin == null || !admin.isActive) {
-                SessionManager.clear()
-                RememberedSessionStore.clear(applicationContext)
-                redirectToMain()
-                return@launch
-            }
-        }
 
         lifecycleScope.launch {
             db.notificationDao().observeUnreadAdminCount().collect { count ->
@@ -104,11 +80,6 @@ class AdminActivity : AppCompatActivity() {
 
             bottomNav.visibility = View.VISIBLE
         }
-    }
-
-    private fun redirectToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
     }
 
     private fun navigateIfNeeded(navController: NavController, destinationId: Int) {

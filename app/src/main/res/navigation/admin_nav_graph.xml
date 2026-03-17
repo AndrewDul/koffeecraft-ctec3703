@@ -25,6 +25,11 @@
         android:label="Admin Feedback" />
 
     <fragment
+        android:id="@+id/adminCampaignStudioFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.campaign.AdminCampaignStudioFragment"
+        android:label="Campaign Studio" />
+
+    <fragment
         android:id="@+id/adminSettingsFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.settings.AdminSettingsFragment"
         android:label="Admin Settings" />

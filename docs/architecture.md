@@ -2425,3 +2425,107 @@ To support the new admin dashboard properly, I extended the DAO layer with addit
 - menu health counts
 
 This means the dashboard is driven by real live data from the current database model rather than by placeholder assumptions.
+
+
+## Premium admin menu refinement and Campaign Studio navigation upgrade
+
+At this stage, I improved two important admin-side areas:
+
+- the Admin Menu product management experience
+- the admin communication / campaign navigation structure
+
+These changes made the admin side feel less like a basic coursework utility screen and more like a polished premium back-office experience.
+
+### Admin Menu redesign
+
+I refined the Admin Menu screen so it is now visually more consistent with the rest of the KoffeeCraft application.
+
+The screen now uses the same warm premium coffee palette, softer spacing, rounded cards, and a more elegant structure for browsing and managing products.
+
+I also adjusted the action hierarchy so product cards are now cleaner in their collapsed state.
+
+Instead of showing action buttons immediately on every product tile, the card now stays visually lightweight until the admin intentionally opens it.
+
+### Expandable product management cards
+
+I changed the admin product cards so the main product tile now works as an expandable management surface.
+
+The updated behaviour is:
+
+- tapping a product expands it inline
+- tapping another product collapses the previously opened one
+- only one product stays expanded at a time
+
+This makes the menu management flow more readable and more premium, while also reducing visual noise in long admin product lists.
+
+### Action placement improvement
+
+I moved product actions into the expanded state of the product card.
+
+This means the collapsed card is now focused on fast scanning and identification, while the expanded state becomes the operational workspace for that product.
+
+The admin actions remain available, but they now appear in a more controlled and intentional layout.
+
+This improves both usability and visual quality.
+
+### Configuration tools polish
+
+I improved the visual presentation of the product configuration area that opens from the admin menu.
+
+The Product Details dialog was updated to use:
+
+- warmer premium background tones
+- more consistent card sections
+- cleaner typography hierarchy
+- softer and more polished action buttons
+
+I then extended that same visual treatment to the supporting configuration dialogs for:
+
+- size / portion setup
+- extras management
+- allergen setup
+
+This brings the configuration flow closer to the same design language used across the premium customer-facing parts of the app.
+
+### Admin navigation restructure
+
+I also improved the admin navigation structure to better separate communication history from campaign creation.
+
+Previously, Inbox occupied a main bottom-navigation position.
+
+I changed that structure so:
+
+- Inbox is now part of the top-bar utility actions
+- Studio becomes a main bottom-navigation destination
+
+This creates a clearer distinction between:
+
+- quick communication tools in the top bar
+- strategic admin workspaces in the bottom navigation
+
+### Campaign Studio shell
+
+I introduced the first navigation shell for a new admin feature called **Campaign Studio**.
+
+This screen is now positioned as a main admin destination and is intended to support future functionality such as:
+
+- smart promo targeting
+- loyalty campaigns
+- targeted beans rewards
+- audience preview before send
+
+At this stage, the Studio screen is structural and visual, prepared for the next development phase where real targeting logic and campaign execution will be added.
+
+### Why this improves the architecture
+
+These changes improve the architecture in three ways:
+
+1. Admin product management now follows a clearer expand-to-operate pattern instead of exposing too many actions at once.
+2. Product configuration tools are now visually and structurally aligned with the premium app identity.
+3. Admin communication is better separated into:
+  - Inbox as a utility action
+  - Studio as a dedicated campaign workspace
+
+This makes the admin side more scalable and more suitable for additional premium management features in later stages.
+
+

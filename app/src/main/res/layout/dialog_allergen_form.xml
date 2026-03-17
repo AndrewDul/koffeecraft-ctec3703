@@ -1,21 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingTop="8dp">
+    android:fillViewport="true"
+    android:background="#F7F0E8">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilAllergenName"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Allergen name">
+        android:layout_margin="8dp"
+        app:cardBackgroundColor="#FFF8F2"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="1dp"
+        app:strokeColor="#E3D4C6"
+        app:strokeWidth="1dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etAllergenName"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapWords" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:orientation="vertical"
+            android:padding="20dp">
 
-</LinearLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Allergen details"
+                android:textColor="#2E2018"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Add a clear allergen label to keep product and extra information accurate."
+                android:textColor="#6E5A4D"
+                android:textSize="13sp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilAllergenName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:hint="Allergen name">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAllergenName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapWords" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</androidx.core.widget.NestedScrollView>

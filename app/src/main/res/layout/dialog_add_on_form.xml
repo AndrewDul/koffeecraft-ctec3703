@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true"
@@ -10,11 +9,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        app:cardBackgroundColor="#EFE2D3"
+        app:cardBackgroundColor="#FFF8F2"
         app:cardCornerRadius="24dp"
-        app:cardElevation="2dp"
-        app:strokeColor="#D9C2AD"
-        app:strokeWidth="1dp">
+        app:cardElevation="1dp"
+        app:strokeColor="#E3D4C6"
+        app:strokeWidth="1dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Create a reusable extra for the selected product family."
+                android:text="Create or update a reusable extra for the selected product family."
                 android:textColor="#6E5A4D"
                 android:textSize="13sp" />
 
@@ -84,8 +84,9 @@
                 android:id="@+id/cbAddOnActive"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="Extra is active" />
+                android:layout_marginTop="16dp"
+                android:text="Extra is active"
+                android:textColor="#4D3527" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

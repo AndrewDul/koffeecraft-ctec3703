@@ -1009,3 +1009,26 @@ This matched the declared `long` type correctly and allowed the navigation graph
 ### Result
 
 The app now starts correctly again and the notification deep-link flow can load the navigation graph safely.
+
+
+## 50)Build failed after admin navigation changes because a previously used destination was missing from the nav graph
+
+### Problem
+
+After introducing the new Studio destination and updating the admin navigation structure, the project failed to compile.
+
+### Cause
+
+`AdminSettingsFragment` was still navigating to `adminCreateAccountFragment`, but that destination had been accidentally omitted from the updated `admin_nav_graph.xml`.
+
+Because of that, Kotlin could not resolve `R.id.adminCreateAccountFragment` during compilation.
+
+### Fix
+
+I restored the missing `adminCreateAccountFragment` entry inside `admin_nav_graph.xml` while keeping the new Studio destination and the updated top-bar / bottom-nav structure.
+
+### Result
+
+The build error was resolved and the admin navigation graph became complete again.
+
+Existing admin account creation navigation now works alongside the new Campaign Studio navigation structure.

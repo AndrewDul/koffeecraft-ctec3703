@@ -28,10 +28,39 @@ interface OrderDao {
         SELECT 
             o.orderId AS orderId,
             o.customerId AS customerId,
+            c.firstName AS customerFirstName,
+            c.lastName AS customerLastName,
             c.email AS customerEmail,
             o.status AS status,
             o.totalAmount AS totalAmount,
-            o.createdAt AS createdAt
+            o.createdAt AS createdAt,
+            COALESCE((
+                SELECT SUM(oi.quantity)
+                FROM order_items oi
+                WHERE oi.orderId = o.orderId
+            ), 0) AS itemCount,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM order_items oi
+                WHERE oi.orderId = o.orderId
+                  AND (
+                    (oi.selectedAddOnsSummary IS NOT NULL AND TRIM(oi.selectedAddOnsSummary) != '')
+                    OR
+                    (
+                        oi.selectedOptionLabel IS NOT NULL
+                        AND TRIM(oi.selectedOptionLabel) != ''
+                        AND oi.selectedOptionSizeValue IS NOT NULL
+                        AND oi.selectedOptionSizeUnit IS NOT NULL
+                        AND TRIM(oi.selectedOptionSizeUnit) != ''
+                    )
+                  )
+            ), 0) AS craftedLineCount,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM order_items oi
+                WHERE oi.orderId = o.orderId
+                  AND oi.unitPrice <= 0
+            ), 0) AS rewardLineCount
         FROM orders o
         INNER JOIN customers c ON c.customerId = o.customerId
         WHERE (:status IS NULL OR o.status = :status)
@@ -45,17 +74,47 @@ interface OrderDao {
         SELECT 
             o.orderId AS orderId,
             o.customerId AS customerId,
+            c.firstName AS customerFirstName,
+            c.lastName AS customerLastName,
             c.email AS customerEmail,
             o.status AS status,
             o.totalAmount AS totalAmount,
-            o.createdAt AS createdAt
+            o.createdAt AS createdAt,
+            COALESCE((
+                SELECT SUM(oi.quantity)
+                FROM order_items oi
+                WHERE oi.orderId = o.orderId
+            ), 0) AS itemCount,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM order_items oi
+                WHERE oi.orderId = o.orderId
+                  AND (
+                    (oi.selectedAddOnsSummary IS NOT NULL AND TRIM(oi.selectedAddOnsSummary) != '')
+                    OR
+                    (
+                        oi.selectedOptionLabel IS NOT NULL
+                        AND TRIM(oi.selectedOptionLabel) != ''
+                        AND oi.selectedOptionSizeValue IS NOT NULL
+                        AND oi.selectedOptionSizeUnit IS NOT NULL
+                        AND TRIM(oi.selectedOptionSizeUnit) != ''
+                    )
+                  )
+            ), 0) AS craftedLineCount,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM order_items oi
+                WHERE oi.orderId = o.orderId
+                  AND oi.unitPrice <= 0
+            ), 0) AS rewardLineCount
         FROM orders o
         INNER JOIN customers c ON c.customerId = o.customerId
         WHERE (:status IS NULL OR o.status = :status)
           AND (
             :query IS NULL OR :query = '' OR
-            LOWER(c.email) LIKE '%' || LOWER(:query) || '%' OR
-            CAST(o.orderId AS TEXT) LIKE '%' || :query || '%'
+            CAST(o.orderId AS TEXT) LIKE '%' || :query || '%' OR
+            CAST(o.customerId AS TEXT) LIKE '%' || :query || '%' OR
+            LOWER(c.email) LIKE '%' || LOWER(:query) || '%'
           )
         ORDER BY
           CASE WHEN :sortDir = 'ASC' THEN o.createdAt END ASC,

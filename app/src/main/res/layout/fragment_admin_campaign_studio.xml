@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5EBDD"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="18dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Campaign Studio"
+                    android:textColor="#2E2018"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Build targeted campaigns, loyalty rewards, and bonus beans offers from one premium admin workspace."
+                    android:textColor="#6E5A4D"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Choose Audience"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Select who should receive the campaign before building the offer."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_orders_filter_chip_selected"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="All opted-in"
+                            android:textColor="#2E2018"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="Birthday today"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="No orders yet"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="Loyal customers"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="Inactive users"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="Close to reward"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Campaign Type"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Choose the type of campaign you want to build."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:minHeight="50dp"
+                    android:text="Promotional Offer"
+                    android:textAllCaps="false"
+                    android:textColor="#FFF8F2"
+                    android:textStyle="bold"
+                    app:backgroundTint="#9A7655"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="50dp"
+                    android:text="Bonus Beans"
+                    android:textAllCaps="false"
+                    android:textColor="#5A4638"
+                    android:textStyle="bold"
+                    app:backgroundTint="#F2E5D8"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp"
+                    app:strokeColor="#DDC9B8"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="50dp"
+                    android:text="Offer + Bonus Beans"
+                    android:textAllCaps="false"
+                    android:textColor="#5A4638"
+                    android:textStyle="bold"
+                    app:backgroundTint="#F2E5D8"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp"
+                    app:strokeColor="#DDC9B8"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="50dp"
+                    android:text="Important / Service Message"
+                    android:textAllCaps="false"
+                    android:textColor="#5A4638"
+                    android:textStyle="bold"
+                    app:backgroundTint="#F2E5D8"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp"
+                    app:strokeColor="#DDC9B8"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Preview"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Recipients • 0"
+                    android:textColor="#5B4638"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Excluded by consent • 0"
+                    android:textColor="#5B4638"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Total bonus beans • 0"
+                    android:textColor="#5B4638"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="0 customers will receive this message"
+                    android:textColor="#2E2018"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:enabled="false"
+            android:minHeight="54dp"
+            android:text="Campaign sending setup comes next"
+            android:textAllCaps="false"
+            android:textColor="#FFF8F2"
+            android:textStyle="bold"
+            app:backgroundTint="#9A7655"
+            app:cornerRadius="28dp"
+            app:elevation="0dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

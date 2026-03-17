@@ -2,9 +2,11 @@ package uk.ac.dmu.koffeecraft.ui.admin.menu
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.CheckBox
+import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -31,8 +33,7 @@ import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductAddOnCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductAllergenCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-import android.view.LayoutInflater
-import android.widget.LinearLayout
+
 class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
     private lateinit var adapter: AdminProductsAdapter
@@ -55,23 +56,13 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         tvEmpty = view.findViewById(R.id.tvEmpty)
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAddProduct)
         val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.toggleCategoryFilter)
-
-        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-
-            currentFilter = when (checkedId) {
-                R.id.btnFilterCoffee -> CategoryFilter.COFFEE
-                R.id.btnFilterCake -> CategoryFilter.CAKE
-                R.id.btnFilterMerch -> CategoryFilter.MERCH
-                else -> CategoryFilter.ALL
-            }
-
-            applyCategoryFilter()
-        }
+        val cardMenuHeader = view.findViewById<View>(R.id.cardMenuHeader)
+        val cardMenuFilters = view.findViewById<View>(R.id.cardMenuFilters)
 
         val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
         rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.isNestedScrollingEnabled = false
 
         adapter = AdminProductsAdapter(
             items = emptyList(),
@@ -92,6 +83,29 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         )
 
         rv.adapter = adapter
+
+        cardMenuHeader.setOnClickListener {
+            adapter.collapseAll()
+        }
+
+        cardMenuFilters.setOnClickListener {
+            adapter.collapseAll()
+        }
+
+        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+
+            adapter.collapseAll()
+
+            currentFilter = when (checkedId) {
+                R.id.btnFilterCoffee -> CategoryFilter.COFFEE
+                R.id.btnFilterCake -> CategoryFilter.CAKE
+                R.id.btnFilterMerch -> CategoryFilter.MERCH
+                else -> CategoryFilter.ALL
+            }
+
+            applyCategoryFilter()
+        }
 
         fab.setOnClickListener {
             showProductDialog(db, existing = null)
@@ -710,6 +724,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
         dialog.show()
     }
+
     private fun populateManageExtrasDialog(
         db: KoffeeCraftDatabase,
         product: Product,
@@ -946,6 +961,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
         container.addView(itemView)
     }
+
     private fun showAddOnLibraryDialog(
         db: KoffeeCraftDatabase,
         category: String,
