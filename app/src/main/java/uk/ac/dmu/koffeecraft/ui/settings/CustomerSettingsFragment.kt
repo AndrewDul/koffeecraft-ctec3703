@@ -37,6 +37,10 @@ class CustomerSettingsFragment : Fragment(R.layout.fragment_customer_settings) {
             findNavController().navigate(R.id.customerChangePasswordFragment)
         }
 
+        view.findViewById<View>(R.id.rowPaymentMethods).setOnClickListener {
+            findNavController().navigate(R.id.customerPaymentMethodsFragment)
+        }
+
         view.findViewById<View>(R.id.rowInboxPreferences).setOnClickListener {
             findNavController().navigate(R.id.customerInboxPreferencesFragment)
         }

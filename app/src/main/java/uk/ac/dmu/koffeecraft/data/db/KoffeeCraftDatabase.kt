@@ -44,10 +44,11 @@ import uk.ac.dmu.koffeecraft.data.entities.ProductOption
 import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetDao
 import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePreset
 import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
-
-
+import uk.ac.dmu.koffeecraft.data.dao.CustomerPaymentCardDao
+import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
 @Database(
     entities = [
+        CustomerPaymentCard::class,
         Customer::class,
         Admin::class,
         Product::class,
@@ -67,7 +68,7 @@ import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
         CustomerFavouritePreset::class,
         CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -87,6 +88,7 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
     abstract fun favouriteDao(): FavouriteDao
 
     abstract fun customerFavouritePresetDao(): CustomerFavouritePresetDao
+    abstract fun customerPaymentCardDao(): CustomerPaymentCardDao
 
     companion object {
         @Volatile
@@ -615,6 +617,32 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS customer_payment_cards (
+                        cardId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        customerId INTEGER NOT NULL,
+                        nickname TEXT NOT NULL,
+                        cardholderName TEXT NOT NULL,
+                        brand TEXT NOT NULL,
+                        maskedCardNumber TEXT NOT NULL,
+                        last4 TEXT NOT NULL,
+                        expiryMonth INTEGER NOT NULL,
+                        expiryYear INTEGER NOT NULL,
+                        isDefault INTEGER NOT NULL DEFAULT 0,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_payment_cards_customerId ON customer_payment_cards(customerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_payment_cards_customerId_isDefault ON customer_payment_cards(customerId, isDefault)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_payment_cards_customerId_createdAt ON customer_payment_cards(customerId, createdAt)")
+            }
+        }
+
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -637,7 +665,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_11_12,
                         MIGRATION_12_13,
                         MIGRATION_13_14,
-                        MIGRATION_14_15
+                        MIGRATION_14_15,
+                        MIGRATION_15_16
                     )
                     .addCallback(SeedCallback())
                     .build()

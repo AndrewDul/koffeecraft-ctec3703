@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
 data class Payment(
     @PrimaryKey(autoGenerate = true) val paymentId: Long = 0,
     val orderId: Long,
-    val paymentType: String, // "CARD", "CASH"
+    val paymentType: String, // "CARD", "APPLE_PAY", "CASH"
     val amount: Double,
     val paymentDate: Long = System.currentTimeMillis()
 )

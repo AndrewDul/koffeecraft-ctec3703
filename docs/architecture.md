@@ -2694,3 +2694,49 @@ Overall impact:
 - removal of obsolete legacy navigation remnants
 - a more maintainable and production-like login architecture
 - stronger architectural consistency for both assessment quality and portfolio quality
+
+
+## Customer payment methods and premium checkout payment flow
+
+I added a new customer-side payment methods module to make the checkout experience feel more realistic and more aligned with a premium mobile app.
+
+Previously, the app only supported a simple checkout payment choice without any saved customer payment methods. I introduced a dedicated local wallet flow for demo cards by creating a new `CustomerPaymentCard` entity with its own DAO and database migration. This separated reusable customer payment methods from the existing `Payment` order record model, which keeps the architecture cleaner and avoids mixing saved cards with per-order payment history.
+
+I extended the customer settings area with a new `Payment Methods` entry and added a dedicated payment methods screen. This screen allows the customer to:
+- view saved cards
+- add a new demo card
+- set a default card
+- remove saved cards
+
+I designed the saved card flow to fit the existing premium coffee theme by using warm neutral colours, rounded cards, and a live card preview rather than a plain utility form. I also added a top back action so the payment methods screen now behaves consistently with the other customer settings sub-screens.
+
+For the card form itself, I introduced a reusable validation and formatting utility. I kept the overall form structure close to a real mobile payment form, including:
+- nickname
+- cardholder name
+- card number
+- expiry
+- CVV
+
+However, because this project uses a simulated payment experience rather than a real banking integration, I simplified the card number validation so that any 16-digit value is accepted. This keeps the feature practical for the coursework demo while still preserving a realistic user interface. I also improved the validation feedback so the user gets clearer guidance when a field is incomplete or incorrectly formatted.
+
+I then upgraded checkout so the payment experience is more complete and better integrated with the settings wallet flow. Checkout now supports three payment types:
+- Card
+- Apple Pay
+- Cash
+
+When Card is selected, checkout now shows:
+- the customer’s saved cards
+- automatic selection of the default card
+- the same premium new-card form used in payment methods
+
+This means the customer can either use a saved card or enter a new one during checkout. I also added an option to save a newly entered checkout card for future orders, which improves continuity between checkout and account settings.
+
+I treated Apple Pay differently from a standard card form because real applications usually present Apple Pay as a distinct payment experience rather than as a manual card-entry flow. In this project it is still a simulated local flow, but it now has its own dedicated UI block and payment type value, which makes the checkout architecture more realistic and easier to extend later.
+
+Overall impact:
+- introduced a dedicated saved-cards wallet structure for customers
+- improved separation between saved payment methods and per-order payment records
+- made checkout more realistic and more portfolio-ready
+- increased consistency between settings and checkout
+- strengthened the premium feel of the customer experience without adding a real payment gateway
+
