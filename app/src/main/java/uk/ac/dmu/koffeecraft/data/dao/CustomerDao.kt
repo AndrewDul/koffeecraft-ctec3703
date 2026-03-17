@@ -137,6 +137,106 @@ interface CustomerDao {
 
     @Query("SELECT COUNT(*) FROM customers WHERE marketingInboxConsent = 1")
     suspend fun countPromoOptInCustomers(): Int
+
+    @Query(
+        """
+        SELECT
+            c.customerId AS customerId,
+            c.firstName AS firstName,
+            c.lastName AS lastName,
+            c.email AS email,
+            c.dateOfBirth AS dateOfBirth,
+            c.marketingInboxConsent AS marketingInboxConsent,
+            c.beansBalance AS beansBalance,
+            COUNT(o.orderId) AS orderCount,
+            MAX(o.createdAt) AS lastOrderAt,
+            COALESCE(SUM(o.totalAmount), 0) AS lifetimeSpend
+        FROM customers c
+        LEFT JOIN orders o ON o.customerId = c.customerId
+        GROUP BY
+            c.customerId,
+            c.firstName,
+            c.lastName,
+            c.email,
+            c.dateOfBirth,
+            c.marketingInboxConsent,
+            c.beansBalance
+        ORDER BY c.customerId ASC
+        """
+    )
+    suspend fun getAllCampaignTargets(): List<CustomerCampaignTarget>
+
+    @Query(
+        """
+        SELECT
+            c.customerId AS customerId,
+            c.firstName AS firstName,
+            c.lastName AS lastName,
+            c.email AS email,
+            c.dateOfBirth AS dateOfBirth,
+            c.marketingInboxConsent AS marketingInboxConsent,
+            c.beansBalance AS beansBalance,
+            COUNT(o.orderId) AS orderCount,
+            MAX(o.createdAt) AS lastOrderAt,
+            COALESCE(SUM(o.totalAmount), 0) AS lifetimeSpend
+        FROM customers c
+        LEFT JOIN orders o ON o.customerId = c.customerId
+        WHERE c.customerId = :customerId
+        GROUP BY
+            c.customerId,
+            c.firstName,
+            c.lastName,
+            c.email,
+            c.dateOfBirth,
+            c.marketingInboxConsent,
+            c.beansBalance
+        LIMIT 1
+        """
+    )
+    suspend fun getCampaignTargetByCustomerId(customerId: Long): CustomerCampaignTarget?
+
+    @Query(
+        """
+        SELECT
+            c.customerId AS customerId,
+            c.firstName AS firstName,
+            c.lastName AS lastName,
+            c.email AS email,
+            c.dateOfBirth AS dateOfBirth,
+            c.marketingInboxConsent AS marketingInboxConsent,
+            c.beansBalance AS beansBalance,
+            COUNT(oAll.orderId) AS orderCount,
+            MAX(oAll.createdAt) AS lastOrderAt,
+            COALESCE(SUM(oAll.totalAmount), 0) AS lifetimeSpend
+        FROM customers c
+        LEFT JOIN orders oAll ON oAll.customerId = c.customerId
+        WHERE c.customerId = (
+            SELECT customerId
+            FROM orders
+            WHERE orderId = :orderId
+            LIMIT 1
+        )
+        GROUP BY
+            c.customerId,
+            c.firstName,
+            c.lastName,
+            c.email,
+            c.dateOfBirth,
+            c.marketingInboxConsent,
+            c.beansBalance
+        LIMIT 1
+        """
+    )
+    suspend fun getCampaignTargetByOrderId(orderId: Long): CustomerCampaignTarget?
+
+    @Query(
+        """
+        UPDATE customers
+        SET beansBalance = beansBalance + :beansAmount
+        WHERE customerId = :customerId
+        """
+    )
+    suspend fun addBeansToCustomer(customerId: Long, beansAmount: Int)
 }
 
 data class CustomerInboxTarget(
@@ -156,3 +256,19 @@ data class CustomerAccountTarget(
     val isActive: Boolean,
     val createdAt: Long
 )
+
+data class CustomerCampaignTarget(
+    val customerId: Long,
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val dateOfBirth: String?,
+    val marketingInboxConsent: Boolean,
+    val beansBalance: Int,
+    val orderCount: Int,
+    val lastOrderAt: Long?,
+    val lifetimeSpend: Double
+) {
+    val displayName: String
+        get() = "$firstName $lastName".trim()
+}

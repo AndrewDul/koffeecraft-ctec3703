@@ -16,6 +16,7 @@
         android:paddingBottom="18dp">
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardStudioHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="#FFF8F2"
@@ -42,7 +43,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Build targeted campaigns, loyalty rewards, and bonus beans offers from one premium admin workspace."
+                    android:text="Build targeted offers, loyalty campaigns, and bonus beans rewards from one premium admin workspace."
                     android:textColor="#6E5A4D"
                     android:textSize="14sp" />
             </LinearLayout>
@@ -76,7 +77,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Select who should receive the campaign before building the offer."
+                    android:text="Select a customer segment first, then refine the campaign when extra rules are needed."
                     android:textColor="#6E5A4D"
                     android:textSize="13sp" />
 
@@ -92,6 +93,7 @@
                         android:orientation="horizontal">
 
                         <TextView
+                            android:id="@+id/tvAudienceAllOptedIn"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_orders_filter_chip_selected"
@@ -105,6 +107,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvAudienceBirthdayToday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
@@ -119,6 +122,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvAudienceNoOrders"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
@@ -127,12 +131,13 @@
                             android:paddingTop="10dp"
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
-                            android:text="No orders yet"
+                            android:text="0 orders"
                             android:textColor="#6E5A4D"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvAudienceLoyal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
@@ -141,12 +146,13 @@
                             android:paddingTop="10dp"
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
-                            android:text="Loyal customers"
+                            android:text="Loyal"
                             android:textColor="#6E5A4D"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvAudienceInactive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
@@ -155,12 +161,13 @@
                             android:paddingTop="10dp"
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
-                            android:text="Inactive users"
+                            android:text="Inactive"
                             android:textColor="#6E5A4D"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvAudienceCloseReward"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
@@ -173,8 +180,63 @@
                             android:textColor="#6E5A4D"
                             android:textSize="13sp"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvAudienceDirectOrder"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="Direct by order"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvAudienceDirectCustomer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_orders_filter_chip"
+                            android:paddingStart="14dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="14dp"
+                            android:paddingBottom="10dp"
+                            android:text="Direct by customer"
+                            android:textColor="#6E5A4D"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </HorizontalScrollView>
+
+                <TextView
+                    android:id="@+id/tvAudienceRuleLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Rule"
+                    android:textColor="#7A6558"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilAudienceRule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="Rule value"
+                    android:visibility="gone">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAudienceRule"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -206,11 +268,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Choose the type of campaign you want to build."
+                    android:text="Choose a campaign type built for promotions, loyalty, and beans rewards."
                     android:textColor="#6E5A4D"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTypePromo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -224,6 +287,7 @@
                     app:elevation="0dp" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTypeBeans"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
@@ -239,26 +303,12 @@
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTypeOfferBeans"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:minHeight="50dp"
                     android:text="Offer + Bonus Beans"
-                    android:textAllCaps="false"
-                    android:textColor="#5A4638"
-                    android:textStyle="bold"
-                    app:backgroundTint="#F2E5D8"
-                    app:cornerRadius="26dp"
-                    app:elevation="0dp"
-                    app:strokeColor="#DDC9B8"
-                    app:strokeWidth="1dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:minHeight="50dp"
-                    android:text="Important / Service Message"
                     android:textAllCaps="false"
                     android:textColor="#5A4638"
                     android:textStyle="bold"
@@ -289,20 +339,110 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="Campaign Builder"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvBuilderHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Use [FIRST_NAME], [LAST_NAME], and [BEANS_AMOUNT] inside the message if you want simple personalisation."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCampaignTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Campaign title">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCampaignTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCampaignMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:hint="Campaign message">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCampaignMessage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top|start"
+                        android:inputType="textMultiLine"
+                        android:minLines="6" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBeansAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:hint="Bonus beans amount"
+                    android:visibility="gone">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBeansAmount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="Preview"
                     android:textColor="#2E2018"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvPreviewAudienceValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
+                    android:text="Audience • All opted-in customers"
+                    android:textColor="#5B4638"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvPreviewRecipientsValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
                     android:text="Recipients • 0"
                     android:textColor="#5B4638"
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/tvPreviewExcludedValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -311,6 +451,7 @@
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/tvPreviewBeansTotalValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -319,6 +460,16 @@
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/tvPreviewModeNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Promotional consent applies to this campaign."
+                    android:textColor="#7A6558"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvPreviewSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -330,13 +481,14 @@
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSendCampaign"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             android:enabled="false"
             android:minHeight="54dp"
-            android:text="Campaign sending setup comes next"
+            android:text="Send campaign"
             android:textAllCaps="false"
             android:textColor="#FFF8F2"
             android:textStyle="bold"

@@ -3,41 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_welcome_screen"
+    android:background="#F5EBDD"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
-
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Inbox"
-            android:textColor="#F5EBDD"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Send promotional, important, or service messages to groups or one selected customer. Promotional messages are delivered only to customers who opted in."
-            android:textColor="#E8DCCF"
-            android:textSize="13sp" />
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="18dp">
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAudience"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#E7D8C7"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -46,100 +31,32 @@
                 android:padding="18dp">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Audience"
+                    android:text="Direct Message Centre"
                     android:textColor="#2E2018"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
 
-                <Spinner
-                    android:id="@+id/spinnerAudience"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_spinner_soft" />
-
                 <TextView
-                    android:id="@+id/tvSearchHint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Find customer"
-                    android:textColor="#5B4638"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <EditText
-                    android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:background="@drawable/bg_spinner_soft"
-                    android:hint="Enter value"
-                    android:inputType="text"
-                    android:padding="14dp"
-                    android:textColor="#2E2018"
-                    android:textColorHint="#7A6758"
-                    android:visibility="gone" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSearch"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Find customer"
-                    android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#5F7F5B"
-                    app:cornerRadius="22dp"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tvSelectedTarget"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:textColor="#2E2018"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tvConsentStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tvAudienceSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="#5B4638"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tvTargetsEmpty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="No matching customer found."
-                    android:textColor="#A12727"
-                    android:visibility="gone" />
-
+                    android:text="Send direct operational messages to one customer using an order number or customer ID. Campaigns and promotions now live in Studio."
+                    android:textColor="#6E5A4D"
+                    android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardTemplates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#E7D8C7"
+            app:cardBackgroundColor="#FFF8F2"
             app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -150,63 +67,117 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Message template"
+                    android:text="Find Recipient"
                     android:textColor="#2E2018"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Choose a template or leave all buttons unused to send a custom service message."
-                    android:textColor="#5B4638"
+                    android:text="Choose how you want to locate the customer, then load the direct message target."
+                    android:textColor="#6E5A4D"
                     android:textSize="13sp" />
 
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvModeOrderNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_orders_filter_chip_selected"
+                        android:paddingStart="14dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="10dp"
+                        android:text="By order number"
+                        android:textColor="#2E2018"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvModeCustomerId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_orders_filter_chip"
+                        android:paddingStart="14dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="10dp"
+                        android:text="By customer ID"
+                        android:textColor="#6E5A4D"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSearchHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Find customer by order number"
+                    android:textColor="#7A6558"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="Enter order number">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTemplatePromotional"
+                    android:id="@+id/btnSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Promotional"
+                    android:minHeight="50dp"
+                    android:text="Find customer"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#8B6B4A"
-                    app:cornerRadius="20dp" />
+                    android:textColor="#FFF8F2"
+                    android:textStyle="bold"
+                    app:backgroundTint="#9A7655"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTemplateImportant"
+                <TextView
+                    android:id="@+id/tvTargetsEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Important"
-                    android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#7A4C2A"
-                    app:cornerRadius="20dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTemplateService"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Service"
-                    android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#5F7F5B"
-                    app:cornerRadius="20dp" />
-
+                    android:layout_marginTop="10dp"
+                    android:text="No matching customer found."
+                    android:textColor="#9B3D31"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardMessage"
+            android:id="@+id/cardSelectedTarget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#E7D8C7"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#FFF8F2"
             app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -217,9 +188,153 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Message"
+                    android:text="Recipient Summary"
                     android:textColor="#2E2018"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvSelectedTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Andrew Dul"
+                    android:textColor="#2E2018"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTargetMeta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Customer #12 • andrew@example.com"
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvConsentStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Marketing consent: ON"
+                    android:textColor="#7A6558"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAudienceSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="1 customer will receive this message"
+                    android:textColor="#5B4638"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Message Type"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Use direct message templates for operational communication. Promotions are handled in Studio."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTemplateImportant"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:minHeight="50dp"
+                    android:text="Important"
+                    android:textAllCaps="false"
+                    android:textColor="#FFF8F2"
+                    android:textStyle="bold"
+                    app:backgroundTint="#9A7655"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTemplateService"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="50dp"
+                    android:text="Service"
+                    android:textAllCaps="false"
+                    android:textColor="#5A4638"
+                    android:textStyle="bold"
+                    app:backgroundTint="#F2E5D8"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp"
+                    app:strokeColor="#DDC9B8"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTemplateCustom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="50dp"
+                    android:text="Custom"
+                    android:textAllCaps="false"
+                    android:textColor="#5A4638"
+                    android:textStyle="bold"
+                    app:backgroundTint="#F2E5D8"
+                    app:cornerRadius="26dp"
+                    app:elevation="0dp"
+                    app:strokeColor="#DDC9B8"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E4D5C8"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Compose Message"
+                    android:textColor="#2E2018"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -227,24 +342,38 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Placeholders like [FIRST_NAME], [DATE], or [PROMO_DETAILS] should be replaced before sending."
-                    android:textColor="#5B4638"
+                    android:text="Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation in direct messages."
+                    android:textColor="#6E5A4D"
                     android:textSize="13sp" />
 
-                <EditText
-                    android:id="@+id/etMessageBody"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilMessageTitle"
                     android:layout_width="match_parent"
-                    android:layout_height="220dp"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_spinner_soft"
-                    android:gravity="top|start"
-                    android:hint="Write your message"
-                    android:inputType="textMultiLine|textCapSentences"
-                    android:padding="16dp"
-                    android:scrollbars="vertical"
-                    android:textColor="#2E2018"
-                    android:textColorHint="#7A6758" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Message title">
 
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMessageTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilMessageBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:hint="Message body">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMessageBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top|start"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:minLines="7" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -254,12 +383,16 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="12dp"
-            android:text="Send message"
+            android:enabled="false"
+            android:minHeight="54dp"
+            android:text="Send direct message"
             android:textAllCaps="false"
-            android:textColor="#F8F2EA"
+            android:textColor="#FFF8F2"
             android:textSize="16sp"
-            app:backgroundTint="#5F7F5B"
-            app:cornerRadius="24dp" />
+            android:textStyle="bold"
+            app:backgroundTint="#9A7655"
+            app:cornerRadius="28dp"
+            app:elevation="0dp" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

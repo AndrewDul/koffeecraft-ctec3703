@@ -2529,3 +2529,81 @@ These changes improve the architecture in three ways:
 This makes the admin side more scalable and more suitable for additional premium management features in later stages.
 
 
+## Separation of campaign workflows and direct admin messaging
+
+At this stage, I refined the communication architecture on the admin side so the app no longer repeats similar behaviour across multiple screens.
+
+### Campaign Studio responsibility
+
+I kept **Campaign Studio** as the dedicated workspace for campaign-based communication.
+
+This screen is now responsible only for:
+
+- promotional offers
+- bonus beans rewards
+- combined offer + bonus beans campaigns
+- targeted audience selection
+- preview-based campaign sending
+
+This makes Studio behave like a premium loyalty and campaign tool rather than a general-purpose inbox screen.
+
+### Admin Inbox responsibility
+
+I redefined **Admin Inbox** as a direct operational messaging tool instead of a second campaign screen.
+
+The Inbox now focuses on one-to-one communication only.
+
+The admin can now find a recipient by:
+
+- order number
+- customer ID
+
+and send a direct message using operational templates such as:
+
+- Important
+- Service
+- Custom
+
+This creates a much cleaner separation between direct support-style communication and campaign management.
+
+### Removal of duplicated messaging behaviour
+
+Before this change, the communication layer had overlapping behaviour between:
+
+- campaign-style sending
+- inbox-style sending
+
+This made the admin side feel less focused and less premium.
+
+I removed that overlap by making sure:
+
+- promotions and loyalty rewards live only in Studio
+- important and service communication live only in Inbox
+
+This improves role clarity across the admin tools and avoids duplicated UX patterns inside the app.
+
+### Inbox UI refinement
+
+I also redesigned the Inbox screen so it visually matches the rest of the premium KoffeeCraft admin experience.
+
+The new Inbox structure includes:
+
+- a premium header card
+- direct target lookup section
+- recipient summary card
+- message type section
+- compose message section
+- large premium send button
+
+This creates a more realistic production-style admin communication flow and makes the feature feel more aligned with a professional back-office app.
+
+### Architectural result
+
+This change improves the communication architecture in the following way:
+
+- **Campaign Studio** = campaign targeting, loyalty, beans, promotions
+- **Inbox / Direct Message Centre** = direct operational communication
+
+That separation makes the admin side more scalable, easier to reason about, and much more polished from both a UX and portfolio perspective.
+
+
