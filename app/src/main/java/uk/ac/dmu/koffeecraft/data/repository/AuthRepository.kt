@@ -8,7 +8,7 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
 
     sealed class LoginResult {
         data class CustomerSuccess(val customerId: Long) : LoginResult()
-        object AdminSuccess : LoginResult()
+        data class AdminSuccess(val adminId: Long) : LoginResult()
         data class Error(val message: String) : LoginResult()
     }
 
@@ -28,7 +28,11 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
         if (admin != null) {
             val ok = PasswordHasher.verify(password, admin.passwordSalt, admin.passwordHash)
             password.fill('\u0000')
-            return if (ok) LoginResult.AdminSuccess else LoginResult.Error("Invalid credentials.")
+            return when {
+                !ok -> LoginResult.Error("Invalid credentials.")
+                !admin.isActive -> LoginResult.Error("This admin account is inactive.")
+                else -> LoginResult.AdminSuccess(admin.adminId)
+            }
         }
 
         val customer = db.customerDao().findByEmail(cleanEmail)

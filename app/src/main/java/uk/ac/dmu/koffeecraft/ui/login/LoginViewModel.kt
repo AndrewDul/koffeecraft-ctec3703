@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
+
 class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
     data class UiState(
@@ -27,13 +28,15 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
             _state.value = when (result) {
                 is AuthRepository.LoginResult.AdminSuccess -> {
-                    SessionManager.setAdmin()
+                    SessionManager.setAdmin(result.adminId)
                     UiState(navigateToAdmin = true)
                 }
+
                 is AuthRepository.LoginResult.CustomerSuccess -> {
                     SessionManager.setCustomer(result.customerId)
                     UiState(navigateToMenu = true)
                 }
+
                 is AuthRepository.LoginResult.Error ->
                     UiState(error = result.message)
             }

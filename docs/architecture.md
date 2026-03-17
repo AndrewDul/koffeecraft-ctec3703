@@ -2007,6 +2007,90 @@ I extended the home screen layout to support the new carousel and its empty stat
 - most loved products
 
 
+## Admin settings and internal admin access management update
+
+I redesigned the admin settings area into a more structured premium control hub so it matches the quality and visual direction of the customer-facing settings screens.
+
+Instead of using a simple list of utility actions, I grouped the screen into clearer functional sections:
+
+- **Access & Roles**
+- **Communications**
+- **System Controls**
+- **Session**
+
+This improves navigation clarity and makes the admin side feel more like a real production back-office rather than a basic coursework utility screen.
+
+### Create Admin Account flow
+
+I added a new **Create Admin Account** flow as an internal-only admin management feature.
+
+The new screen allows an existing admin to create another admin profile with:
+
+- full name
+- email
+- phone
+- username
+- password
+- confirm password
+- active/inactive status on creation
+
+I kept the admin sign-in flow based on email to avoid breaking the existing authentication logic, while still extending the admin profile model to support richer internal account management.
+
+### Admin data model and Room update
+
+To support this properly, I extended the `Admin` Room entity with additional profile and access-control fields:
+
+- `fullName`
+- `phone`
+- `username`
+- `isActive`
+
+I also updated the Room migration path and seed logic so existing databases can move forward safely without losing the original seeded admin account.
+
+This change improves the long-term maintainability of admin access features and prepares the app for more realistic internal account administration.
+
+### Account Access Center
+
+I expanded the previous customer-only account management area into a more complete **Account Access Center**.
+
+This screen now supports both:
+
+- **Customers**
+- **Admins**
+
+through a segmented access model.
+
+Customer account actions remain focused on account status and deletion, while admin account actions now include:
+
+- **activation**
+- **deactivation**
+- **password reset**
+
+
+
+### Admin access protection rules
+
+I added important safety rules for admin account management:
+
+- the currently signed-in admin cannot deactivate their own account from the management screen
+- the system prevents the last active admin account from being disabled
+
+These checks reduce the risk of locking the app out of administrative access and make the internal account logic more robust.
+
+
+### Session handling improvement
+
+I improved session handling by extending `SessionManager` to track the current admin ID in addition to the existing admin/customer role state.
+
+This supports the new account-protection rules and creates a cleaner foundation for future admin profile features.
+
+
+### Admin settings UX refinement
+
+I refined the interaction style of the Admin Settings screen by removing inline action buttons such as **Open** and replacing them with fully tappable settings rows.
+
+This gives the interface a cleaner premium feel, reduces visual clutter, and keeps the admin settings UX consistent with the polished KoffeeCraft design language.
+
 
 
 

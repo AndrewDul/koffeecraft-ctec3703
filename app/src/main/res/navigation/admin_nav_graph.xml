@@ -28,14 +28,22 @@
         android:id="@+id/adminSettingsFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.settings.AdminSettingsFragment"
         android:label="Admin Settings" />
+
     <fragment
         android:id="@+id/adminManageCustomerAccountsFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.accounts.AdminManageCustomerAccountsFragment"
-        android:label="Manage Customer Accounts" />
+        android:label="Account Access Center" />
+
+    <fragment
+        android:id="@+id/adminCreateAccountFragment"
+        android:name="uk.ac.dmu.koffeecraft.ui.admin.accounts.AdminCreateAccountFragment"
+        android:label="Create Admin Account" />
+
     <fragment
         android:id="@+id/adminNotificationsFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.notifications.AdminNotificationsFragment"
         android:label="Admin Notifications" />
+
     <fragment
         android:id="@+id/adminInboxFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.admin.inbox.AdminInboxFragment"

@@ -67,7 +67,7 @@ import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
         CustomerFavouritePreset::class,
         CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -586,6 +586,36 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                addColumnIfMissing(db, "admins", "fullName", "TEXT NOT NULL DEFAULT ''")
+                addColumnIfMissing(db, "admins", "phone", "TEXT NOT NULL DEFAULT ''")
+                addColumnIfMissing(db, "admins", "username", "TEXT NOT NULL DEFAULT ''")
+                addColumnIfMissing(db, "admins", "isActive", "INTEGER NOT NULL DEFAULT 1")
+
+                db.execSQL(
+                    """
+            UPDATE admins
+            SET fullName = CASE
+                WHEN trim(fullName) = '' THEN 'KoffeeCraft Admin'
+                ELSE fullName
+            END,
+            phone = CASE
+                WHEN trim(phone) = '' THEN 'Not set'
+                ELSE phone
+            END,
+            username = CASE
+                WHEN trim(username) = '' THEN 'admin_' || adminId
+                ELSE lower(trim(username))
+            END
+            """.trimIndent()
+                )
+
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_admins_username ON admins(username)")
+            }
+        }
+
+
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -606,7 +636,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_10_11,
                         MIGRATION_11_12,
                         MIGRATION_12_13,
-                        MIGRATION_13_14
+                        MIGRATION_13_14,
+                        MIGRATION_14_15
                     )
                     .addCallback(SeedCallback())
                     .build()
@@ -641,9 +672,13 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
 
             adminDao.insert(
                 Admin(
+                    fullName = "KoffeeCraft Admin",
                     email = email,
+                    phone = "Not set",
+                    username = "admin",
                     passwordHash = hash,
-                    passwordSalt = salt
+                    passwordSalt = salt,
+                    isActive = true
                 )
             )
         }

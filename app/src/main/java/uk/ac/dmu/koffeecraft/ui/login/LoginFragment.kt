@@ -72,14 +72,23 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     withContext(Dispatchers.Main) {
                         if (!isAdded) return@withContext
 
-                        if (adminOk) {
-                            SessionManager.setAdmin()
-                            val intent = Intent(requireContext(), AdminActivity::class.java)
-                            startActivity(intent)
-                            requireActivity().finish()
-                        } else {
-                            tvError.text = "Invalid email or password."
-                            tvError.visibility = View.VISIBLE
+                        when {
+                            !adminOk -> {
+                                tvError.text = "Invalid email or password."
+                                tvError.visibility = View.VISIBLE
+                            }
+
+                            !admin.isActive -> {
+                                tvError.text = "This admin account is inactive. Please contact an active administrator."
+                                tvError.visibility = View.VISIBLE
+                            }
+
+                            else -> {
+                                SessionManager.setAdmin(admin.adminId)
+                                val intent = Intent(requireContext(), AdminActivity::class.java)
+                                startActivity(intent)
+                                requireActivity().finish()
+                            }
                         }
                     }
                     return@launch

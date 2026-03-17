@@ -3,61 +3,156 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_welcome_screen"
+    android:background="#F5EBDD"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp">
 
         <TextView
-            android:id="@+id/tvTitle"
+            android:id="@+id/btnBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Manage Customer Accounts"
-            android:textColor="#F5EBDD"
-            android:textSize="24sp"
+            android:text="‹ Back"
+            android:textColor="#8B6B4A"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tvSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Find a customer by Order ID or Customer ID and manage account status safely."
-            android:textColor="#E8DCCF"
-            android:textSize="13sp" />
-
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardBackgroundColor="#E7D8C7"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Account Access Center"
+                    android:textColor="#2E2018"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Find account"
-                    android:textColor="#2E2018"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="6dp"
+                    android:text="Manage customer and admin access, secure account status, and reset internal credentials."
+                    android:textColor="#6E5A4D"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Account type"
+            android:textColor="#4D3527"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleAccountType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:checkedButton="@id/btnCustomerMode"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCustomerMode"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Customers"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAdminMode"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Admins"
+                        android:textAllCaps="false"
+                        app:cornerRadius="20dp" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <TextView
+                    android:id="@+id/tvSearchDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Find a customer by Order ID or Customer ID and manage customer access safely."
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Find account"
+            android:textColor="#4D3527"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <Spinner
                     android:id="@+id/spinnerSearchMode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_spinner_soft" />
 
                 <EditText
@@ -67,7 +162,6 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/bg_spinner_soft"
                     android:hint="Enter value"
-                    android:inputType="number"
                     android:padding="14dp"
                     android:textColor="#2E2018"
                     android:textColorHint="#7A6758" />
@@ -76,13 +170,12 @@
                     android:id="@+id/btnFindAccount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="12dp"
                     android:text="Find account"
                     android:textAllCaps="false"
                     android:textColor="#F8F2EA"
                     app:backgroundTint="#5F7F5B"
-                    app:cornerRadius="22dp" />
-
+                    app:cornerRadius="24dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -92,17 +185,20 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#E7D8C7"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/tvResultLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Selected account"
@@ -115,9 +211,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Customer #0"
+                    android:text="Account Name"
                     android:textColor="#2E2018"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -129,6 +225,14 @@
                     android:textColor="#5B4638"
                     android:textSize="14sp" />
 
+                <TextView
+                    android:id="@+id/tvAccountMeta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Meta"
+                    android:textColor="#6E5A4D"
+                    android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -138,32 +242,35 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#D9B6B0"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardBackgroundColor="#F8E8DF"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#E7CABA"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/tvWarningTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Warning"
-                    android:textColor="#5C1313"
-                    android:textSize="18sp"
+                    android:textColor="#7C3524"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvWarningBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Account status changes affect customer access immediately. Permanent deletion cannot be undone."
-                    android:textColor="#5C1313"
+                    android:text="Account changes affect access immediately."
+                    android:textColor="#7C3524"
                     android:textSize="13sp" />
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -172,19 +279,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#E7D8C7"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="6dp">
+            app:cardBackgroundColor="#FFF8F2"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#E3D4C6"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/tvActionTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Account actions"
@@ -193,7 +302,7 @@
                     android:textStyle="bold" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnActivateAccount"
+                    android:id="@+id/btnPrimaryAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -201,10 +310,10 @@
                     android:textAllCaps="false"
                     android:textColor="#F8F2EA"
                     app:backgroundTint="#5F7F5B"
-                    app:cornerRadius="22dp" />
+                    app:cornerRadius="24dp" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDeactivateAccount"
+                    android:id="@+id/btnSecondaryAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -212,10 +321,10 @@
                     android:textAllCaps="false"
                     android:textColor="#F8F2EA"
                     app:backgroundTint="#8B6B4A"
-                    app:cornerRadius="22dp" />
+                    app:cornerRadius="24dp" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDeleteAccount"
+                    android:id="@+id/btnDangerAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -223,8 +332,7 @@
                     android:textAllCaps="false"
                     android:textColor="#F8F2EA"
                     app:backgroundTint="#A12727"
-                    app:cornerRadius="22dp" />
-
+                    app:cornerRadius="24dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -232,8 +340,9 @@
             android:id="@+id/tvSearchError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No matching customer found."
-            android:textColor="#F5C7C2"
+            android:layout_marginTop="12dp"
+            android:text="No matching account found."
+            android:textColor="#A12727"
             android:visibility="gone" />
 
     </LinearLayout>

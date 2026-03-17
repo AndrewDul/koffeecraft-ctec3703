@@ -22,7 +22,8 @@ interface CustomerDao {
     @Query("SELECT * FROM customers WHERE customerId = :customerId LIMIT 1")
     suspend fun getById(customerId: Long): Customer?
 
-    @Query("""
+    @Query(
+        """
         SELECT
             customerId AS customerId,
             firstName AS firstName,
@@ -32,10 +33,12 @@ interface CustomerDao {
             marketingInboxConsent AS marketingInboxConsent
         FROM customers
         ORDER BY customerId ASC
-    """)
+        """
+    )
     suspend fun getAllInboxTargets(): List<CustomerInboxTarget>
 
-    @Query("""
+    @Query(
+        """
         SELECT
             customerId AS customerId,
             firstName AS firstName,
@@ -47,10 +50,12 @@ interface CustomerDao {
         WHERE dateOfBirth IS NOT NULL
           AND substr(dateOfBirth, 6, 5) = :monthDay
         ORDER BY customerId ASC
-    """)
+        """
+    )
     suspend fun getBirthdayInboxTargets(monthDay: String): List<CustomerInboxTarget>
 
-    @Query("""
+    @Query(
+        """
         SELECT
             customerId AS customerId,
             firstName AS firstName,
@@ -61,10 +66,12 @@ interface CustomerDao {
         FROM customers
         WHERE customerId = :customerId
         LIMIT 1
-    """)
+        """
+    )
     suspend fun getInboxTargetByCustomerId(customerId: Long): CustomerInboxTarget?
 
-    @Query("""
+    @Query(
+        """
         SELECT
             c.customerId AS customerId,
             c.firstName AS firstName,
@@ -76,35 +83,50 @@ interface CustomerDao {
         INNER JOIN orders o ON o.customerId = c.customerId
         WHERE o.orderId = :orderId
         LIMIT 1
-    """)
+        """
+    )
     suspend fun getInboxTargetByOrderId(orderId: Long): CustomerInboxTarget?
 
-    @Query("""
+    @Query(
+        """
         SELECT
             customerId AS customerId,
-            isActive AS isActive
+            firstName AS firstName,
+            lastName AS lastName,
+            email AS email,
+            isActive AS isActive,
+            createdAt AS createdAt
         FROM customers
         WHERE customerId = :customerId
         LIMIT 1
-    """)
+        """
+    )
     suspend fun getAccountTargetByCustomerId(customerId: Long): CustomerAccountTarget?
 
-    @Query("""
+    @Query(
+        """
         SELECT
             c.customerId AS customerId,
-            c.isActive AS isActive
+            c.firstName AS firstName,
+            c.lastName AS lastName,
+            c.email AS email,
+            c.isActive AS isActive,
+            c.createdAt AS createdAt
         FROM customers c
         INNER JOIN orders o ON o.customerId = c.customerId
         WHERE o.orderId = :orderId
         LIMIT 1
-    """)
+        """
+    )
     suspend fun getAccountTargetByOrderId(orderId: Long): CustomerAccountTarget?
 
-    @Query("""
+    @Query(
+        """
         UPDATE customers
         SET isActive = :isActive
         WHERE customerId = :customerId
-    """)
+        """
+    )
     suspend fun updateActiveStatus(customerId: Long, isActive: Boolean)
 }
 
@@ -119,5 +141,9 @@ data class CustomerInboxTarget(
 
 data class CustomerAccountTarget(
     val customerId: Long,
-    val isActive: Boolean
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val isActive: Boolean,
+    val createdAt: Long
 )
