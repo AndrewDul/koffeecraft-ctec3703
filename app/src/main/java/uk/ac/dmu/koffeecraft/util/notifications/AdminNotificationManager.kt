@@ -79,7 +79,7 @@ object AdminNotificationManager {
             )
 
             if (triggerPhoneNotificationForNewOnly) {
-                NotificationHelper.showOrderNotification(
+                NotificationHelper.showAdminOrderNotification(
                     context = context,
                     title = title,
                     message = message,

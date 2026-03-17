@@ -94,6 +94,18 @@ interface NotificationDao {
     suspend fun markAllCustomerAsRead(customerId: Long)
 
     @Query("""
+        UPDATE app_notifications
+        SET isRead = 1
+        WHERE recipientRole = 'CUSTOMER'
+          AND recipientCustomerId = :customerId
+          AND orderId = :orderId
+    """)
+    suspend fun markCustomerOrderNotificationsAsRead(
+        customerId: Long,
+        orderId: Long
+    )
+
+    @Query("""
         DELETE FROM app_notifications
         WHERE notificationId = :notificationId
     """)

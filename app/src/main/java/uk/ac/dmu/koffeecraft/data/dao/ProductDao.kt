@@ -96,18 +96,32 @@ interface ProductDao {
     )
     suspend fun getRewardProducts(): List<Product>
 
-    @Query("""
-    SELECT * FROM products
-    WHERE isAvailable = 1
-      AND isNew = 1
-    ORDER BY
-        CASE category
-            WHEN 'COFFEE' THEN 0
-            WHEN 'CAKE' THEN 1
-            WHEN 'MERCH' THEN 2
-            ELSE 3
-        END,
-        name ASC
-""")
+    @Query(
+        """
+        SELECT * FROM products
+        WHERE isAvailable = 1
+          AND isNew = 1
+        ORDER BY
+            CASE category
+                WHEN 'COFFEE' THEN 0
+                WHEN 'CAKE' THEN 1
+                WHEN 'MERCH' THEN 2
+                ELSE 3
+            END,
+            name ASC
+        """
+    )
     suspend fun getActiveNewProducts(): List<Product>
+
+    @Query("SELECT COUNT(*) FROM products WHERE isAvailable = 1")
+    suspend fun countActiveProducts(): Int
+
+    @Query("SELECT COUNT(*) FROM products WHERE isAvailable = 0")
+    suspend fun countDisabledProducts(): Int
+
+    @Query("SELECT COUNT(*) FROM products WHERE isAvailable = 1 AND rewardEnabled = 1")
+    suspend fun countActiveRewardEnabledProducts(): Int
+
+    @Query("SELECT COUNT(*) FROM products WHERE isAvailable = 1 AND isNew = 1")
+    suspend fun countActiveNewProducts(): Int
 }

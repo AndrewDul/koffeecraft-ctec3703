@@ -5,8 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
+import uk.ac.dmu.koffeecraft.data.entities.Order
+
 @Dao
 interface OrderDao {
 
@@ -22,47 +23,76 @@ interface OrderDao {
     @Query("SELECT * FROM orders WHERE customerId = :customerId ORDER BY createdAt DESC")
     fun observeByCustomer(customerId: Long): Flow<List<Order>>
 
-    @Query("""
-    SELECT 
-        o.orderId AS orderId,
-        o.customerId AS customerId,
-        c.email AS customerEmail,
-        o.status AS status,
-        o.totalAmount AS totalAmount,
-        o.createdAt AS createdAt
-    FROM orders o
-    INNER JOIN customers c ON c.customerId = o.customerId
-    WHERE (:status IS NULL OR o.status = :status)
-    ORDER BY o.createdAt DESC
-""")
-    fun observeAdminOrders(status: String?): kotlinx.coroutines.flow.Flow<List<AdminOrderRow>>
+    @Query(
+        """
+        SELECT 
+            o.orderId AS orderId,
+            o.customerId AS customerId,
+            c.email AS customerEmail,
+            o.status AS status,
+            o.totalAmount AS totalAmount,
+            o.createdAt AS createdAt
+        FROM orders o
+        INNER JOIN customers c ON c.customerId = o.customerId
+        WHERE (:status IS NULL OR o.status = :status)
+        ORDER BY o.createdAt DESC
+        """
+    )
+    fun observeAdminOrders(status: String?): Flow<List<AdminOrderRow>>
 
-    @Query("""
-    SELECT 
-        o.orderId AS orderId,
-        o.customerId AS customerId,
-        c.email AS customerEmail,
-        o.status AS status,
-        o.totalAmount AS totalAmount,
-        o.createdAt AS createdAt
-    FROM orders o
-    INNER JOIN customers c ON c.customerId = o.customerId
-    WHERE (:status IS NULL OR o.status = :status)
-      AND (
-        :query IS NULL OR :query = '' OR
-        LOWER(c.email) LIKE '%' || LOWER(:query) || '%' OR
-        CAST(o.orderId AS TEXT) LIKE '%' || :query || '%'
-      )
-    ORDER BY
-      CASE WHEN :sortDir = 'ASC' THEN o.createdAt END ASC,
-      CASE WHEN :sortDir = 'DESC' THEN o.createdAt END DESC
-""")
+    @Query(
+        """
+        SELECT 
+            o.orderId AS orderId,
+            o.customerId AS customerId,
+            c.email AS customerEmail,
+            o.status AS status,
+            o.totalAmount AS totalAmount,
+            o.createdAt AS createdAt
+        FROM orders o
+        INNER JOIN customers c ON c.customerId = o.customerId
+        WHERE (:status IS NULL OR o.status = :status)
+          AND (
+            :query IS NULL OR :query = '' OR
+            LOWER(c.email) LIKE '%' || LOWER(:query) || '%' OR
+            CAST(o.orderId AS TEXT) LIKE '%' || :query || '%'
+          )
+        ORDER BY
+          CASE WHEN :sortDir = 'ASC' THEN o.createdAt END ASC,
+          CASE WHEN :sortDir = 'DESC' THEN o.createdAt END DESC
+        """
+    )
     fun observeAdminOrdersFiltered(
         status: String?,
         query: String?,
         sortDir: String
-    ): kotlinx.coroutines.flow.Flow<List<uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow>>
+    ): Flow<List<AdminOrderRow>>
 
     @Query("SELECT * FROM orders WHERE orderId = :orderId LIMIT 1")
     suspend fun getById(orderId: Long): Order?
+
+    @Query(
+        """
+        SELECT COUNT(*) FROM orders
+        WHERE createdAt BETWEEN :startOfDay AND :endOfDay
+        """
+    )
+    suspend fun countOrdersCreatedBetween(startOfDay: Long, endOfDay: Long): Int
+
+    @Query(
+        """
+        SELECT COALESCE(SUM(totalAmount), 0) FROM orders
+        WHERE createdAt BETWEEN :startOfDay AND :endOfDay
+          AND status != 'CANCELLED'
+        """
+    )
+    suspend fun getRevenueCreatedBetween(startOfDay: Long, endOfDay: Long): Double
+
+    @Query(
+        """
+        SELECT COUNT(*) FROM orders
+        WHERE status IN ('PLACED', 'PREPARING', 'READY')
+        """
+    )
+    suspend fun countPendingOrders(): Int
 }

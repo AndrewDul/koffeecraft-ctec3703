@@ -47,6 +47,7 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
         super.onViewCreated(view, savedInstanceState)
 
         val customerId = SessionManager.currentCustomerId ?: return
+        val launchInboxMessageId = arguments?.getLong("launchInboxMessageId", -1L) ?: -1L
 
         val rv = view.findViewById<RecyclerView>(R.id.rvCustomerInbox)
         tvEmpty = view.findViewById(R.id.tvEmpty)
@@ -84,6 +85,12 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
         setupFilters()
         updateFilterChipStyles()
         attachSwipeToDelete(rv, db)
+
+        if (launchInboxMessageId > 0L) {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                db.inboxMessageDao().markAsRead(launchInboxMessageId)
+            }
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.inboxMessageDao().observeInboxForCustomer(customerId).collect { items ->

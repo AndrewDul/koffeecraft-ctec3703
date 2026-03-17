@@ -16,7 +16,8 @@ import java.util.Locale
 class CustomerNotificationsAdapter(
     private var items: List<AppNotification>,
     private var detailsByOrderId: Map<Long, List<OrderDisplayItem>>,
-    private val onDelete: (AppNotification) -> Unit
+    private val onDelete: (AppNotification) -> Unit,
+    private val onOpen: (AppNotification) -> Unit
 ) : RecyclerView.Adapter<CustomerNotificationsAdapter.CustomerNotificationViewHolder>() {
 
     private val expandedIds = mutableSetOf<Long>()
@@ -49,9 +50,8 @@ class CustomerNotificationsAdapter(
             details = details,
             expanded = expanded,
             onDelete = onDelete,
+            onOpen = onOpen,
             onToggle = {
-                if (item.orderId == null) return@bind
-
                 val id = item.notificationId
                 if (!expandedIds.add(id)) {
                     expandedIds.remove(id)
@@ -82,6 +82,7 @@ class CustomerNotificationsAdapter(
             details: List<OrderDisplayItem>,
             expanded: Boolean,
             onDelete: (AppNotification) -> Unit,
+            onOpen: (AppNotification) -> Unit,
             onToggle: () -> Unit
         ) {
             val formattedStatus = formatStatus(item.orderStatus)
@@ -101,14 +102,17 @@ class CustomerNotificationsAdapter(
             }
 
             bindStatusChip(item.orderStatus)
-
             bindDetails(details)
 
             dividerExpanded.visibility = if (expanded && item.orderId != null) View.VISIBLE else View.GONE
             layoutExpandedContent.visibility = if (expanded && item.orderId != null) View.VISIBLE else View.GONE
 
             itemView.setOnClickListener {
-                if (item.orderId != null) onToggle()
+                onOpen(item)
+
+                if (item.orderId != null) {
+                    onToggle()
+                }
             }
 
             tvRemove.setOnClickListener { onDelete(item) }

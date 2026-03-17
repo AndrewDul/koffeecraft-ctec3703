@@ -139,11 +139,12 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
                         )
                     )
                 } else {
-                    NotificationHelper.showOrderNotification(
+                    NotificationHelper.showCustomerOrderNotification(
                         context = requireContext(),
                         title = "Thank you!",
                         message = "All purchased products from order #$orderId have been reviewed.",
-                        notificationId = 350000 + (orderId % 50000).toInt()
+                        notificationId = 350000 + (orderId % 50000).toInt(),
+                        orderId = orderId
                     )
 
                     val popped = findNavController().popBackStack(R.id.feedbackFragment, false)

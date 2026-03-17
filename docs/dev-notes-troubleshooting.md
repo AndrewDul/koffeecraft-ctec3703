@@ -978,3 +978,34 @@ The admin feedback dashboard loads as expected, including:
 - premium filter chips
 - feedback list
 - empty state handling
+
+
+## 49) Startup crash caused by invalid Navigation argument default type
+
+### Problem
+
+After the recent notification deep-link update, the app started crashing immediately on launch before the main customer flow could open.
+
+### Cause
+
+The issue was caused by an invalid default value type in `nav_graph.xml`.
+
+I added a new navigation argument called `launchInboxMessageId` with type `long`, but the default value was set as `-1` instead of `-1L`.
+
+Because of that, Navigation failed while inflating the graph and the app crashed during `MainActivity` startup.
+
+### Fix
+
+I corrected the default argument value in `nav_graph.xml` from:
+
+- `-1`
+
+to:
+
+- `-1L`
+
+This matched the declared `long` type correctly and allowed the navigation graph to inflate without errors.
+
+### Result
+
+The app now starts correctly again and the notification deep-link flow can load the navigation graph safely.

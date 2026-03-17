@@ -36,6 +36,9 @@ class MainActivity : AppCompatActivity() {
     private var cartBadgeJob: Job? = null
     private var inboxBadgeJob: Job? = null
     private var notificationBadgeJob: Job? = null
+    private var promoObserverJob: Job? = null
+
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHost.navController
+        navController = navHost.navController
 
         val topBar = findViewById<View>(R.id.customerTopBar)
         val bottomNav = findViewById<BottomNavigationView>(R.id.customerBottomNav)
@@ -131,8 +134,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            bootstrapRememberedSession(navController, rememberedSession)
+            bootstrapRememberedSession(rememberedSession)
+        } else {
+            handleDeepLinkIntent(intent)
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleDeepLinkIntent(intent)
     }
 
     override fun onResume() {
@@ -141,7 +152,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun bootstrapRememberedSession(
-        navController: NavController,
         rememberedSession: RememberedSessionStore.RememberedSession?
     ) {
         if (rememberedSession == null) return
@@ -203,20 +213,89 @@ class MainActivity : AppCompatActivity() {
                             }
                         )
                     } else {
-                        navController.navigate(
-                            R.id.customerHomeFragment,
-                            null,
-                            navOptions {
-                                launchSingleTop = true
-                                popUpTo(R.id.welcomeFragment) {
-                                    inclusive = true
+                        val handled = handleDeepLinkIntent(intent, consumeIntent = false)
+                        if (!handled) {
+                            navController.navigate(
+                                R.id.customerHomeFragment,
+                                null,
+                                navOptions {
+                                    launchSingleTop = true
+                                    popUpTo(R.id.welcomeFragment) {
+                                        inclusive = true
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+
+    private fun handleDeepLinkIntent(
+        sourceIntent: Intent?,
+        consumeIntent: Boolean = true
+    ): Boolean {
+        if (sourceIntent == null) return false
+        if (SessionManager.isAdmin) return false
+
+        val customerId = SessionManager.currentCustomerId ?: return false
+        val target = sourceIntent.getStringExtra(NotificationHelper.EXTRA_LAUNCH_TARGET) ?: return false
+        val db = KoffeeCraftDatabase.getInstance(applicationContext)
+
+        when (target) {
+            NotificationHelper.TARGET_ORDER_STATUS -> {
+                val orderId = sourceIntent.getLongExtra(NotificationHelper.EXTRA_ORDER_ID, -1L)
+                if (orderId <= 0L) return false
+
+                lifecycleScope.launch(Dispatchers.IO) {
+                    db.notificationDao().markCustomerOrderNotificationsAsRead(customerId, orderId)
+                }
+
+                navController.navigate(
+                    R.id.orderStatusFragment,
+                    bundleOf(
+                        "orderId" to orderId,
+                        "simulate" to false
+                    ),
+                    navOptions {
+                        launchSingleTop = true
+                        popUpTo(R.id.welcomeFragment) {
+                            inclusive = true
+                        }
+                    }
+                )
+
+                if (consumeIntent) clearNotificationIntentExtras(sourceIntent)
+                return true
+            }
+
+            NotificationHelper.TARGET_CUSTOMER_INBOX -> {
+                val inboxMessageId = sourceIntent.getLongExtra(NotificationHelper.EXTRA_INBOX_MESSAGE_ID, -1L)
+
+                navController.navigate(
+                    R.id.customerInboxFragment,
+                    bundleOf("launchInboxMessageId" to inboxMessageId),
+                    navOptions {
+                        launchSingleTop = true
+                        popUpTo(R.id.welcomeFragment) {
+                            inclusive = true
+                        }
+                    }
+                )
+
+                if (consumeIntent) clearNotificationIntentExtras(sourceIntent)
+                return true
+            }
+
+            else -> return false
+        }
+    }
+
+    private fun clearNotificationIntentExtras(intent: Intent) {
+        intent.removeExtra(NotificationHelper.EXTRA_LAUNCH_TARGET)
+        intent.removeExtra(NotificationHelper.EXTRA_ORDER_ID)
+        intent.removeExtra(NotificationHelper.EXTRA_INBOX_MESSAGE_ID)
     }
 
     private fun navigateIfNeeded(navController: NavController, destinationId: Int) {
@@ -267,6 +346,7 @@ class MainActivity : AppCompatActivity() {
             cartBadgeJob?.cancel()
             inboxBadgeJob?.cancel()
             notificationBadgeJob?.cancel()
+            promoObserverJob?.cancel()
             cartBadge.visibility = View.GONE
             inboxBadge.visibility = View.GONE
             notificationBadge.visibility = View.GONE
@@ -279,6 +359,7 @@ class MainActivity : AppCompatActivity() {
         cartBadgeJob?.cancel()
         inboxBadgeJob?.cancel()
         notificationBadgeJob?.cancel()
+        promoObserverJob?.cancel()
 
         val db = KoffeeCraftDatabase.getInstance(applicationContext)
 
@@ -313,6 +394,36 @@ class MainActivity : AppCompatActivity() {
                     notificationBadge.visibility = View.GONE
                 }
             }
+        }
+
+        promoObserverJob = lifecycleScope.launch {
+            db.inboxMessageDao().observeInboxForCustomer(customerId).collect { items ->
+                items.filter { !it.isRead && it.deliveryType.startsWith("PROMO") }
+                    .forEach { message ->
+                        if (!NotificationHelper.wasPromoMessageDelivered(applicationContext, message.inboxMessageId)) {
+                            NotificationHelper.showPromoNotification(
+                                context = applicationContext,
+                                title = message.title,
+                                message = buildPromoPreview(message.body),
+                                notificationId = 600000 + (message.inboxMessageId % 50000).toInt(),
+                                inboxMessageId = message.inboxMessageId
+                            )
+                            NotificationHelper.markPromoMessageDelivered(
+                                context = applicationContext,
+                                inboxMessageId = message.inboxMessageId
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun buildPromoPreview(body: String): String {
+        val singleLine = body.replace("\n", " ").trim()
+        return if (singleLine.length <= 100) {
+            singleLine
+        } else {
+            singleLine.take(97).trimEnd() + "..."
         }
     }
 }

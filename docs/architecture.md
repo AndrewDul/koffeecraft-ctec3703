@@ -2284,3 +2284,144 @@ This helps keep the app lifecycle cleaner and ensures that remembered login and 
 - onboarding completion
 - account deletion
 - role switching
+
+
+## Premium order confirmation, smart notification routing, and admin back-office dashboard update
+
+At this stage, I extended three important areas of the application so the product feels more polished, more realistic, and more portfolio-ready:
+
+- customer order completion flow
+- notification behaviour
+- admin home dashboard
+
+These changes improved both the premium visual quality of the app and the strength of the operational flows behind it.
+
+### Order confirmation and tracking improvement
+
+I upgraded the customer order completion experience by redesigning `OrderStatusFragment` into a combined **confirmation + tracking** screen instead of keeping it as a more technical status-only screen.
+
+The updated order status flow now gives the customer a clearer success moment after checkout by showing:
+
+- a stronger confirmation hero state
+- order number
+- items ordered
+- total paid
+- payment type
+- estimated ready time
+
+I kept the screen useful after checkout as well, so it still works as the live order tracking screen and not only as a one-time confirmation view.
+
+This improved the overall UX quality of the ordering journey and made the post-payment flow feel more like a real premium mobile app.
+
+### Notification system improvement
+
+I upgraded the local notification system so it behaves more like a real production mobile app instead of acting only as a simple alert mechanism.
+
+I introduced two clearer notification categories:
+
+- **Order Updates**
+- **Offers & Promotions**
+
+This creates a better separation between operational notifications and marketing communication.
+
+I also added notification deep-link routing so tapping a notification now opens the correct destination inside the app:
+
+- order notifications open the relevant `OrderStatusFragment`
+- promo notifications open `CustomerInboxFragment`
+
+This made the notification flow much more useful and realistic because notifications now act as meaningful entry points into the app rather than just passive messages.
+
+### Read-state and badge behaviour improvement
+
+I refined the notification and inbox behaviour so unread state is better aligned with actual user actions.
+
+Instead of depending only on broad mark-all-read behaviour, the app now reacts more intelligently to notification taps and targeted entry points. This improves consistency between:
+
+- what the user opens
+- what becomes read
+- what remains visible in unread badges
+
+The result is a cleaner and more believable messaging experience across customer notifications and inbox flows.
+
+### Admin dashboard redesign
+
+I redesigned the admin home screen into a more complete premium **back-office dashboard**.
+
+The older admin home structure had useful analytics content, but it felt more like a technical statistics screen than a real management dashboard. I replaced that structure with a stronger hierarchy focused on operational clarity and commercial insight.
+
+The updated dashboard now includes a KPI section for:
+
+- **Orders Today**
+- **Revenue Today**
+- **Pending Orders**
+- **Average Rating**
+- **Promo Opt-In Rate**
+- **Active Customers**
+
+This gives the admin immediate visibility into the most important live metrics without needing to enter separate screens.
+
+### Menu Health section
+
+I added a dedicated **Menu Health** section so the admin can quickly assess the current state of the live menu.
+
+This section now shows:
+
+- available products
+- disabled products
+- reward-enabled live products
+- new arrivals currently live
+
+Because the current data model does not include true stock quantity, I intentionally used menu-health metrics instead of pretending to support low-stock tracking. This keeps the dashboard aligned with the real capabilities of the current implementation.
+
+### Quick Actions redesign
+
+I added a more useful **Quick Actions** area using premium tappable cards rather than small technical controls.
+
+The admin can now jump quickly to the most important operational destinations:
+
+- Manage Menu
+- View Orders
+- Send Promo
+- Review Feedback
+- Manage Customers
+- Admin Settings
+
+This makes the home screen feel much more like a real back-office control center.
+
+### Insight carousel refinement
+
+I kept the carousel idea from the previous admin home version, but I refined it into a more focused and premium structure.
+
+Instead of keeping many weaker or more fragmented carousels, I reduced the insight area to three stronger sections:
+
+- **Top Rated Products**
+- **Most Loved Products**
+- **Most Commented Products**
+
+This keeps the dashboard more readable and gives more weight to the insights that are most valuable from a business and customer-experience perspective.
+
+### Needs Attention section
+
+I added a **Needs Attention** section so the admin can see short operational highlights immediately.
+
+This area now surfaces actionable summaries such as:
+
+- pending active orders
+- disabled products
+- hidden feedback comments
+- promo consent coverage
+
+This helps the dashboard feel more alive and more decision-oriented instead of being only a passive reporting screen.
+
+### DAO support for dashboard metrics
+
+To support the new admin dashboard properly, I extended the DAO layer with additional summary queries for:
+
+- order activity
+- daily revenue
+- pending orders
+- active customers
+- promo opt-in counts
+- menu health counts
+
+This means the dashboard is driven by real live data from the current database model rather than by placeholder assumptions.

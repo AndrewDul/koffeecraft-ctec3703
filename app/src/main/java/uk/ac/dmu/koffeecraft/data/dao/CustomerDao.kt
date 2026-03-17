@@ -128,6 +128,15 @@ interface CustomerDao {
         """
     )
     suspend fun updateActiveStatus(customerId: Long, isActive: Boolean)
+
+    @Query("SELECT COUNT(*) FROM customers WHERE isActive = 1")
+    suspend fun countActiveCustomers(): Int
+
+    @Query("SELECT COUNT(*) FROM customers")
+    suspend fun countAllCustomers(): Int
+
+    @Query("SELECT COUNT(*) FROM customers WHERE marketingInboxConsent = 1")
+    suspend fun countPromoOptInCustomers(): Int
 }
 
 data class CustomerInboxTarget(

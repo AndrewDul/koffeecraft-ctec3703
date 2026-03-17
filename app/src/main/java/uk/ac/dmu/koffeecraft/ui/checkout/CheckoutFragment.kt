@@ -134,18 +134,23 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                         Toast.LENGTH_SHORT
                     ).show()
 
-                    NotificationHelper.showOrderNotification(
+                    NotificationHelper.showCustomerOrderNotification(
                         context = requireContext(),
                         title = "Payment confirmed",
                         message = "Your order #$orderId has been placed successfully.",
-                        notificationId = (orderId % Int.MAX_VALUE).toInt()
+                        notificationId = (orderId % Int.MAX_VALUE).toInt(),
+                        orderId = orderId
                     )
 
                     val simulate = SimulationSettings.isEnabled(requireContext())
 
                     findNavController().navigate(
                         R.id.action_checkout_to_status,
-                        bundleOf("orderId" to orderId, "simulate" to simulate)
+                        bundleOf(
+                            "orderId" to orderId,
+                            "simulate" to simulate,
+                            "fromCheckout" to true
+                        )
                     )
                 }
             }

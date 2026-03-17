@@ -49,11 +49,12 @@ object CustomerNotificationManager {
             )
         )
 
-        NotificationHelper.showOrderNotification(
+        NotificationHelper.showCustomerOrderNotification(
             context = context,
             title = title,
             message = message,
-            notificationId = 500000 + (orderId % 50000).toInt()
+            notificationId = 500000 + (orderId % 50000).toInt(),
+            orderId = orderId
         )
     }
 }

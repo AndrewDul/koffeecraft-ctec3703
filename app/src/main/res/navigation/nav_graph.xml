@@ -156,7 +156,12 @@
     <fragment
         android:id="@+id/customerInboxFragment"
         android:name="uk.ac.dmu.koffeecraft.ui.inbox.CustomerInboxFragment"
-        android:label="Inbox" />
+        android:label="Inbox">
+        <argument
+            android:name="launchInboxMessageId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
 
     <fragment
         android:id="@+id/customerSettingsFragment"

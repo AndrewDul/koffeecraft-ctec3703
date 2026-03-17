@@ -46,15 +46,18 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     db.notificationDao().deleteById(item.notificationId)
                 }
+            },
+            onOpen = { item ->
+                if (!item.isRead) {
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        db.notificationDao().markAsRead(item.notificationId)
+                    }
+                }
             }
         )
         rv.adapter = adapter
 
         attachSwipeToDelete(rv, db)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            db.notificationDao().markAllCustomerAsRead(customerId)
-        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.notificationDao().observeCustomerNotifications(customerId).collect { items ->
