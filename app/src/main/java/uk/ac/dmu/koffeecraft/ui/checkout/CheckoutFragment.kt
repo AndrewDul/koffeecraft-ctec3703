@@ -1,6 +1,5 @@
 package uk.ac.dmu.koffeecraft.ui.checkout
 
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,6 +8,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -25,7 +25,6 @@ import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
-import uk.ac.dmu.koffeecraft.data.entities.Payment
 import uk.ac.dmu.koffeecraft.data.repository.OrderRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
@@ -189,7 +188,9 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                 tvSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
 
                 rootCard.strokeWidth = if (isSelected) 2 else 1
-                rootCard.strokeColor = Color.parseColor(if (isSelected) "#9A7655" else "#E3D4C6")
+                rootCard.strokeColor = color(
+                    if (isSelected) R.color.kc_brand_strong else R.color.kc_border_soft
+                )
 
                 itemView.setOnClickListener {
                     selectedSavedCardId = card.cardId
@@ -223,9 +224,15 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             tvPaymentApplePay.setBackgroundResource(if (selectedPaymentType == "APPLE_PAY") selectedBg else unselectedBg)
             tvPaymentCash.setBackgroundResource(if (selectedPaymentType == "CASH") selectedBg else unselectedBg)
 
-            tvPaymentCard.setTextColor(Color.parseColor(if (selectedPaymentType == "CARD") "#2E2018" else "#6E5A4D"))
-            tvPaymentApplePay.setTextColor(Color.parseColor(if (selectedPaymentType == "APPLE_PAY") "#2E2018" else "#6E5A4D"))
-            tvPaymentCash.setTextColor(Color.parseColor(if (selectedPaymentType == "CASH") "#2E2018" else "#6E5A4D"))
+            tvPaymentCard.setTextColor(
+                color(if (selectedPaymentType == "CARD") R.color.kc_text_primary else R.color.kc_text_secondary)
+            )
+            tvPaymentApplePay.setTextColor(
+                color(if (selectedPaymentType == "APPLE_PAY") R.color.kc_text_primary else R.color.kc_text_secondary)
+            )
+            tvPaymentCash.setTextColor(
+                color(if (selectedPaymentType == "CASH") R.color.kc_text_primary else R.color.kc_text_secondary)
+            )
 
             cardSection.visibility = if (selectedPaymentType == "CARD") View.VISIBLE else View.GONE
             applePaySection.visibility = if (selectedPaymentType == "APPLE_PAY") View.VISIBLE else View.GONE
@@ -367,7 +374,20 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                     if (hasStartedTypingNewCard && saveNewCardForFuture) {
                         val brand = PaymentCardValidator.detectBrand(numberInput)
                         val numberDigits = PaymentCardValidator.extractDigits(numberInput)
-                        val expiry = PaymentCardValidator.parseExpiry(expiryInput)!!
+                        val expiry = PaymentCardValidator.parseExpiry(expiryInput)
+
+                        if (expiry == null) {
+                            withContext(Dispatchers.Main) {
+                                if (!isAdded) return@withContext
+                                Toast.makeText(
+                                    requireContext(),
+                                    "The card expiry could not be read. Please check the expiry date and try again.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            return@launch
+                        }
+
                         val last4 = numberDigits.takeLast(4)
 
                         val finalNickname = if (nicknameInput.isBlank()) {
@@ -468,5 +488,9 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
         }
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 }

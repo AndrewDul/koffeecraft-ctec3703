@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,10 +18,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -33,8 +33,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Settings"
-                    android:textColor="#2E2018"
+                    android:text="@string/settings_title"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -43,8 +43,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Customer Name"
-                    android:textColor="#2E2018"
+                    android:text="@string/settings_customer_placeholder_name"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -53,8 +53,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="customer@email.com"
-                    android:textColor="#6E5A4D"
+                    android:text="@string/settings_customer_placeholder_email"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -63,8 +63,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Account"
-            android:textColor="#4D3527"
+            android:text="@string/settings_section_account"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -72,10 +72,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -98,8 +98,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Personal Info"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_personal_info_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -107,16 +107,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Update your first name, last name and email."
-                        android:textColor="#6E5A4D"
+                        android:text="@string/settings_personal_info_desc"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#8B6B4A"
+                    android:text="@string/settings_chevron"
+                    android:textColor="@color/kc_brand_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -126,8 +126,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Security"
-            android:textColor="#4D3527"
+            android:text="@string/settings_section_security"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -135,10 +135,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -161,8 +161,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Change Password"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_change_password_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -170,16 +170,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Set a new password for your account."
-                        android:textColor="#6E5A4D"
+                        android:text="@string/settings_change_password_desc"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#8B6B4A"
+                    android:text="@string/settings_chevron"
+                    android:textColor="@color/kc_brand_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -189,8 +189,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Payments"
-            android:textColor="#4D3527"
+            android:text="@string/settings_section_payments"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -198,10 +198,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -224,8 +224,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Payment Methods"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_payment_methods_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -233,16 +233,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Manage your saved cards for faster premium checkout."
-                        android:textColor="#6E5A4D"
+                        android:text="@string/settings_payment_methods_desc"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#8B6B4A"
+                    android:text="@string/settings_chevron"
+                    android:textColor="@color/kc_brand_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -252,8 +252,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Inbox Preferences"
-            android:textColor="#4D3527"
+            android:text="@string/settings_section_appearance"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -261,10 +261,67 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_theme_toggle_title"
+                        android:textColor="@color/kc_text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvThemeModeStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_theme_toggle_desc_light"
+                        android:textColor="@color/kc_text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchThemeMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/settings_section_inbox"
+            android:textColor="@color/kc_text_section"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -287,8 +344,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Promotional Messages"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_inbox_promo_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -296,16 +353,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Choose whether you want to receive promotional inbox updates."
-                        android:textColor="#6E5A4D"
+                        android:text="@string/settings_inbox_promo_desc"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#8B6B4A"
+                    android:text="@string/settings_chevron"
+                    android:textColor="@color/kc_brand_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -315,8 +372,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Help &amp; Policies"
-            android:textColor="#4D3527"
+            android:text="@string/settings_section_policies"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -324,10 +381,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -350,16 +407,16 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Help"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_help_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="›"
-                        android:textColor="#8B6B4A"
+                        android:text="@string/settings_chevron"
+                        android:textColor="@color/kc_brand_primary"
                         android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -367,7 +424,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#EADFD4" />
+                    android:background="@color/kc_divider" />
 
                 <LinearLayout
                     android:id="@+id/rowTerms"
@@ -384,16 +441,16 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Terms of Use"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_terms_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="›"
-                        android:textColor="#8B6B4A"
+                        android:text="@string/settings_chevron"
+                        android:textColor="@color/kc_brand_primary"
                         android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -401,7 +458,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#EADFD4" />
+                    android:background="@color/kc_divider" />
 
                 <LinearLayout
                     android:id="@+id/rowPrivacy"
@@ -418,16 +475,16 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Privacy Statement"
-                        android:textColor="#2E2018"
+                        android:text="@string/settings_privacy_title"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="›"
-                        android:textColor="#8B6B4A"
+                        android:text="@string/settings_chevron"
+                        android:textColor="@color/kc_brand_primary"
                         android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -438,8 +495,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Danger Zone"
-            android:textColor="#7B4A42"
+            android:text="@string/settings_section_danger"
+            android:textColor="@color/kc_danger"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -447,10 +504,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -473,8 +530,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Delete Account"
-                        android:textColor="#7B4A42"
+                        android:text="@string/settings_delete_account_title"
+                        android:textColor="@color/kc_danger"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
@@ -482,16 +539,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Permanently remove your customer account and related data."
-                        android:textColor="#8A6458"
+                        android:text="@string/settings_delete_account_desc"
+                        android:textColor="@color/kc_danger_soft"
                         android:textSize="13sp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#B26A5E"
+                    android:text="@string/settings_chevron"
+                    android:textColor="@color/kc_danger_soft"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -504,15 +561,15 @@
             android:layout_marginTop="18dp"
             android:paddingTop="12dp"
             android:paddingBottom="12dp"
-            android:text="Sign out"
+            android:text="@string/settings_sign_out"
             android:textAllCaps="false"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="14sp"
             android:textStyle="bold"
-            app:backgroundTint="#F3E8DD"
+            app:backgroundTint="@color/kc_surface_secondary"
             app:cornerRadius="28dp"
             app:elevation="0dp"
-            app:strokeColor="#DDC9B8"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp" />
 
     </LinearLayout>

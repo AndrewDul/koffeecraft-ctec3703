@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -395,12 +396,14 @@ class AdminHomeFragment : Fragment(R.layout.fragment_admin_home) {
     private fun createDots(dotsContainer: LinearLayout, count: Int) {
         dotsContainer.removeAllViews()
 
+        val dotColor = ContextCompat.getColor(requireContext(), R.color.kc_brand_primary)
+
         repeat(count) {
             val dot = TextView(requireContext()).apply {
                 text = "●"
                 textSize = 15f
                 alpha = 0.28f
-                setTextColor(android.graphics.Color.parseColor("#8B6B4A"))
+                setTextColor(dotColor)
                 setPadding(8, 0, 8, 0)
             }
             dotsContainer.addView(dot)

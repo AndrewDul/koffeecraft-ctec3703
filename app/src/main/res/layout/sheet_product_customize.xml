@@ -266,7 +266,7 @@
             android:insetBottom="0dp"
             android:text="Add to cart"
             android:textAllCaps="false"
-            android:textColor="#FFF8F2"
+            android:textColor="@color/kc_surface_primary"
             android:textSize="16sp"
             android:textStyle="bold"
             app:cornerRadius="20dp"

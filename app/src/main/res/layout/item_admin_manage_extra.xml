@@ -57,10 +57,10 @@
                 android:minHeight="46dp"
                 android:text="Assign"
                 android:textAllCaps="false"
-                android:textColor="#FFF8F2"
+                android:textColor="@color/kc_surface_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:backgroundTint="#9A7655"
+                app:backgroundTint="@color/kc_brand_strong"
                 app:cornerRadius="24dp"
                 app:elevation="0dp"
                 app:strokeWidth="0dp" />
@@ -73,13 +73,13 @@
                 android:minHeight="46dp"
                 android:text="Edit"
                 android:textAllCaps="false"
-                android:textColor="#5A4638"
+                android:textColor="@color/kc_icon_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:backgroundTint="#F2E5D8"
                 app:cornerRadius="24dp"
                 app:elevation="0dp"
-                app:strokeColor="#DDC9B8"
+                app:strokeColor="@color/kc_border_warm"
                 app:strokeWidth="1dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -90,13 +90,13 @@
                 android:minHeight="46dp"
                 android:text="Disable"
                 android:textAllCaps="false"
-                android:textColor="#5A4638"
+                android:textColor="@color/kc_icon_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:backgroundTint="#F2E5D8"
                 app:cornerRadius="24dp"
                 app:elevation="0dp"
-                app:strokeColor="#DDC9B8"
+                app:strokeColor="@color/kc_border_warm"
                 app:strokeWidth="1dp" />
         </LinearLayout>
 

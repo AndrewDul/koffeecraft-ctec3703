@@ -1,13 +1,13 @@
 package uk.ac.dmu.koffeecraft.ui.admin.notifications
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -143,11 +143,11 @@ class AdminNotificationsFragment : Fragment(R.layout.fragment_admin_notification
         if (dX == 0f) return
 
         val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#B98C73")
+            color = ContextCompat.getColor(requireContext(), R.color.kc_brand_button)
         }
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FFF8F2")
+            color = ContextCompat.getColor(requireContext(), R.color.kc_text_inverse)
             textAlign = Paint.Align.CENTER
             textSize = dp(14f)
             isFakeBoldText = true

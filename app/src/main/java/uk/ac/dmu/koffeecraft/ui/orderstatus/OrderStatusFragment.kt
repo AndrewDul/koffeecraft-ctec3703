@@ -1,6 +1,5 @@
 package uk.ac.dmu.koffeecraft.ui.orderstatus
 
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
@@ -184,20 +183,14 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         titleView.text = heroState.title
         subtitleView.text = heroState.subtitle
 
-        when (heroState.tone) {
-            HeroTone.SUCCESS -> {
-                iconView.setTextColor(Color.parseColor("#36533E"))
+        iconView.setTextColor(
+            when (heroState.tone) {
+                HeroTone.SUCCESS -> color(R.color.kc_success_text)
+                HeroTone.WARM -> color(R.color.kc_warning_text)
+                HeroTone.NEUTRAL -> color(R.color.kc_info_text)
+                HeroTone.DANGER -> color(R.color.kc_danger_text)
             }
-            HeroTone.WARM -> {
-                iconView.setTextColor(Color.parseColor("#7A5634"))
-            }
-            HeroTone.NEUTRAL -> {
-                iconView.setTextColor(Color.parseColor("#6A4D3A"))
-            }
-            HeroTone.DANGER -> {
-                iconView.setTextColor(Color.parseColor("#7B4A42"))
-            }
-        }
+        )
     }
 
     private fun buildHeroState(
@@ -293,9 +286,8 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             else R.drawable.bg_orders_filter_chip
         )
         view.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                if (isActive) android.R.color.black else android.R.color.darker_gray
+            color(
+                if (isActive) R.color.kc_text_primary else R.color.kc_text_secondary
             )
         )
         view.alpha = if (isActive) 1f else 0.9f
@@ -412,42 +404,18 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
     private fun bindStatusChip(view: TextView, status: String) {
         val background = view.background.mutate() as GradientDrawable
 
-        when (status.uppercase(Locale.UK)) {
-            "READY" -> {
-                background.setColor(Color.parseColor("#DCE9DA"))
-                view.setTextColor(Color.parseColor("#36533E"))
-            }
-
-            "PREPARING" -> {
-                background.setColor(Color.parseColor("#F2E4D3"))
-                view.setTextColor(Color.parseColor("#7A5634"))
-            }
-
-            "PLACED" -> {
-                background.setColor(Color.parseColor("#E8DDD4"))
-                view.setTextColor(Color.parseColor("#6A4D3A"))
-            }
-
-            "COLLECTED" -> {
-                background.setColor(Color.parseColor("#DFE7D8"))
-                view.setTextColor(Color.parseColor("#3D5640"))
-            }
-
-            "COMPLETED" -> {
-                background.setColor(Color.parseColor("#DFE7D8"))
-                view.setTextColor(Color.parseColor("#3D5640"))
-            }
-
-            "CANCELLED" -> {
-                background.setColor(Color.parseColor("#F0DCD8"))
-                view.setTextColor(Color.parseColor("#7B4A42"))
-            }
-
-            else -> {
-                background.setColor(Color.parseColor("#E9DFD6"))
-                view.setTextColor(Color.parseColor("#5C473A"))
-            }
+        val (backgroundColorRes, textColorRes) = when (status.uppercase(Locale.UK)) {
+            "READY" -> R.color.kc_validation_valid_bg to R.color.kc_success_text
+            "PREPARING" -> R.color.kc_surface_warning to R.color.kc_warning_text
+            "PLACED" -> R.color.kc_surface_info to R.color.kc_info_text
+            "COLLECTED" -> R.color.kc_surface_success to R.color.kc_success_text
+            "COMPLETED" -> R.color.kc_surface_success to R.color.kc_success_text
+            "CANCELLED" -> R.color.kc_surface_error to R.color.kc_danger_text
+            else -> R.color.kc_status_neutral_bg to R.color.kc_neutral_text
         }
+
+        background.setColor(color(backgroundColorRes))
+        view.setTextColor(color(textColorRes))
     }
 
     private fun formatStatus(status: String): String {
@@ -457,6 +425,10 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             .joinToString(" ") { word ->
                 word.replaceFirstChar { firstChar -> firstChar.titlecase(Locale.UK) }
             }
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 }
 

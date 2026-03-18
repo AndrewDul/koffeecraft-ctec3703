@@ -62,7 +62,7 @@
             android:layout_marginTop="8dp"
             android:lineSpacingExtra="2dp"
             android:text="12 ratings"
-            android:textColor="#7A6558"
+            android:textColor="@color/kc_text_muted"
             android:textSize="13sp" />
 
     </LinearLayout>

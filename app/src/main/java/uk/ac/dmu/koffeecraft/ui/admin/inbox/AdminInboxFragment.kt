@@ -1,13 +1,13 @@
 package uk.ac.dmu.koffeecraft.ui.admin.inbox
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
@@ -177,7 +177,11 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
             if (selected) R.drawable.bg_orders_filter_chip_selected
             else R.drawable.bg_orders_filter_chip
         )
-        view.setTextColor(Color.parseColor(if (selected) "#2E2018" else "#6E5A4D"))
+        view.setTextColor(
+            color(
+                if (selected) R.color.kc_text_primary else R.color.kc_text_secondary
+            )
+        )
         view.alpha = if (selected) 1f else 0.95f
     }
 
@@ -216,14 +220,14 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
 
     private fun styleTypeButton(button: MaterialButton, selected: Boolean) {
         if (selected) {
-            button.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#9A7655"))
-            button.setTextColor(Color.parseColor("#FFF8F2"))
+            button.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_brand_strong))
+            button.setTextColor(color(R.color.kc_text_inverse))
             button.strokeWidth = 0
         } else {
-            button.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F2E5D8"))
-            button.setTextColor(Color.parseColor("#5A4638"))
+            button.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_surface_panel))
+            button.setTextColor(color(R.color.kc_icon_primary))
             button.strokeWidth = 1
-            button.strokeColor = ColorStateList.valueOf(Color.parseColor("#DDC9B8"))
+            button.strokeColor = ColorStateList.valueOf(color(R.color.kc_border_warm))
         }
     }
 
@@ -330,8 +334,8 @@ KoffeeCraft
             "Marketing consent: OFF • Direct service messages can still be sent here"
         }
         tvConsentStatus.setTextColor(
-            Color.parseColor(
-                if (target.marketingInboxConsent) "#6A4D3A" else "#9B3D31"
+            color(
+                if (target.marketingInboxConsent) R.color.kc_info_text else R.color.kc_danger
             )
         )
         tvAudienceSummary.text = "1 customer will receive this direct message"
@@ -401,5 +405,9 @@ KoffeeCraft
                 applyMessageType(MessageType.CUSTOM, forceTemplate = true)
             }
         }
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 }

@@ -4,7 +4,7 @@
     android:id="@+id/scrollRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true"
     android:clipToPadding="false">
 
@@ -20,10 +20,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -36,7 +36,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Orders Control"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -45,7 +45,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Review live order flow, inspect operational details, and move orders through each fulfilment stage."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -54,10 +54,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -70,7 +70,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Search &amp; Filters"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -79,7 +79,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Choose whether you want to find by Order ID or Customer ID, then narrow the queue by status or time order."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <TextView
@@ -87,7 +87,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="Find orders by"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -107,7 +107,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="By order ID"
-                        android:textColor="#2E2018"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -122,7 +122,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="By customer ID"
-                        android:textColor="#6E5A4D"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -133,7 +133,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="Find order by order ID"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -159,9 +159,9 @@
                     android:minHeight="50dp"
                     android:text="Find"
                     android:textAllCaps="false"
-                    android:textColor="#FFF8F2"
+                    android:textColor="@color/kc_surface_primary"
                     android:textStyle="bold"
-                    app:backgroundTint="#9A7655"
+                    app:backgroundTint="@color/kc_brand_strong"
                     app:cornerRadius="26dp"
                     app:elevation="0dp" />
 
@@ -170,7 +170,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="Status"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -195,7 +195,7 @@
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
                             android:text="All"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -210,7 +210,7 @@
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
                             android:text="Placed"
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -225,7 +225,7 @@
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
                             android:text="Preparing"
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -240,7 +240,7 @@
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
                             android:text="Ready"
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -255,7 +255,7 @@
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
                             android:text="Collected"
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -266,7 +266,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="Sort"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -286,7 +286,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Newest"
-                        android:textColor="#2E2018"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -301,7 +301,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Oldest"
-                        android:textColor="#6E5A4D"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -314,7 +314,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Showing 0 orders"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -324,7 +324,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="No orders match the current search or filters."
-            android:textColor="#6E5A4D"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="14sp"
             android:visibility="gone" />
 

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="‹ Back"
-            android:textColor="#8B6B4A"
+            android:textColor="@color/kc_brand_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -28,10 +28,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -62,10 +62,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -206,7 +206,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="Password rules"
-                    android:textColor="#4D3527"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -310,7 +310,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:textColor="#A12727"
+                    android:textColor="@color/kc_danger"
                     android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
@@ -321,8 +321,8 @@
                     android:enabled="false"
                     android:text="Create admin account"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#5F7F5B"
+                    android:textColor="@color/kc_surface_secondary"
+                    app:backgroundTint="@color/kc_success"
                     app:cornerRadius="24dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

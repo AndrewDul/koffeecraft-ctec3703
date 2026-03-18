@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="☕ KoffeeCraft"
-        android:textColor="#F5EBDD"
+        android:textColor="@color/kc_shell_background"
         android:textSize="26sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
@@ -80,7 +80,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="Earn beans, unlock crafted drinks and grow your rewards."
-                        android:textColor="#5B4638" />
+                        android:textColor="@color/kc_icon_secondary" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -118,7 +118,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="Save your beans for free drinks, offers and premium rewards."
-                        android:textColor="#5B4638" />
+                        android:textColor="@color/kc_icon_secondary" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -142,9 +142,9 @@
                 android:minHeight="56dp"
                 android:text="Register now"
                 android:textAllCaps="false"
-                android:textColor="#F8F2EA"
+                android:textColor="@color/kc_surface_secondary"
                 android:textSize="18sp"
-                app:backgroundTint="#5F7F5B"
+                app:backgroundTint="@color/kc_success"
                 app:cornerRadius="28dp" />
 
             <TextView

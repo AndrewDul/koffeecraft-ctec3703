@@ -1,12 +1,12 @@
 package uk.ac.dmu.koffeecraft.ui.notifications
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -87,7 +87,10 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
             ): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val item = adapter.getItemAt(viewHolder.bindingAdapterPosition)
+                val position = viewHolder.bindingAdapterPosition
+                if (position == RecyclerView.NO_POSITION) return
+
+                val item = adapter.getItemAt(position)
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     db.notificationDao().deleteById(item.notificationId)
                 }
@@ -114,11 +117,11 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
         if (dX == 0f) return
 
         val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#B98C73")
+            color = color(R.color.kc_brand_button)
         }
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FFF8F2")
+            color = color(R.color.kc_text_inverse)
             textAlign = Paint.Align.CENTER
             textSize = dp(14f)
             isFakeBoldText = true
@@ -147,6 +150,10 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
 
         val textY = rect.centerY() - ((textPaint.descent() + textPaint.ascent()) / 2f)
         canvas.drawText("Remove", rect.centerX(), textY, textPaint)
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 
     private fun dp(value: Float): Float = value * requireContext().resources.displayMetrics.density

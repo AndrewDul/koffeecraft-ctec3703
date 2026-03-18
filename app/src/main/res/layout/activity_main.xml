@@ -2,40 +2,43 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/kc_shell_background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/customerTopBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@color/kc_shell_background"
         android:paddingStart="16dp"
         android:paddingTop="12dp"
         android:paddingEnd="16dp"
         android:paddingBottom="12dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/tvCustomerLogo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="☕ KoffeeCraft"
+            android:text="@string/app_logo"
+            android:textColor="@color/kc_text_primary"
             android:textSize="22sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/customerTopActions" />
+            app:layout_constraintEnd_toStartOf="@id/customerTopActions"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:id="@+id/customerTopActions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintTop_toTopOf="parent">
 
             <FrameLayout
                 android:layout_width="wrap_content"
@@ -46,8 +49,9 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Cart"
-                    android:src="@android:drawable/ic_menu_share" />
+                    android:contentDescription="@string/cd_cart"
+                    android:src="@android:drawable/ic_menu_share"
+                    android:tint="@color/kc_icon_primary" />
 
                 <TextView
                     android:id="@+id/tvCustomerCartBadge"
@@ -56,13 +60,13 @@
                     android:layout_gravity="end|top"
                     android:layout_marginTop="4dp"
                     android:layout_marginEnd="2dp"
-                    android:minWidth="22dp"
                     android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
+                    android:minWidth="22dp"
                     android:paddingStart="6dp"
                     android:paddingEnd="6dp"
-                    android:text="0"
-                    android:textColor="#FFF8F2"
+                    android:text="@string/badge_zero"
+                    android:textColor="@color/kc_text_inverse"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -77,8 +81,9 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Inbox"
-                    android:src="@android:drawable/ic_dialog_email" />
+                    android:contentDescription="@string/cd_inbox"
+                    android:src="@android:drawable/ic_dialog_email"
+                    android:tint="@color/kc_icon_primary" />
 
                 <TextView
                     android:id="@+id/tvCustomerInboxBadge"
@@ -87,13 +92,13 @@
                     android:layout_gravity="end|top"
                     android:layout_marginTop="4dp"
                     android:layout_marginEnd="2dp"
-                    android:minWidth="22dp"
                     android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
+                    android:minWidth="22dp"
                     android:paddingStart="6dp"
                     android:paddingEnd="6dp"
-                    android:text="0"
-                    android:textColor="#FFF8F2"
+                    android:text="@string/badge_zero"
+                    android:textColor="@color/kc_text_inverse"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -108,8 +113,9 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Notifications"
-                    android:src="@android:drawable/ic_dialog_info" />
+                    android:contentDescription="@string/cd_notifications"
+                    android:src="@android:drawable/ic_dialog_info"
+                    android:tint="@color/kc_icon_primary" />
 
                 <TextView
                     android:id="@+id/tvCustomerNotificationBadge"
@@ -118,13 +124,13 @@
                     android:layout_gravity="end|top"
                     android:layout_marginTop="4dp"
                     android:layout_marginEnd="2dp"
-                    android:minWidth="22dp"
                     android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
+                    android:minWidth="22dp"
                     android:paddingStart="6dp"
                     android:paddingEnd="6dp"
-                    android:text="0"
-                    android:textColor="#FFF8F2"
+                    android:text="@string/badge_zero"
+                    android:textColor="@color/kc_text_inverse"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -135,8 +141,9 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Settings"
-                android:src="@android:drawable/ic_menu_manage" />
+                android:contentDescription="@string/cd_settings"
+                android:src="@android:drawable/ic_menu_manage"
+                android:tint="@color/kc_icon_primary" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -147,19 +154,22 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_graph"
-        app:layout_constraintTop_toBottomOf="@id/customerTopBar"
         app:layout_constraintBottom_toTopOf="@id/customerBottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/customerTopBar"
+        app:navGraph="@navigation/nav_graph" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/customerBottomNav"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:menu="@menu/customer_bottom_nav"
+        android:background="@color/kc_surface_primary"
+        app:itemIconTint="@color/kc_chip_text_selector"
+        app:itemTextColor="@color/kc_chip_text_selector"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:menu="@menu/customer_bottom_nav" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

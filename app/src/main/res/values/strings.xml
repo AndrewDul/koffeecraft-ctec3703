@@ -1,3 +1,78 @@
 <resources>
     <string name="app_name">KoffeeCraft</string>
+    <string name="app_logo">☕ KoffeeCraft</string>
+
+    <string name="cd_cart">Cart</string>
+    <string name="cd_inbox">Inbox</string>
+    <string name="cd_notifications">Notifications</string>
+    <string name="cd_settings">Settings</string>
+    <string name="badge_zero">0</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_customer_placeholder_name">Customer Name</string>
+    <string name="settings_customer_placeholder_email">customer@email.com</string>
+    <string name="settings_customer_fallback_name">Customer</string>
+    <string name="settings_customer_fallback_email">No email available</string>
+    <string name="settings_sign_in_first">Please sign in first.</string>
+
+    <string name="settings_section_account">Account</string>
+    <string name="settings_personal_info_title">Personal Info</string>
+    <string name="settings_personal_info_desc">Update your first name, last name and email.</string>
+
+    <string name="settings_section_security">Security</string>
+    <string name="settings_change_password_title">Change Password</string>
+    <string name="settings_change_password_desc">Set a new password for your account.</string>
+
+    <string name="settings_section_payments">Payments</string>
+    <string name="settings_payment_methods_title">Payment Methods</string>
+    <string name="settings_payment_methods_desc">Manage your saved cards for faster premium checkout.</string>
+
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme_toggle_title">Dark Theme</string>
+    <string name="settings_theme_toggle_desc_light">Use the lighter coffee palette across the app.</string>
+    <string name="settings_theme_toggle_desc_dark">Use the darker coffee palette across the app.</string>
+
+    <string name="settings_section_inbox">Inbox Preferences</string>
+    <string name="settings_inbox_promo_title">Promotional Messages</string>
+    <string name="settings_inbox_promo_desc">Choose whether you want to receive promotional inbox updates.</string>
+
+    <string name="settings_section_policies">Help &amp; Policies</string>
+    <string name="settings_help_title">Help</string>
+    <string name="settings_terms_title">Terms of Use</string>
+    <string name="settings_privacy_title">Privacy Statement</string>
+
+    <string name="settings_section_danger">Danger Zone</string>
+    <string name="settings_delete_account_title">Delete Account</string>
+    <string name="settings_delete_account_desc">Permanently remove your customer account and related data.</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_chevron">›</string>
+
+    <string name="admin_settings_title">Admin Settings</string>
+    <string name="admin_settings_intro">Manage secure access, internal tools, and admin communication controls.</string>
+    <string name="admin_settings_placeholder_name">Admin Name</string>
+    <string name="admin_settings_placeholder_email">admin@koffeecraft.local</string>
+    <string name="admin_settings_fallback_name">Admin Session</string>
+    <string name="admin_settings_fallback_email">Current admin details unavailable</string>
+    <string name="admin_settings_profile_missing">Admin profile could not be loaded.</string>
+
+    <string name="admin_section_access">Access &amp; Roles</string>
+    <string name="admin_create_account_title">Create Admin Account</string>
+    <string name="admin_create_account_desc">Create a secure internal admin profile with access status controls.</string>
+    <string name="admin_access_center_title">Account Access Center</string>
+    <string name="admin_access_center_desc">Manage customer and admin account access, status, and credentials.</string>
+
+    <string name="admin_section_communications">Communications</string>
+    <string name="admin_notifications_center_title">Notifications Center</string>
+    <string name="admin_notifications_center_desc">Review internal admin notifications and order status updates.</string>
+    <string name="admin_inbox_tools_title">Inbox Tools</string>
+    <string name="admin_inbox_tools_desc">Manage promo messaging, delivery filters, and communication templates.</string>
+
+    <string name="admin_section_system">System Controls</string>
+    <string name="admin_simulation_title">Simulation Mode</string>
+    <string name="admin_simulation_desc_on">Simulation mode is enabled for demo order progression.</string>
+    <string name="admin_simulation_desc_off">Simulation mode is disabled. Order progression is manual only.</string>
+
+    <string name="admin_section_session">Session</string>
+    <string name="admin_sign_out_title">Sign Out</string>
+    <string name="admin_sign_out_desc">Log out of the current admin session.</string>
 </resources>

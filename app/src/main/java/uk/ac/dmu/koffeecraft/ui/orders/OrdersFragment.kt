@@ -1,12 +1,12 @@
 package uk.ac.dmu.koffeecraft.ui.orders
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -132,8 +132,8 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
                 else R.drawable.bg_orders_filter_chip
             )
             textView.setTextColor(
-                Color.parseColor(
-                    if (isSelected) "#2E2018" else "#6E5A4D"
+                color(
+                    if (isSelected) R.color.kc_text_primary else R.color.kc_text_secondary
                 )
             )
         }
@@ -144,16 +144,14 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
 
         renderJob?.cancel()
         renderJob = viewLifecycleOwner.lifecycleScope.launch {
+            val hiddenOrderIds = HiddenOrdersStore.getHiddenOrderIds(
+                requireContext().applicationContext,
+                safeCustomerId
+            )
+
             val visibleOrders = allOrders
-                .filterNot { order ->
-                    HiddenOrdersStore.getHiddenOrderIds(
-                        requireContext().applicationContext,
-                        safeCustomerId
-                    ).contains(order.orderId)
-                }
-                .filter { order ->
-                    matchesSelectedFilter(order.createdAt)
-                }
+                .filterNot { order -> hiddenOrderIds.contains(order.orderId) }
+                .filter { order -> matchesSelectedFilter(order.createdAt) }
 
             val detailsAndFeedback = withContext(Dispatchers.IO) {
                 visibleOrders.associate { order ->
@@ -238,11 +236,11 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
         if (dX == 0f) return
 
         val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#B98C73")
+            color = color(R.color.kc_brand_button)
         }
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FFF8F2")
+            color = color(R.color.kc_text_inverse)
             textAlign = Paint.Align.CENTER
             textSize = dp(14f)
             isFakeBoldText = true
@@ -299,6 +297,10 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
             set(Calendar.MILLISECOND, 0)
             add(Calendar.DAY_OF_YEAR, -daysAgo)
         }.timeInMillis
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 
     private fun dp(value: Float): Float = value * requireContext().resources.displayMetrics.density

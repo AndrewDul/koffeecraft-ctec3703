@@ -1,12 +1,12 @@
 package uk.ac.dmu.koffeecraft.ui.admin.notifications
 
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import uk.ac.dmu.koffeecraft.R
@@ -121,42 +121,18 @@ class AdminNotificationsAdapter(
         private fun bindStatusChip(status: String?) {
             val background = tvStatusChip.background.mutate() as GradientDrawable
 
-            when (status?.uppercase(Locale.UK)) {
-                "READY" -> {
-                    background.setColor(Color.parseColor("#DCE9DA"))
-                    tvStatusChip.setTextColor(Color.parseColor("#36533E"))
-                }
-
-                "PREPARING" -> {
-                    background.setColor(Color.parseColor("#F2E4D3"))
-                    tvStatusChip.setTextColor(Color.parseColor("#7A5634"))
-                }
-
-                "PLACED" -> {
-                    background.setColor(Color.parseColor("#E8DDD4"))
-                    tvStatusChip.setTextColor(Color.parseColor("#6A4D3A"))
-                }
-
-                "COLLECTED" -> {
-                    background.setColor(Color.parseColor("#DFE7D8"))
-                    tvStatusChip.setTextColor(Color.parseColor("#3D5640"))
-                }
-
-                "COMPLETED" -> {
-                    background.setColor(Color.parseColor("#DFE7D8"))
-                    tvStatusChip.setTextColor(Color.parseColor("#3D5640"))
-                }
-
-                "CANCELLED" -> {
-                    background.setColor(Color.parseColor("#F0DCD8"))
-                    tvStatusChip.setTextColor(Color.parseColor("#7B4A42"))
-                }
-
-                else -> {
-                    background.setColor(Color.parseColor("#E9DFD6"))
-                    tvStatusChip.setTextColor(Color.parseColor("#5C473A"))
-                }
+            val (backgroundColorRes, textColorRes) = when (status?.uppercase(Locale.UK)) {
+                "READY" -> R.color.kc_validation_valid_bg to R.color.kc_success_text
+                "PREPARING" -> R.color.kc_surface_warning to R.color.kc_warning_text
+                "PLACED" -> R.color.kc_surface_info to R.color.kc_info_text
+                "COLLECTED" -> R.color.kc_surface_success to R.color.kc_success_text
+                "COMPLETED" -> R.color.kc_surface_success to R.color.kc_success_text
+                "CANCELLED" -> R.color.kc_surface_error to R.color.kc_danger_text
+                else -> R.color.kc_status_neutral_bg to R.color.kc_neutral_text
             }
+
+            background.setColor(color(backgroundColorRes))
+            tvStatusChip.setTextColor(color(textColorRes))
         }
 
         private fun formatStatus(status: String?): String {
@@ -170,6 +146,10 @@ class AdminNotificationsAdapter(
                         firstChar.titlecase(Locale.UK)
                     }
                 }
+        }
+
+        private fun color(colorResId: Int): Int {
+            return ContextCompat.getColor(itemView.context, colorResId)
         }
     }
 }

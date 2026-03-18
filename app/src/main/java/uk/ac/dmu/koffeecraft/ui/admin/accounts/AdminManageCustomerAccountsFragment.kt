@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
@@ -24,6 +25,7 @@ import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
 import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.repository.CustomerAccountCleanupRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import java.util.Date
@@ -211,7 +213,7 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                 btnSecondaryAction.text = "Deactivate account"
                 btnDangerAction.text = "Delete account"
                 btnDangerAction.visibility = View.VISIBLE
-                btnDangerAction.backgroundTintList = ColorStateList.valueOf(android.graphics.Color.parseColor("#A12727"))
+                btnDangerAction.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_danger))
             }
 
             AccountType.ADMINS -> {
@@ -223,7 +225,7 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                 btnSecondaryAction.text = "Deactivate account"
                 btnDangerAction.text = "Reset password"
                 btnDangerAction.visibility = View.VISIBLE
-                btnDangerAction.backgroundTintList = ColorStateList.valueOf(android.graphics.Color.parseColor("#8B6B4A"))
+                btnDangerAction.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_brand_primary))
             }
         }
     }
@@ -494,37 +496,11 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
     }
 
     private fun deleteCustomerPermanently(customerId: Long) {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val appContext = requireContext().applicationContext
+        val cleanupRepository = CustomerAccountCleanupRepository(appContext)
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val sqlDb = db.openHelper.writableDatabase
-
-            sqlDb.beginTransaction()
-            try {
-                sqlDb.execSQL(
-                    "DELETE FROM customer_favourite_preset_add_on_cross_ref WHERE presetId IN (SELECT presetId FROM customer_favourite_presets WHERE customerId = ?)",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL("DELETE FROM customer_favourite_presets WHERE customerId = ?", arrayOf(customerId))
-                sqlDb.execSQL("DELETE FROM favourites WHERE customerId = ?", arrayOf(customerId))
-                sqlDb.execSQL("DELETE FROM inbox_messages WHERE recipientCustomerId = ?", arrayOf(customerId))
-                sqlDb.execSQL("DELETE FROM app_notifications WHERE recipientCustomerId = ?", arrayOf(customerId))
-                sqlDb.execSQL("DELETE FROM feedback WHERE customerId = ?", arrayOf(customerId))
-                sqlDb.execSQL(
-                    "DELETE FROM payments WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?)",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM order_items WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?)",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL("DELETE FROM orders WHERE customerId = ?", arrayOf(customerId))
-                sqlDb.execSQL("DELETE FROM customers WHERE customerId = ?", arrayOf(customerId))
-
-                sqlDb.setTransactionSuccessful()
-            } finally {
-                sqlDb.endTransaction()
-            }
+            cleanupRepository.deleteCustomerCompletely(customerId)
 
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
@@ -627,5 +603,9 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                 password.any { it.isDigit() } &&
                 password.any { !it.isLetterOrDigit() } &&
                 password.length >= 8
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 }

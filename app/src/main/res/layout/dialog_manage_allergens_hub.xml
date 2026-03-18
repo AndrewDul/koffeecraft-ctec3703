@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#F7F0E8"
+    android:background="@color/kc_surface_soft"
     android:fillViewport="true">
 
     <LinearLayout
@@ -15,10 +15,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -53,9 +53,9 @@
                     android:minHeight="52dp"
                     android:text="Manage product allergens"
                     android:textAllCaps="false"
-                    android:textColor="#FFF8F2"
+                    android:textColor="@color/kc_surface_primary"
                     android:textStyle="bold"
-                    app:backgroundTint="#9A7655"
+                    app:backgroundTint="@color/kc_brand_strong"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
                     app:strokeWidth="0dp" />
@@ -68,12 +68,12 @@
                     android:minHeight="52dp"
                     android:text="Manage extra allergens"
                     android:textAllCaps="false"
-                    android:textColor="#5A4638"
+                    android:textColor="@color/kc_icon_primary"
                     android:textStyle="bold"
                     app:backgroundTint="#F2E5D8"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
-                    app:strokeColor="#DDC9B8"
+                    app:strokeColor="@color/kc_border_warm"
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -84,12 +84,12 @@
                     android:minHeight="52dp"
                     android:text="Open allergen library"
                     android:textAllCaps="false"
-                    android:textColor="#5A4638"
+                    android:textColor="@color/kc_icon_primary"
                     android:textStyle="bold"
                     app:backgroundTint="#F2E5D8"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
-                    app:strokeColor="#DDC9B8"
+                    app:strokeColor="@color/kc_border_warm"
                     app:strokeWidth="1dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

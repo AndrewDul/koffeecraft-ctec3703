@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -19,10 +19,10 @@
             android:id="@+id/cardStudioHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -244,7 +244,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -280,9 +280,9 @@
                     android:minHeight="50dp"
                     android:text="Promotional Offer"
                     android:textAllCaps="false"
-                    android:textColor="#FFF8F2"
+                    android:textColor="@color/kc_surface_primary"
                     android:textStyle="bold"
-                    app:backgroundTint="#9A7655"
+                    app:backgroundTint="@color/kc_brand_strong"
                     app:cornerRadius="26dp"
                     app:elevation="0dp" />
 
@@ -294,12 +294,12 @@
                     android:minHeight="50dp"
                     android:text="Bonus Beans"
                     android:textAllCaps="false"
-                    android:textColor="#5A4638"
+                    android:textColor="@color/kc_icon_primary"
                     android:textStyle="bold"
                     app:backgroundTint="#F2E5D8"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
-                    app:strokeColor="#DDC9B8"
+                    app:strokeColor="@color/kc_border_warm"
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -310,12 +310,12 @@
                     android:minHeight="50dp"
                     android:text="Offer + Bonus Beans"
                     android:textAllCaps="false"
-                    android:textColor="#5A4638"
+                    android:textColor="@color/kc_icon_primary"
                     android:textStyle="bold"
                     app:backgroundTint="#F2E5D8"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
-                    app:strokeColor="#DDC9B8"
+                    app:strokeColor="@color/kc_border_warm"
                     app:strokeWidth="1dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -324,7 +324,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -403,7 +403,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -429,7 +429,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="Audience • All opted-in customers"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -438,7 +438,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Recipients • 0"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -447,7 +447,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Excluded by consent • 0"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -456,7 +456,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Total bonus beans • 0"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -490,9 +490,9 @@
             android:minHeight="54dp"
             android:text="Send campaign"
             android:textAllCaps="false"
-            android:textColor="#FFF8F2"
+            android:textColor="@color/kc_surface_primary"
             android:textStyle="bold"
-            app:backgroundTint="#9A7655"
+            app:backgroundTint="@color/kc_brand_strong"
             app:cornerRadius="28dp"
             app:elevation="0dp" />
 

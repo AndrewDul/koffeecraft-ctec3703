@@ -1,12 +1,12 @@
 package uk.ac.dmu.koffeecraft.ui.admin.orders
 
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
@@ -156,8 +156,11 @@ class AdminOrdersAdapter(
         }
 
         private fun buildCustomerLine(row: AdminOrderRow): String {
-            return if (row.customerDisplayName.isBlank()) row.customerEmail
-            else "${row.customerDisplayName} • ${row.customerEmail}"
+            return if (row.customerDisplayName.isBlank()) {
+                row.customerEmail
+            } else {
+                "${row.customerDisplayName} • ${row.customerEmail}"
+            }
         }
 
         private fun buildSummaryLine(row: AdminOrderRow): String {
@@ -217,7 +220,7 @@ class AdminOrdersAdapter(
                 val emptyView = TextView(itemView.context).apply {
                     text = "No order items available."
                     textSize = 13f
-                    setTextColor(Color.parseColor("#7A6558"))
+                    setTextColor(color(R.color.kc_text_muted))
                 }
                 layoutItemsContainer.addView(emptyView)
                 return
@@ -291,21 +294,25 @@ class AdminOrdersAdapter(
                     disableAction(tvActionReady, "Mark Ready", true)
                     disableAction(tvActionCollected, "Mark Collected", true)
                 }
+
                 "PREPARING" -> {
                     disableAction(tvActionPreparing, "Preparing", true)
                     enableAction(tvActionReady, "Mark Ready") { onStatusAction(row, "READY") }
                     disableAction(tvActionCollected, "Mark Collected", true)
                 }
+
                 "READY" -> {
                     disableAction(tvActionPreparing, "Preparing", true)
                     disableAction(tvActionReady, "Ready", true)
                     enableAction(tvActionCollected, "Mark Collected") { onStatusAction(row, "COLLECTED") }
                 }
+
                 "COLLECTED" -> {
                     disableAction(tvActionPreparing, "Preparing", true)
                     disableAction(tvActionReady, "Ready", true)
                     disableAction(tvActionCollected, "Collected", true)
                 }
+
                 else -> {
                     disableAction(tvActionPreparing, "Move to Preparing", false)
                     disableAction(tvActionReady, "Mark Ready", false)
@@ -329,23 +336,23 @@ class AdminOrdersAdapter(
         }
 
         private fun bindStatusChip(view: TextView, status: String) {
-            val (fillColor, textColor) = when (status.uppercase(Locale.UK)) {
-                "PLACED" -> "#F3E8D2" to "#7B5B2A"
-                "PREPARING" -> "#E8DCC9" to "#6A4B3B"
-                "READY" -> "#DCEBDA" to "#3F6A3B"
-                "COLLECTED" -> "#E0E0E0" to "#4B4B4B"
-                else -> "#EEE8E1" to "#6E5A4D"
+            val (fillColorRes, textColorRes) = when (status.uppercase(Locale.UK)) {
+                "PLACED" -> R.color.kc_status_crafted_bg to R.color.kc_warning_text
+                "PREPARING" -> R.color.kc_surface_info to R.color.kc_info_text
+                "READY" -> R.color.kc_validation_valid_bg to R.color.kc_success_text
+                "COLLECTED" -> R.color.kc_status_neutral_bg to R.color.kc_neutral_text
+                else -> R.color.kc_surface_secondary to R.color.kc_text_secondary
             }
 
             val shape = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = 999f
-                setColor(Color.parseColor(fillColor))
+                setColor(color(fillColorRes))
             }
 
             view.background = shape
             view.text = status.replaceFirstChar { it.uppercase() }
-            view.setTextColor(Color.parseColor(textColor))
+            view.setTextColor(color(textColorRes))
         }
 
         private fun bindNoteChip(view: TextView, visible: Boolean) {
@@ -361,6 +368,10 @@ class AdminOrdersAdapter(
 
         private fun formatCurrency(amount: Double): String {
             return "£%.2f".format(Locale.UK, amount)
+        }
+
+        private fun color(colorResId: Int): Int {
+            return ContextCompat.getColor(itemView.context, colorResId)
         }
     }
 }

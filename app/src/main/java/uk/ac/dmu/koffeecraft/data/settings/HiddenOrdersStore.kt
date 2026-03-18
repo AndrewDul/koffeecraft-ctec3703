@@ -20,4 +20,9 @@ object HiddenOrdersStore {
         current.add(orderId.toString())
         prefs.edit().putStringSet(keyForCustomer(customerId), current).apply()
     }
+
+    fun clearForCustomer(context: Context, customerId: Long) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().remove(keyForCustomer(customerId)).apply()
+    }
 }

@@ -14,9 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
+import uk.ac.dmu.koffeecraft.data.repository.CustomerAccountCleanupRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
@@ -48,7 +47,9 @@ class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete
 
     private fun deleteAccount() {
         val customerId = SessionManager.currentCustomerId ?: return
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val appContext = requireContext().applicationContext
+        val db = KoffeeCraftDatabase.getInstance(appContext)
+        val cleanupRepository = CustomerAccountCleanupRepository(appContext)
 
         tilCurrentPassword.error = null
         tvError.visibility = View.GONE
@@ -85,62 +86,10 @@ class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete
                 return@launch
             }
 
-            val sqlDb = db.openHelper.writableDatabase
-
-            sqlDb.beginTransaction()
-            try {
-                sqlDb.execSQL(
-                    "DELETE FROM customer_favourite_preset_add_on_cross_ref WHERE presetId IN (SELECT presetId FROM customer_favourite_presets WHERE customerId = ?)",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM customer_favourite_presets WHERE customerId = ?",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM favourites WHERE customerId = ?",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM inbox_messages WHERE recipientCustomerId = ?",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM app_notifications WHERE recipientCustomerId = ?",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM feedback WHERE customerId = ?",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM payments WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?)",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM order_items WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?)",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM orders WHERE customerId = ?",
-                    arrayOf(customerId)
-                )
-                sqlDb.execSQL(
-                    "DELETE FROM customers WHERE customerId = ?",
-                    arrayOf(customerId)
-                )
-
-                sqlDb.setTransactionSuccessful()
-            } finally {
-                sqlDb.endTransaction()
-            }
+            cleanupRepository.deleteCustomerCompletely(customerId)
 
             withContext(Dispatchers.Main) {
                 if (!isAdded) return@withContext
-
-                CartManager.clear()
-                SessionManager.clear()
-                RememberedSessionStore.clear(requireContext().applicationContext)
 
                 Toast.makeText(requireContext(), "Account deleted permanently.", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_global_logout)

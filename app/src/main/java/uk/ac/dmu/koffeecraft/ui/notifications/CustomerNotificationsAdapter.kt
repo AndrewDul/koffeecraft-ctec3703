@@ -1,12 +1,12 @@
 package uk.ac.dmu.koffeecraft.ui.notifications
 
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
@@ -125,7 +125,7 @@ class CustomerNotificationsAdapter(
                 val emptyView = TextView(itemView.context).apply {
                     text = "No item details available."
                     textSize = 13f
-                    setTextColor(Color.parseColor("#7A6558"))
+                    setTextColor(color(R.color.kc_text_muted))
                 }
                 layoutNotificationDetails.addView(emptyView)
                 return
@@ -159,38 +159,38 @@ class CustomerNotificationsAdapter(
 
             when (status?.uppercase(Locale.UK)) {
                 "READY" -> {
-                    background.setColor(Color.parseColor("#DCE9DA"))
-                    tvStatusChip.setTextColor(Color.parseColor("#36533E"))
+                    background.setColor(color(R.color.kc_validation_valid_bg))
+                    tvStatusChip.setTextColor(color(R.color.kc_success_text))
                 }
 
                 "PREPARING" -> {
-                    background.setColor(Color.parseColor("#F2E4D3"))
-                    tvStatusChip.setTextColor(Color.parseColor("#7A5634"))
+                    background.setColor(color(R.color.kc_surface_warning))
+                    tvStatusChip.setTextColor(color(R.color.kc_warning_text))
                 }
 
                 "PLACED" -> {
-                    background.setColor(Color.parseColor("#E8DDD4"))
-                    tvStatusChip.setTextColor(Color.parseColor("#6A4D3A"))
+                    background.setColor(color(R.color.kc_surface_info))
+                    tvStatusChip.setTextColor(color(R.color.kc_info_text))
                 }
 
                 "COLLECTED" -> {
-                    background.setColor(Color.parseColor("#DFE7D8"))
-                    tvStatusChip.setTextColor(Color.parseColor("#3D5640"))
+                    background.setColor(color(R.color.kc_surface_success))
+                    tvStatusChip.setTextColor(color(R.color.kc_success_text))
                 }
 
                 "COMPLETED" -> {
-                    background.setColor(Color.parseColor("#DFE7D8"))
-                    tvStatusChip.setTextColor(Color.parseColor("#3D5640"))
+                    background.setColor(color(R.color.kc_surface_success))
+                    tvStatusChip.setTextColor(color(R.color.kc_success_text))
                 }
 
                 "CANCELLED" -> {
-                    background.setColor(Color.parseColor("#F0DCD8"))
-                    tvStatusChip.setTextColor(Color.parseColor("#7B4A42"))
+                    background.setColor(color(R.color.kc_surface_error))
+                    tvStatusChip.setTextColor(color(R.color.kc_danger_text))
                 }
 
                 else -> {
-                    background.setColor(Color.parseColor("#E9DFD6"))
-                    tvStatusChip.setTextColor(Color.parseColor("#5C473A"))
+                    background.setColor(color(R.color.kc_status_neutral_bg))
+                    tvStatusChip.setTextColor(color(R.color.kc_neutral_text))
                 }
             }
         }
@@ -224,6 +224,10 @@ class CustomerNotificationsAdapter(
 
         private fun formatMoney(value: Double): String {
             return String.format(Locale.UK, "£%.2f", value)
+        }
+
+        private fun color(colorResId: Int): Int {
+            return ContextCompat.getColor(itemView.context, colorResId)
         }
     }
 }

@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="☕ KoffeeCraft"
-            android:textColor="#F5EBDD"
+            android:textColor="@color/kc_shell_background"
             android:textSize="26sp"
             android:textStyle="bold"
             app:layout_constraintTop_toTopOf="parent"
@@ -54,7 +54,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Join KoffeeCraft, collect beans, unlock rewards and enjoy crafted coffee moments."
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="15sp" />
 
                 <TextView
@@ -73,7 +73,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="First name"
-                    app:boxBackgroundColor="#F8F2EA"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
                     app:boxCornerRadiusBottomEnd="20dp"
                     app:boxCornerRadiusBottomStart="20dp"
                     app:boxCornerRadiusTopEnd="20dp"
@@ -92,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Last name"
-                    app:boxBackgroundColor="#F8F2EA"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
                     app:boxCornerRadiusBottomEnd="20dp"
                     app:boxCornerRadiusBottomStart="20dp"
                     app:boxCornerRadiusTopEnd="20dp"
@@ -109,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="Country"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textStyle="bold" />
 
                 <Spinner
@@ -126,7 +126,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Date of birth (YYYY-MM-DD)"
-                    app:boxBackgroundColor="#F8F2EA"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
                     app:boxCornerRadiusBottomEnd="20dp"
                     app:boxCornerRadiusBottomStart="20dp"
                     app:boxCornerRadiusTopEnd="20dp"
@@ -154,7 +154,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Email"
-                    app:boxBackgroundColor="#F8F2EA"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
                     app:boxCornerRadiusBottomEnd="20dp"
                     app:boxCornerRadiusBottomStart="20dp"
                     app:boxCornerRadiusTopEnd="20dp"
@@ -174,7 +174,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Password"
-                    app:boxBackgroundColor="#F8F2EA"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
                     app:boxCornerRadiusBottomEnd="20dp"
                     app:boxCornerRadiusBottomStart="20dp"
                     app:boxCornerRadiusTopEnd="20dp"
@@ -258,7 +258,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Optional. If I turn this on, I can receive promo messages and bonus beans in future reward campaigns."
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -298,7 +298,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:textColor="#A12727"
+                    android:textColor="@color/kc_danger"
                     android:textSize="14sp"
                     android:visibility="gone" />
 
@@ -312,9 +312,9 @@
                     android:minHeight="56dp"
                     android:text="Register"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
+                    android:textColor="@color/kc_surface_secondary"
                     android:textSize="18sp"
-                    app:backgroundTint="#5F7F5B"
+                    app:backgroundTint="@color/kc_success"
                     app:cornerRadius="28dp" />
 
                 <TextView
@@ -323,7 +323,7 @@
                     android:layout_marginTop="18dp"
                     android:gravity="center"
                     android:text="Already have an account?"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="15sp" />
 
                 <TextView

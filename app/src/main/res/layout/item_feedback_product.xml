@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="#FFF8F2"
+    app:cardBackgroundColor="@color/kc_surface_primary"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
-    app:strokeColor="#E3D4C6"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -57,7 +57,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Quantity"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="11sp" />
 
                 <TextView
@@ -80,7 +80,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Price"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="11sp" />
 
                 <TextView
@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Not rated yet"
-            android:textColor="#5B4638"
+            android:textColor="@color/kc_icon_secondary"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -112,7 +112,7 @@
             android:layout_gravity="end"
             android:layout_marginTop="14dp"
             android:text="Leave feedback"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="13sp"
             android:textStyle="bold" />
 

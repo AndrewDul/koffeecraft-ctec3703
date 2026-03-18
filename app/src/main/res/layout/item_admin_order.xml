@@ -8,10 +8,10 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="#FFF8F2"
+    app:cardBackgroundColor="@color/kc_surface_primary"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
-    app:strokeColor="#E3D4C6"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -37,7 +37,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Order #123"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -57,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Customer #12 • 17 Mar 2026 • 12:45 • £12.40"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -88,7 +88,7 @@
                     android:layout_gravity="end"
                     android:layout_marginTop="12dp"
                     android:text="▾"
-                    android:textColor="#8B6B4A"
+                    android:textColor="@color/kc_brand_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -108,7 +108,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="14dp"
-            android:background="#EADFD4"
+            android:background="@color/kc_surface_chip"
             android:visibility="gone" />
 
         <LinearLayout
@@ -124,7 +124,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Loading order details..."
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="13sp"
                 android:visibility="gone" />
 
@@ -132,7 +132,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Customer"
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -142,7 +142,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Jane Smith"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -152,7 +152,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Customer #12"
-                android:textColor="#6E5A4D"
+                android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
 
             <TextView
@@ -161,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="jane@example.com"
-                android:textColor="#6E5A4D"
+                android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
 
             <TextView
@@ -169,7 +169,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Order Summary"
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -184,7 +184,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="17 Mar 2026 • 12:45"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -212,7 +212,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Operational Notes"
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -297,7 +297,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Items"
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -313,7 +313,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Status Timeline"
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -338,7 +338,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Placed"
-                        android:textColor="#6E5A4D"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -353,7 +353,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Preparing"
-                        android:textColor="#6E5A4D"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -368,7 +368,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Ready to collect"
-                        android:textColor="#6E5A4D"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -383,7 +383,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Collected"
-                        android:textColor="#6E5A4D"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -394,7 +394,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Status Actions"
-                android:textColor="#7A6558"
+                android:textColor="@color/kc_text_muted"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -419,7 +419,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Move to Preparing"
-                        android:textColor="#5A4638"
+                        android:textColor="@color/kc_icon_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -434,7 +434,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Mark Ready"
-                        android:textColor="#5A4638"
+                        android:textColor="@color/kc_icon_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -449,7 +449,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Mark Collected"
-                        android:textColor="#5A4638"
+                        android:textColor="@color/kc_icon_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>

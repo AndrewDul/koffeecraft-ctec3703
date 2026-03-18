@@ -1,12 +1,12 @@
 package uk.ac.dmu.koffeecraft.ui.menu
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -375,7 +375,9 @@ class ProductAdapter(
             tvUnavailable.visibility = if (isAvailable) View.GONE else View.VISIBLE
 
             tvFavourite.text = if (isFavourite) "♥" else "♡"
-            tvFavourite.setTextColor(if (isFavourite) Color.parseColor("#A12727") else Color.parseColor("#6E5A4D"))
+            tvFavourite.setTextColor(
+                if (isFavourite) color(R.color.kc_danger) else color(R.color.kc_text_secondary)
+            )
 
             dividerExpanded.visibility = if (expanded) View.VISIBLE else View.GONE
             layoutExpandedContent.visibility = if (expanded) View.VISIBLE else View.GONE
@@ -430,7 +432,7 @@ class ProductAdapter(
             val saveEnabled = shouldEnableSavePresetButton(product, state)
             tvSavePreset.alpha = if (saveEnabled) 1f else 0.45f
             tvSavePreset.setTextColor(
-                if (saveEnabled) Color.parseColor("#5F7F5B") else Color.parseColor("#7A6558")
+                if (saveEnabled) color(R.color.kc_success) else color(R.color.kc_text_muted)
             )
             tvSavePreset.setOnClickListener {
                 if (saveEnabled) onSavePreset()
@@ -546,6 +548,10 @@ class ProductAdapter(
 
         private fun formatMoney(value: Double): String {
             return String.format(Locale.UK, "£%.2f", value)
+        }
+
+        private fun color(colorResId: Int): Int {
+            return ContextCompat.getColor(itemView.context, colorResId)
         }
     }
 }

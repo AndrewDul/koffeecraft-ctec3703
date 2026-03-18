@@ -1,10 +1,10 @@
 package uk.ac.dmu.koffeecraft.ui.menu
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -107,10 +107,14 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
     private fun styleFilterChip(view: TextView, selected: Boolean) {
         if (selected) {
             view.setBackgroundResource(R.drawable.bg_orders_filter_chip_selected)
-            view.setTextColor(Color.parseColor("#2E2018"))
+            view.setTextColor(color(R.color.kc_text_primary))
         } else {
             view.setBackgroundResource(R.drawable.bg_orders_filter_chip)
-            view.setTextColor(Color.parseColor("#6E5A4D"))
+            view.setTextColor(color(R.color.kc_text_secondary))
         }
+    }
+
+    private fun color(colorResId: Int): Int {
+        return ContextCompat.getColor(requireContext(), colorResId)
     }
 }

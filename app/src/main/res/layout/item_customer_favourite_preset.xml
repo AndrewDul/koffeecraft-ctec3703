@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="#FFF8F2"
+    app:cardBackgroundColor="@color/kc_surface_primary"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
-    app:strokeColor="#E3D4C6"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Size • Large • 450ml"
-            android:textColor="#6E5A4D"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="13sp" />
 
         <TextView
@@ -44,7 +44,7 @@
             android:lineSpacingExtra="2dp"
             android:maxLines="3"
             android:text="Add-ons • Vanilla syrup, Oat milk"
-            android:textColor="#6E5A4D"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -109,7 +109,7 @@
             android:layout_gravity="end"
             android:layout_marginTop="14dp"
             android:text="Buy again"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -118,7 +118,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="14dp"
-            android:background="#EADFD4"
+            android:background="@color/kc_surface_chip"
             android:visibility="gone" />
 
         <LinearLayout
@@ -243,7 +243,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="18dp"
                     android:text="Buy again"
-                    android:textColor="#4D3527"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>

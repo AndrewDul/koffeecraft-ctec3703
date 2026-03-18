@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:orientation="vertical"
     android:paddingStart="16dp"
     android:paddingTop="16dp"
@@ -13,10 +13,10 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="#FFF8F2"
+        app:cardBackgroundColor="@color/kc_surface_primary"
         app:cardCornerRadius="24dp"
         app:cardElevation="1dp"
-        app:strokeColor="#E3D4C6"
+        app:strokeColor="@color/kc_border_soft"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Track your order updates and collection status."
-                android:textColor="#6E5A4D"
+                android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

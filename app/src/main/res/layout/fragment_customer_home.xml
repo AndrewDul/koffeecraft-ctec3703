@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:clipToPadding="false"
     android:fillViewport="true"
     android:overScrollMode="never">
@@ -23,10 +23,10 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="0 beans"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="28sp"
                     android:textStyle="bold" />
 
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="Bean booster progress"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -67,7 +67,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    app:indicatorColor="#8B6B4A"
+                    app:indicatorColor="@color/kc_brand_primary"
                     app:trackColor="#E6D6C8" />
 
                 <TextView
@@ -88,10 +88,10 @@
             android:layout_marginTop="14dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -122,7 +122,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="No rewards available right now."
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="13sp"
                     android:visibility="gone" />
 
@@ -142,10 +142,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -176,7 +176,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="No new arrivals yet."
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="13sp"
                     android:visibility="gone" />
 
@@ -196,10 +196,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -230,7 +230,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="No coffee ratings yet."
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="13sp"
                     android:visibility="gone" />
 
@@ -250,10 +250,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -284,7 +284,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="No cake ratings yet."
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="13sp"
                     android:visibility="gone" />
 
@@ -304,10 +304,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -338,7 +338,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="No favourites have been added yet."
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="13sp"
                     android:visibility="gone" />
 

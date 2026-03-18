@@ -4,7 +4,7 @@
     android:id="@+id/scrollRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true"
     android:clipToPadding="false">
 
@@ -24,10 +24,10 @@
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -61,7 +61,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Manage live products, review menu visibility, and open each product for full operational details."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="14sp" />
                     </LinearLayout>
 
@@ -71,9 +71,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:contentDescription="Add product"
-                        app:backgroundTint="#9A7655"
+                        app:backgroundTint="@color/kc_brand_strong"
                         app:srcCompat="@android:drawable/ic_input_add"
-                        app:tint="#FFF8F2" />
+                        app:tint="@color/kc_surface_primary" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -86,10 +86,10 @@
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -111,7 +111,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Switch between menu families and keep the product feed clean, focused, and easy to review."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <HorizontalScrollView
@@ -182,7 +182,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text="No products match the selected filter."
-            android:textColor="#6E5A4D"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="14sp"
             android:visibility="gone" />
 

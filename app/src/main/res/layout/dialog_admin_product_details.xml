@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#F7F0E8"
+    android:background="@color/kc_surface_soft"
     android:fillViewport="true">
 
     <LinearLayout
@@ -15,10 +15,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Coffee • Menu + rewards • From £3.60 • Active"
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <TextView
@@ -52,7 +52,7 @@
                     android:layout_marginTop="14dp"
                     android:lineSpacingExtra="2dp"
                     android:text="Smooth espresso with steamed milk and a soft crafted finish."
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -60,7 +60,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:text="Configuration Tools"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -69,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Open the core management areas for this product and keep the setup consistent across the live menu."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -80,9 +80,9 @@
                     android:minHeight="52dp"
                     android:text="Manage sizes"
                     android:textAllCaps="false"
-                    android:textColor="#FFF8F2"
+                    android:textColor="@color/kc_surface_primary"
                     android:textStyle="bold"
-                    app:backgroundTint="#8B6B4A"
+                    app:backgroundTint="@color/kc_brand_primary"
                     app:cornerRadius="28dp"
                     app:elevation="0dp"
                     app:iconGravity="textStart"
@@ -96,13 +96,13 @@
                     android:minHeight="52dp"
                     android:text="Manage extras"
                     android:textAllCaps="false"
-                    android:textColor="#5A4638"
+                    android:textColor="@color/kc_icon_primary"
                     android:textStyle="bold"
                     app:backgroundTint="#F2E5D8"
                     app:cornerRadius="28dp"
                     app:elevation="0dp"
                     app:iconGravity="textStart"
-                    app:strokeColor="#DDC9B8"
+                    app:strokeColor="@color/kc_border_warm"
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -113,13 +113,13 @@
                     android:minHeight="52dp"
                     android:text="Manage allergens"
                     android:textAllCaps="false"
-                    android:textColor="#5A4638"
+                    android:textColor="@color/kc_icon_primary"
                     android:textStyle="bold"
                     app:backgroundTint="#F2E5D8"
                     app:cornerRadius="28dp"
                     app:elevation="0dp"
                     app:iconGravity="textStart"
-                    app:strokeColor="#DDC9B8"
+                    app:strokeColor="@color/kc_border_warm"
                     app:strokeWidth="1dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -128,7 +128,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -155,7 +155,7 @@
                     android:layout_marginTop="10dp"
                     android:lineSpacingExtra="3dp"
                     android:text="No size / portion options configured yet."
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -164,7 +164,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -191,7 +191,7 @@
                     android:layout_marginTop="10dp"
                     android:lineSpacingExtra="3dp"
                     android:text="No extras assigned yet."
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -200,7 +200,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
             app:strokeColor="#E4D5C8"
@@ -227,7 +227,7 @@
                     android:layout_marginTop="10dp"
                     android:lineSpacingExtra="3dp"
                     android:text="No allergens listed."
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

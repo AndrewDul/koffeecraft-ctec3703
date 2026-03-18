@@ -65,7 +65,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:text="Smooth espresso with creamy milk and a soft crafted finish."
-            android:textColor="#5B4638"
+            android:textColor="@color/kc_icon_secondary"
             android:textSize="12sp" />
 
         <TextView
@@ -74,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="★ 4.8 • 12 ratings • From £3.60"
-            android:textColor="#7A6558"
+            android:textColor="@color/kc_text_muted"
             android:textSize="11sp"
             android:textStyle="bold" />
 

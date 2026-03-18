@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,10 +18,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -34,7 +34,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Admin Dashboard"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Track operations, customer activity, menu health, and commercial performance in one place."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Today At A Glance"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -73,10 +73,10 @@
                     android:layout_height="118dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -90,7 +90,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Orders Today"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -100,7 +100,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="26sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -111,10 +111,10 @@
                     android:layout_height="118dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -128,7 +128,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Revenue Today"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -138,7 +138,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="£0.00"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -156,10 +156,10 @@
                     android:layout_height="118dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -173,7 +173,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Pending Orders"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -183,7 +183,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="26sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -194,10 +194,10 @@
                     android:layout_height="118dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -211,7 +211,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Average Rating"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -221,7 +221,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="—"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="26sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -239,10 +239,10 @@
                     android:layout_height="118dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -256,7 +256,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Promo Opt-In Rate"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -266,7 +266,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="—"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="26sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -277,10 +277,10 @@
                     android:layout_height="118dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -294,7 +294,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Active Customers"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -304,7 +304,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="26sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -317,7 +317,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Menu Health"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -325,10 +325,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -341,7 +341,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Track what is live, what is paused, and what is currently driving visibility."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <LinearLayout
@@ -360,7 +360,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Available Products"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -370,7 +370,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -385,7 +385,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Disabled Products"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -395,7 +395,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -405,7 +405,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="14dp"
-                    android:background="#EADFD4" />
+                    android:background="@color/kc_surface_chip" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -423,7 +423,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Reward-Enabled Live"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -433,7 +433,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -448,7 +448,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="New Arrivals Live"
-                            android:textColor="#7A6558"
+                            android:textColor="@color/kc_text_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -458,7 +458,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="0"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -471,7 +471,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Quick Actions"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -495,10 +495,10 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -512,7 +512,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Manage Menu"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -521,7 +521,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Edit products, visibility, options, and extras."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -535,10 +535,10 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -552,7 +552,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="View Orders"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -561,7 +561,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Open the order queue and track operational flow."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -582,10 +582,10 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -599,7 +599,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Campaign Studio"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -608,7 +608,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Create targeted campaigns, offers, and bonus beans."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -622,10 +622,10 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -639,7 +639,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Review Feedback"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -648,7 +648,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Moderate comments and monitor sentiment."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -669,10 +669,10 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -686,7 +686,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Manage Customers"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -695,7 +695,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Search accounts and control access status."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -709,10 +709,10 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="#FFF8F2"
+                    app:cardBackgroundColor="@color/kc_surface_primary"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="1dp"
-                    app:strokeColor="#E3D4C6"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -726,7 +726,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Admin Settings"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -735,7 +735,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Access secure tools, roles, and internal controls."
-                            android:textColor="#6E5A4D"
+                            android:textColor="@color/kc_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -747,7 +747,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Top Rated Products"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -755,10 +755,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -771,7 +771,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="See which products lead customer sentiment right now."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <androidx.viewpager2.widget.ViewPager2
@@ -795,7 +795,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Most Loved Products"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -803,10 +803,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -819,7 +819,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Track which items earn the most customer favourites."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <androidx.viewpager2.widget.ViewPager2
@@ -843,7 +843,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Most Commented Products"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -852,10 +852,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="6dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -868,7 +868,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="See which products generate the most written customer discussion."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <androidx.viewpager2.widget.ViewPager2
@@ -892,7 +892,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Needs Attention"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -901,10 +901,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -917,7 +917,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Use these highlights to decide where action is needed next."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <TextView
@@ -926,7 +926,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="• No orders are currently waiting in the active queue."
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -935,7 +935,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="• All menu products are currently active."
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -944,7 +944,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="• No customer comments are currently hidden."
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -953,7 +953,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="• No customer accounts have been registered yet."
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

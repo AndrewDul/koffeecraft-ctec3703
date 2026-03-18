@@ -1,11 +1,11 @@
 package uk.ac.dmu.koffeecraft.ui.inbox
 
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import uk.ac.dmu.koffeecraft.R
@@ -113,11 +113,11 @@ class CustomerInboxAdapter(
 
         private fun bindCardState(isRead: Boolean) {
             if (isRead) {
-                cardRoot.setCardBackgroundColor(Color.parseColor("#FFF8F2"))
-                cardRoot.strokeColor = Color.parseColor("#E3D4C6")
+                cardRoot.setCardBackgroundColor(color(R.color.kc_surface_primary))
+                cardRoot.strokeColor = color(R.color.kc_border_soft)
             } else {
-                cardRoot.setCardBackgroundColor(Color.parseColor("#FFF6EE"))
-                cardRoot.strokeColor = Color.parseColor("#D8BBA4")
+                cardRoot.setCardBackgroundColor(color(R.color.kc_surface_secondary))
+                cardRoot.strokeColor = color(R.color.kc_border_warm)
             }
         }
 
@@ -126,12 +126,12 @@ class CustomerInboxAdapter(
 
             if (isRead) {
                 tvReadStateChip.text = "Read"
-                background.setColor(Color.parseColor("#EEE4DA"))
-                tvReadStateChip.setTextColor(Color.parseColor("#7A6558"))
+                background.setColor(color(R.color.kc_surface_chip))
+                tvReadStateChip.setTextColor(color(R.color.kc_text_muted))
             } else {
                 tvReadStateChip.text = "Unread"
-                background.setColor(Color.parseColor("#E8DDD4"))
-                tvReadStateChip.setTextColor(Color.parseColor("#6A4D3A"))
+                background.setColor(color(R.color.kc_surface_info))
+                tvReadStateChip.setTextColor(color(R.color.kc_info_text))
             }
         }
 
@@ -155,20 +155,24 @@ class CustomerInboxAdapter(
 
             when (label) {
                 "Promo" -> {
-                    background.setColor(Color.parseColor("#F2E4D3"))
-                    tvCategoryChip.setTextColor(Color.parseColor("#7A5634"))
+                    background.setColor(color(R.color.kc_surface_warning))
+                    tvCategoryChip.setTextColor(color(R.color.kc_warning_text))
                 }
 
                 "Important" -> {
-                    background.setColor(Color.parseColor("#F0DCD8"))
-                    tvCategoryChip.setTextColor(Color.parseColor("#7B4A42"))
+                    background.setColor(color(R.color.kc_surface_error))
+                    tvCategoryChip.setTextColor(color(R.color.kc_danger_text))
                 }
 
                 "Service" -> {
-                    background.setColor(Color.parseColor("#DFE7D8"))
-                    tvCategoryChip.setTextColor(Color.parseColor("#3D5640"))
+                    background.setColor(color(R.color.kc_surface_success))
+                    tvCategoryChip.setTextColor(color(R.color.kc_success_text))
                 }
             }
+        }
+
+        private fun color(colorResId: Int): Int {
+            return ContextCompat.getColor(itemView.context, colorResId)
         }
     }
 }

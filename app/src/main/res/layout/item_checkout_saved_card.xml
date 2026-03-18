@@ -8,7 +8,7 @@
     app:cardBackgroundColor="#FAF4EE"
     app:cardCornerRadius="22dp"
     app:cardElevation="0dp"
-    app:strokeColor="#E3D4C6"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -43,7 +43,7 @@
                 android:paddingEnd="10dp"
                 android:paddingBottom="5dp"
                 android:text="Default"
-                android:textColor="#FFF8F2"
+                android:textColor="@color/kc_surface_primary"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="VISA"
-            android:textColor="#8B6B4A"
+            android:textColor="@color/kc_brand_primary"
             android:textSize="12sp"
             android:textStyle="bold" />
 

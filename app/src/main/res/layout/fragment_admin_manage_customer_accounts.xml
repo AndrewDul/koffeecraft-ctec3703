@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD"
+    android:background="@color/kc_shell_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="‹ Back"
-            android:textColor="#8B6B4A"
+            android:textColor="@color/kc_brand_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -28,10 +28,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -53,7 +53,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Manage customer and admin access, secure account status, and reset internal credentials."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Account type"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -71,10 +71,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -118,7 +118,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="Find a customer by Order ID or Customer ID and manage customer access safely."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -128,7 +128,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="Find account"
-            android:textColor="#4D3527"
+            android:textColor="@color/kc_text_section"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -137,10 +137,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -173,8 +173,8 @@
                     android:layout_marginTop="12dp"
                     android:text="Find account"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#5F7F5B"
+                    android:textColor="@color/kc_surface_secondary"
+                    app:backgroundTint="@color/kc_success"
                     app:cornerRadius="24dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -185,10 +185,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -222,7 +222,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Status: Active"
-                    android:textColor="#5B4638"
+                    android:textColor="@color/kc_icon_secondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -280,10 +280,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#FFF8F2"
+            app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E3D4C6"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -308,8 +308,8 @@
                     android:layout_marginTop="12dp"
                     android:text="Activate account"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#5F7F5B"
+                    android:textColor="@color/kc_surface_secondary"
+                    app:backgroundTint="@color/kc_success"
                     app:cornerRadius="24dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -319,8 +319,8 @@
                     android:layout_marginTop="8dp"
                     android:text="Deactivate account"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#8B6B4A"
+                    android:textColor="@color/kc_surface_secondary"
+                    app:backgroundTint="@color/kc_brand_primary"
                     app:cornerRadius="24dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -330,8 +330,8 @@
                     android:layout_marginTop="8dp"
                     android:text="Delete account"
                     android:textAllCaps="false"
-                    android:textColor="#F8F2EA"
-                    app:backgroundTint="#A12727"
+                    android:textColor="@color/kc_surface_secondary"
+                    app:backgroundTint="@color/kc_danger"
                     app:cornerRadius="24dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -342,7 +342,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="No matching account found."
-            android:textColor="#A12727"
+            android:textColor="@color/kc_danger"
             android:visibility="gone" />
 
     </LinearLayout>

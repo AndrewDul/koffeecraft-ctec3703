@@ -7,10 +7,10 @@
     android:layout_marginTop="6dp"
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="6dp"
-    app:cardBackgroundColor="#FFF8F2"
+    app:cardBackgroundColor="@color/kc_surface_primary"
     app:cardCornerRadius="22dp"
     app:cardElevation="1dp"
-    app:strokeColor="#E3D4C6"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="Smooth espresso with milk."
-            android:textColor="#5B4638"
+            android:textColor="@color/kc_icon_secondary"
             android:textSize="13sp" />
 
         <TextView

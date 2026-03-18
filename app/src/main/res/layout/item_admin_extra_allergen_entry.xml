@@ -52,10 +52,10 @@
             android:minHeight="46dp"
             android:text="Manage allergens"
             android:textAllCaps="false"
-            android:textColor="#FFF8F2"
+            android:textColor="@color/kc_surface_primary"
             android:textSize="12sp"
             android:textStyle="bold"
-            app:backgroundTint="#9A7655"
+            app:backgroundTint="@color/kc_brand_strong"
             app:cornerRadius="24dp"
             app:elevation="0dp"
             app:strokeWidth="0dp" />

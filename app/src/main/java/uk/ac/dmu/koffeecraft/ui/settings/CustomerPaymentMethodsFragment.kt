@@ -286,6 +286,16 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
 
                 if (hasError) return@setOnClickListener
 
+                val safeExpiry = expiry
+                if (safeExpiry == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "The card expiry could not be read. Please check the expiry date and try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+
                 val last4 = numberDigits.takeLast(4)
                 val finalNickname = if (nicknameInput.isBlank()) {
                     PaymentCardValidator.defaultNickname(brand, last4)
@@ -309,8 +319,8 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
                             brand = brand.displayName,
                             maskedCardNumber = PaymentCardValidator.buildMaskedNumber(numberInput),
                             last4 = last4,
-                            expiryMonth = expiry!!.first,
-                            expiryYear = expiry.second,
+                            expiryMonth = safeExpiry.first,
+                            expiryYear = safeExpiry.second,
                             isDefault = shouldBeDefault
                         )
                     )

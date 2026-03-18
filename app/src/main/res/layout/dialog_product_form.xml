@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true"
-    android:background="#F7F0E8">
+    android:background="@color/kc_surface_soft">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Product basics"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Choose the product family first, then decide if this product should also be available as a reward."
-                android:textColor="#6E5A4D"
+                android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="Product family"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButtonToggleGroup
@@ -101,14 +101,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="Enable as reward"
-                android:textColor="#2E2018" />
+                android:textColor="@color/kc_text_primary" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Coffee and cake can be reward-eligible. Merch should normally be reward-only."
-                android:textColor="#6E5A4D"
+                android:textColor="@color/kc_text_secondary"
                 android:textSize="12sp" />
 
             <com.google.android.material.textfield.TextInputLayout

@@ -3,16 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true"
-    android:background="#F7F0E8">
+    android:background="@color/kc_surface_soft">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        app:cardBackgroundColor="#FFF8F2"
+        app:cardBackgroundColor="@color/kc_surface_primary"
         app:cardCornerRadius="24dp"
         app:cardElevation="1dp"
-        app:strokeColor="#E3D4C6"
+        app:strokeColor="@color/kc_border_soft"
         app:strokeWidth="1dp"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Add a clear allergen label to keep product and extra information accurate."
-                android:textColor="#6E5A4D"
+                android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
 
             <com.google.android.material.textfield.TextInputLayout

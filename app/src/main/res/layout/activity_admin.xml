@@ -3,12 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5EBDD">
+    android:background="@color/kc_shell_background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/adminTopBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@color/kc_shell_background"
         android:paddingStart="16dp"
         android:paddingTop="12dp"
         android:paddingEnd="16dp"
@@ -21,8 +22,8 @@
             android:id="@+id/tvAdminLogo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="☕ KoffeeCraft"
-            android:textColor="#2E2018"
+            android:text="@string/app_logo"
+            android:textColor="@color/kc_text_primary"
             android:textSize="22sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -45,10 +46,10 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:background="@drawable/bg_orders_filter_chip"
-                android:contentDescription="Inbox"
+                android:contentDescription="@string/cd_inbox"
                 android:padding="10dp"
                 android:src="@android:drawable/ic_dialog_email"
-                android:tint="#5A4638" />
+                android:tint="@color/kc_icon_primary" />
 
             <FrameLayout
                 android:layout_width="wrap_content"
@@ -60,22 +61,22 @@
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:background="@drawable/bg_orders_filter_chip"
-                    android:contentDescription="Notifications"
+                    android:contentDescription="@string/cd_notifications"
                     android:padding="10dp"
                     android:src="@android:drawable/ic_dialog_info"
-                    android:tint="#5A4638" />
+                    android:tint="@color/kc_icon_primary" />
 
                 <TextView
                     android:id="@+id/tvAdminNotificationBadge"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="end|top"
+                    android:background="@drawable/bg_topbar_badge"
                     android:gravity="center"
-                    android:text="0"
-                    android:textColor="#FFF8F2"
+                    android:text="@string/badge_zero"
+                    android:textColor="@color/kc_text_inverse"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:background="@drawable/bg_topbar_badge"
                     android:visibility="gone" />
             </FrameLayout>
 
@@ -85,10 +86,10 @@
                 android:layout_height="44dp"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_orders_filter_chip"
-                android:contentDescription="Settings"
+                android:contentDescription="@string/cd_settings"
                 android:padding="10dp"
                 android:src="@android:drawable/ic_menu_manage"
-                android:tint="#5A4638" />
+                android:tint="@color/kc_icon_primary" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -109,7 +110,7 @@
         android:id="@+id/adminBottomNav"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#FFF8F2"
+        android:background="@color/kc_surface_primary"
         app:itemIconTint="@color/kc_chip_text_selector"
         app:itemTextColor="@color/kc_chip_text_selector"
         app:labelVisibilityMode="labeled"

@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="#FFF8F2"
+    app:cardBackgroundColor="@color/kc_surface_primary"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
-    app:strokeColor="#E3D4C6"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -118,7 +118,7 @@
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
             android:text="Read more"
-            android:textColor="#5F7F5B"
+            android:textColor="@color/kc_success"
             android:textSize="13sp"
             android:textStyle="bold"
             android:visibility="gone" />
