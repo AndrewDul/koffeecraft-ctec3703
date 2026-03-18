@@ -6,6 +6,7 @@ import android.graphics.RectF
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -27,6 +28,7 @@ import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.HiddenOrdersStore
 import java.util.Calendar
+import kotlin.math.abs
 
 class OrdersFragment : Fragment(R.layout.fragment_orders) {
 
@@ -71,6 +73,17 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
             onOrderAgain = { order ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val reorderItems = db.orderItemDao().getReorderItems(order.orderId)
+
+                    if (reorderItems.isEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                requireContext(),
+                                "These items are no longer available to reorder.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        return@launch
+                    }
 
                     CartManager.clear()
                     reorderItems.forEach { CartManager.add(it.product, it.quantity) }
@@ -211,6 +224,8 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
+                if (position == RecyclerView.NO_POSITION) return
+
                 val order = adapter.getOrderAt(position) ?: return
                 hideOrder(order.orderId)
             }
@@ -234,6 +249,7 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
 
     private fun drawSwipeBackground(canvas: Canvas, itemView: View, dX: Float) {
         if (dX == 0f) return
+        if (abs(dX) < dp(24f)) return
 
         val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = color(R.color.kc_brand_button)
@@ -264,6 +280,8 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
                 bottom
             )
         }
+
+        if (rect.width() <= 0f) return
 
         canvas.drawRoundRect(rect, dp(22f), dp(22f), backgroundPaint)
 

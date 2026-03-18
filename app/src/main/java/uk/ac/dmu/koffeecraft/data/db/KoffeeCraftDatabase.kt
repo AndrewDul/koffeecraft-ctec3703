@@ -68,7 +68,7 @@ import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
         CustomerFavouritePreset::class,
         CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -927,7 +927,36 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE order_items ADD COLUMN productNameSnapshot TEXT")
+                db.execSQL("ALTER TABLE order_items ADD COLUMN productDescriptionSnapshot TEXT")
 
+                db.execSQL(
+                    """
+            UPDATE order_items
+            SET productNameSnapshot = (
+                SELECT p.name
+                FROM products p
+                WHERE p.productId = order_items.productId
+            )
+            WHERE productNameSnapshot IS NULL
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            UPDATE order_items
+            SET productDescriptionSnapshot = (
+                SELECT p.description
+                FROM products p
+                WHERE p.productId = order_items.productId
+            )
+            WHERE productDescriptionSnapshot IS NULL
+            """.trimIndent()
+                )
+            }
+        }
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -951,7 +980,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_13_14,
                         MIGRATION_14_15,
                         MIGRATION_15_16,
-                        MIGRATION_16_17
+                        MIGRATION_16_17,
+                        MIGRATION_17_18
                     )
                     .addCallback(SeedCallback())
                     .build()

@@ -30,5 +30,7 @@ data class OrderItem(
     val selectedOptionSizeValue: Int? = null,
     val selectedOptionSizeUnit: String? = null,
     val selectedAddOnsSummary: String? = null,
-    val estimatedCalories: Int? = null
+    val estimatedCalories: Int? = null,
+    val productNameSnapshot: String? = null,
+    val productDescriptionSnapshot: String? = null
 )

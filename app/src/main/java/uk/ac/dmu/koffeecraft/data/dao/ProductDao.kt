@@ -59,11 +59,21 @@ interface ProductDao {
 
     @Query(
         """
-        DELETE FROM products
+        UPDATE products
+        SET isAvailable = 0
         WHERE productId = :productId
         """
     )
-    suspend fun deleteById(productId: Long)
+    suspend fun archiveById(productId: Long)
+
+    @Query(
+        """
+        UPDATE products
+        SET isAvailable = 1
+        WHERE productId = :productId
+        """
+    )
+    suspend fun restoreById(productId: Long)
 
     @Query(
         """

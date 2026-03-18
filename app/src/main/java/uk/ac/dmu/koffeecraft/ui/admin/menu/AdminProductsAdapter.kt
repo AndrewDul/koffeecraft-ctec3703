@@ -191,7 +191,7 @@ class AdminProductsAdapter(
                 if (product.isActive) "Deactivate product" else "Activate product"
 
             btnEdit.contentDescription = "Edit product"
-            btnDelete.contentDescription = "Delete product permanently"
+            btnDelete.contentDescription = "Archive product"
         }
 
         private fun buildCollapsedCategoryLine(product: Product): String {

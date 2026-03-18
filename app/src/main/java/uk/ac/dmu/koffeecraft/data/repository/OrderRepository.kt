@@ -34,7 +34,9 @@ class OrderRepository(private val db: KoffeeCraftDatabase) {
                     selectedOptionSizeValue = cartItem.selectedOptionSizeValue,
                     selectedOptionSizeUnit = cartItem.selectedOptionSizeUnit,
                     selectedAddOnsSummary = cartItem.selectedAddOnsSummary,
-                    estimatedCalories = cartItem.estimatedCalories
+                    estimatedCalories = cartItem.estimatedCalories,
+                    productNameSnapshot = cartItem.product.name,
+                    productDescriptionSnapshot = cartItem.product.description
                 )
             }
 

@@ -286,12 +286,15 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         product: Product
     ) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Delete product?")
-            .setMessage("This will permanently remove \"${product.name}\" from the menu.")
+            .setTitle("Archive product?")
+            .setMessage(
+                "\"${product.name}\" will be removed from active sale, " +
+                        "but kept in the database so past orders and history remain intact."
+            )
             .setNegativeButton("Cancel", null)
-            .setPositiveButton("Delete") { _, _ ->
+            .setPositiveButton("Archive") { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.productDao().deleteById(product.productId)
+                    db.productDao().archiveById(product.productId)
                 }
             }
             .show()
