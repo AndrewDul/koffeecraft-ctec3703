@@ -1,6 +1,6 @@
 package uk.ac.dmu.koffeecraft.ui.admin.menu
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,21 +33,18 @@ import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductAddOnCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductAllergenCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-
+import androidx.fragment.app.viewModels
+import kotlinx.coroutines.flow.collectLatest
 class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
-
+    private val viewModel: AdminMenuViewModel by viewModels()
     private lateinit var adapter: AdminProductsAdapter
     private lateinit var tvEmpty: TextView
+    private var productDialog: AlertDialog? = null
+    private var productDialogTilName: TextInputLayout? = null
+    private var productDialogTilDescription: TextInputLayout? = null
+    private var productDialogTilPrice: TextInputLayout? = null
 
-    private var allProducts: List<Product> = emptyList()
-    private var currentFilter: CategoryFilter = CategoryFilter.ALL
 
-    private enum class CategoryFilter {
-        ALL,
-        COFFEE,
-        CAKE,
-        MERCH
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -67,15 +64,13 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         adapter = AdminProductsAdapter(
             items = emptyList(),
             onToggle = { product ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.productDao().setActive(product.productId, !product.isActive)
-                }
+                viewModel.toggleProductActive(product)
             },
             onEdit = { product ->
-                showProductDialog(db, existing = product)
+                showProductDialog(existing = product)
             },
             onDelete = { product ->
-                showDeleteDialog(db, product)
+                showDeleteDialog(product)
             },
             onDetails = { product ->
                 showProductDetailsDialog(db, product)
@@ -97,32 +92,64 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
             adapter.collapseAll()
 
-            currentFilter = when (checkedId) {
-                R.id.btnFilterCoffee -> CategoryFilter.COFFEE
-                R.id.btnFilterCake -> CategoryFilter.CAKE
-                R.id.btnFilterMerch -> CategoryFilter.MERCH
-                else -> CategoryFilter.ALL
+            val filter = when (checkedId) {
+                R.id.btnFilterCoffee -> AdminMenuCategoryFilter.COFFEE
+                R.id.btnFilterCake -> AdminMenuCategoryFilter.CAKE
+                R.id.btnFilterMerch -> AdminMenuCategoryFilter.MERCH
+                else -> AdminMenuCategoryFilter.ALL
             }
 
-            applyCategoryFilter()
+            viewModel.setFilter(filter)
         }
 
         fab.setOnClickListener {
-            showProductDialog(db, existing = null)
+            showProductDialog(existing = null)
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            db.productDao().observeAll().collect { products ->
-                allProducts = products
-                applyCategoryFilter()
+            viewModel.uiState.collectLatest { state ->
+                adapter.submitList(state.filteredProducts)
+                tvEmpty.visibility = if (state.filteredProducts.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.events.collectLatest { event ->
+                when (event) {
+                    is AdminMenuUiEvent.Message -> {
+                        Toast.makeText(requireContext(), event.text, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is AdminMenuUiEvent.ProductValidationFailed -> {
+                        productDialogTilName?.error = event.result.nameError
+                        productDialogTilDescription?.error = event.result.descriptionError
+                        productDialogTilPrice?.error = event.result.priceError
+
+                        event.result.generalMessage?.let { message ->
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    is AdminMenuUiEvent.ProductSaved -> {
+                        Toast.makeText(
+                            requireContext(),
+                            if (event.created) "Product added" else "Product updated",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        productDialog?.dismiss()
+                        clearProductDialogRefs()
+
+                        if (event.created && (event.product.isCoffee || event.product.isCake)) {
+                            showProductDetailsDialog(db, event.product)
+                        }
+                    }
+                }
             }
         }
     }
 
-    private fun showProductDialog(
-        db: KoffeeCraftDatabase,
-        existing: Product?
-    ) {
+    private fun showProductDialog(existing: Product?) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_product_form, null)
 
         val tilName = dialogView.findViewById<TextInputLayout>(R.id.tilName)
@@ -168,17 +195,18 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             .setPositiveButton(if (isEdit) "Save" else "Add", null)
             .create()
 
+        productDialog = dialog
+        productDialogTilName = tilName
+        productDialogTilDescription = tilDescription
+        productDialogTilPrice = tilPrice
+
+        dialog.setOnDismissListener {
+            clearProductDialogRefs()
+        }
+
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                tilName.error = null
-                tilDescription.error = null
-                tilPrice.error = null
-
-                val name = etName.text?.toString()?.trim().orEmpty()
-                val description = etDescription.text?.toString()?.trim().orEmpty()
-                val priceText = etPrice.text?.toString()?.trim().orEmpty()
-                val rewardEnabled = switchRewardEnabled.isChecked
-                val isNew = cbIsNew.isChecked
+                clearProductDialogErrors()
 
                 val productFamily = when (toggleProductFamily.checkedButtonId) {
                     R.id.btnFamilyCoffee -> "COFFEE"
@@ -187,104 +215,26 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
                     else -> ""
                 }
 
-                var hasError = false
+                val formData = AdminMenuProductFormData(
+                    name = etName.text?.toString().orEmpty(),
+                    description = etDescription.text?.toString().orEmpty(),
+                    priceText = etPrice.text?.toString().orEmpty(),
+                    productFamily = productFamily,
+                    rewardEnabled = switchRewardEnabled.isChecked,
+                    isNew = cbIsNew.isChecked
+                )
 
-                if (name.isBlank()) {
-                    tilName.error = "Enter product name"
-                    hasError = true
-                }
-
-                if (description.isBlank()) {
-                    tilDescription.error = "Enter product description"
-                    hasError = true
-                }
-
-                if (productFamily.isBlank()) {
-                    Toast.makeText(requireContext(), "Choose a product family.", Toast.LENGTH_SHORT).show()
-                    hasError = true
-                }
-
-                val price = priceText.toDoubleOrNull()
-                if (price == null || price < 0.0) {
-                    tilPrice.error = "Enter a valid price"
-                    hasError = true
-                }
-
-                if (productFamily != "MERCH" && price != null && price <= 0.0) {
-                    tilPrice.error = "Menu products must have a price above 0"
-                    hasError = true
-                }
-
-                if (productFamily == "MERCH" && !rewardEnabled) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Merch products should be reward-enabled.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    hasError = true
-                }
-
-                if (hasError) return@setOnClickListener
-                val validatedPrice = price ?: return@setOnClickListener
-
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    var insertedOrUpdatedProduct: Product? = null
-
-                    if (existing == null) {
-                        val insertedId = db.productDao().insert(
-                            Product(
-                                name = name,
-                                productFamily = productFamily,
-                                description = description,
-                                price = validatedPrice,
-                                isActive = true,
-                                isNew = isNew,
-                                imageKey = null,
-                                rewardEnabled = rewardEnabled
-                            )
-                        )
-                        insertedOrUpdatedProduct = db.productDao().getById(insertedId)
-                    } else {
-                        val updated = existing.copy(
-                            name = name,
-                            productFamily = productFamily,
-                            description = description,
-                            price = validatedPrice,
-                            isNew = isNew,
-                            rewardEnabled = rewardEnabled
-                        )
-                        db.productDao().update(updated)
-                        insertedOrUpdatedProduct = db.productDao().getById(existing.productId)
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-
-                        Toast.makeText(
-                            requireContext(),
-                            if (existing == null) "Product added" else "Product updated",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        dialog.dismiss()
-
-                        val savedProduct = insertedOrUpdatedProduct ?: return@withContext
-
-                        if (existing == null && (savedProduct.isCoffee || savedProduct.isCake)) {
-                            showProductDetailsDialog(db, savedProduct)
-                        }
-                    }
-                }
+                viewModel.saveProduct(
+                    existing = existing,
+                    formData = formData
+                )
             }
         }
 
         dialog.show()
     }
 
-    private fun showDeleteDialog(
-        db: KoffeeCraftDatabase,
-        product: Product
-    ) {
+    private fun showDeleteDialog(product: Product) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Archive product?")
             .setMessage(
@@ -293,9 +243,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             )
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Archive") { _, _ ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.productDao().archiveById(product.productId)
-                }
+                viewModel.archiveProduct(product)
             }
             .show()
     }
@@ -1717,7 +1665,18 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
         dialog.show()
     }
+    private fun clearProductDialogErrors() {
+        productDialogTilName?.error = null
+        productDialogTilDescription?.error = null
+        productDialogTilPrice?.error = null
+    }
 
+    private fun clearProductDialogRefs() {
+        productDialog = null
+        productDialogTilName = null
+        productDialogTilDescription = null
+        productDialogTilPrice = null
+    }
     private fun toOptionKey(displayLabel: String): String {
         val normalized = displayLabel
             .trim()
@@ -1732,15 +1691,5 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         }
     }
 
-    private fun applyCategoryFilter() {
-        val filteredProducts = when (currentFilter) {
-            CategoryFilter.ALL -> allProducts
-            CategoryFilter.COFFEE -> allProducts.filter { it.isCoffee }
-            CategoryFilter.CAKE -> allProducts.filter { it.isCake }
-            CategoryFilter.MERCH -> allProducts.filter { it.isMerch }
-        }
 
-        adapter.submitList(filteredProducts)
-        tvEmpty.visibility = if (filteredProducts.isEmpty()) View.VISIBLE else View.GONE
-    }
 }

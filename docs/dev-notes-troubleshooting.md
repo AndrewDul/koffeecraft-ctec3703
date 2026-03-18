@@ -1351,3 +1351,146 @@ These fixes reduced the risk of:
 - hidden data integrity problems that would be harder to debug later.
 
 
+## 61)Admin menu refactor and product history protection - build issues
+
+### 1. Unresolved reference: `archiveById`
+#### Problem
+After changing the admin product deletion flow from hard delete to archive flow, the project failed to compile with:
+
+`Unresolved reference 'archiveById'`
+
+#### Cause
+`AdminMenuFragment` was updated to call:
+
+`db.productDao().archiveById(product.productId)`
+
+but `ProductDao` did not yet contain the new `archiveById(...)` method.
+
+#### Fix
+I added the missing DAO method:
+
+- `archiveById(productId)` → sets `isAvailable = 0`
+- `restoreById(productId)` → sets `isAvailable = 1`
+
+#### Result
+The archive flow compiled correctly and the admin product removal logic was aligned with soft delete behaviour.
+
+---
+
+### 2. Room migration mismatch after adding foreign keys
+#### Problem
+After introducing foreign keys and migration updates, the app crashed on startup with messages such as:
+
+`Migration didn't properly handle: customer_payment_cards`
+`Migration didn't properly handle: payments`
+`Migration didn't properly handle: order_items`
+
+#### Cause
+The database migration SQL had already been updated to create tables with foreign keys and some default values, but several Room entity classes still reflected the older schema.
+
+This caused Room validation to fail because:
+- migrated tables contained foreign keys,
+- entities still expected tables without foreign keys,
+- in one case the migrated table also used a default value that was not declared in the entity.
+
+#### Fix
+I aligned the Room entities with the migration schema by updating the affected classes, including:
+- `CustomerPaymentCard`
+- `Payment`
+- `OrderItem`
+
+This included:
+- adding the missing `foreignKeys = [...]`
+- preserving matching indices
+- adding matching default metadata where required
+
+#### Result
+Room schema validation passed and the app started correctly after migration.
+
+---
+
+### 3. Order item migration mismatch after adding snapshot fields
+#### Problem
+After adding product snapshot columns to `OrderItem`, the app crashed again during Room migration validation with:
+
+`Migration didn't properly handle: order_items`
+
+#### Cause
+While adding:
+- `productNameSnapshot`
+- `productDescriptionSnapshot`
+
+the `OrderItem` entity was overwritten with a version that no longer included the previously added foreign key to `Order`.
+
+That created a mismatch:
+- migration created `order_items` with FK to `orders`
+- entity expected `order_items` without FK
+
+#### Fix
+I restored the `OrderItem` foreign key definition and kept the new snapshot fields in the same entity.
+
+#### Result
+The product snapshot update and the foreign key migration became fully compatible.
+
+---
+
+### 4. AlertDialog type mismatch during AdminMenu refactor
+#### Problem
+During the product form refactor, the build failed with a dialog type mismatch.
+
+#### Cause
+`AdminMenuFragment` used:
+
+`import android.app.AlertDialog`
+
+but `MaterialAlertDialogBuilder(...).create()` returns:
+
+`androidx.appcompat.app.AlertDialog`
+
+The dialog reference property therefore used the wrong type.
+
+#### Fix
+I replaced the import with:
+
+`import androidx.appcompat.app.AlertDialog`
+
+#### Result
+The product dialog reference type became correct and the build error was removed.
+
+---
+
+### 5. Syntax error after AdminMenu constructor refactor
+#### Problem
+During the `AdminMenuFragment` MVVM refactor, the build failed with:
+
+`Syntax error: Expecting an argument`
+
+#### Cause
+The constructor/setup code for `AdminProductsAdapter(...)` and surrounding fragment changes temporarily became inconsistent while old and new method calls were being mixed during the refactor.
+
+The main risk areas were:
+- stale method calls using the old `showProductDialog(db, existing = ...)` signature
+- partially updated lambda arguments
+- leftover calls to removed UI-side filtering logic
+
+#### Fix
+I aligned the fragment with the new architecture by ensuring that:
+- the adapter used the new lambdas,
+- `showProductDialog(existing = ...)` was called with the new signature,
+- the old local filter call path was removed,
+- the fragment reacted only to `ViewModel` state and events for the refactored product list / form flow.
+
+#### Result
+The fragment compiled correctly and the refactored product list and product form flow worked with the new ViewModel + Repository structure.
+
+---
+
+## Why these fixes mattered
+These fixes were important because they removed real risks in the project:
+
+- build failures caused by partially completed refactors
+- startup crashes caused by Room schema mismatch
+- inconsistent admin menu behaviour during architecture changes
+- fragile product deletion behaviour that could break historical order data
+
+Together, they improved both the reliability of the project and the architectural quality of the codebase.

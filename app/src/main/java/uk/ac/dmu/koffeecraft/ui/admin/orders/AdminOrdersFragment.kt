@@ -12,13 +12,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
 import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
 import uk.ac.dmu.koffeecraft.util.notifications.CustomerNotificationManager
+
 class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
     private lateinit var adapter: AdminOrdersAdapter
@@ -74,8 +78,6 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.isNestedScrollingEnabled = false
-        rv.setHasFixedSize(false)
-        rv.itemAnimator = null
         rv.setHasFixedSize(false)
         rv.itemAnimator = null
 
@@ -255,7 +257,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
                     searchMode = currentSearchMode.name,
                     sortDir = sortDir
                 )
-                .collect { rows ->
+                .collectLatest { rows ->
                     currentRows = rows
 
                     val expanded = expandedOrderId
@@ -300,7 +302,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     }
 
     private fun loadOrderDetails(orderId: Long) {
-        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val order = db.orderDao().getById(orderId)
             val customer = db.customerDao().getInboxTargetByOrderId(orderId)
             val payment = db.paymentDao().getLatestForOrder(orderId)
@@ -308,7 +310,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
             val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(orderId)
 
             if (order == null || customer == null) {
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     detailCache.remove(orderId)
                     if (expandedOrderId == orderId) {
                         loadingOrderId = null
@@ -347,7 +349,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
                 items = itemLines
             )
 
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 detailCache[orderId] = details
                 if (expandedOrderId == orderId) {
                     loadingOrderId = null
@@ -365,7 +367,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
         val appContext = requireContext().applicationContext
 
-        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             db.orderDao().updateStatus(row.orderId, targetStatus)
 
             val updatedOrder = db.orderDao().getById(row.orderId)
@@ -392,7 +394,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
             detailCache.remove(row.orderId)
 
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 if (expandedOrderId == row.orderId) {
                     loadingOrderId = row.orderId
                     submitAdapterState()

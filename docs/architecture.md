@@ -2852,3 +2852,80 @@ These changes improve:
 - overall architectural quality of the application.
 
 
+### Admin menu architecture refactor
+
+I refactored the first major part of the admin menu flow to improve architectural consistency, separation of concerns, and long-term maintainability.
+
+#### What was changed
+Previously, `AdminMenuFragment` directly handled:
+- product list observation,
+- category filtering,
+- product activation / deactivation,
+- product archiving,
+- product form validation,
+- product insert / update database operations.
+
+This meant that both UI logic and business/data logic were tightly coupled inside a single large fragment.
+
+To improve this, I introduced a clearer MVVM-style structure for the admin menu product list and product form flow.
+
+#### New structure
+The following classes were introduced:
+
+- `AdminMenuViewModel`
+- `AdminMenuRepository`
+- `AdminMenuUiState`
+- `AdminMenuUiEvent`
+- `AdminMenuCategoryFilter`
+- `AdminMenuProductFormData`
+- `AdminMenuProductValidator`
+- `AdminMenuProductValidationResult`
+
+#### Responsibilities after refactor
+
+**AdminMenuFragment**
+- collects UI input,
+- opens dialogs,
+- observes `uiState`,
+- reacts to `uiEvent`,
+- updates visible UI only.
+
+**AdminMenuViewModel**
+- owns admin menu screen state,
+- applies category filtering,
+- handles product enable / disable flow,
+- handles product archive flow,
+- validates and coordinates product save flow.
+
+**AdminMenuRepository**
+- performs product data operations through Room DAO access,
+- centralises product list observation and product persistence calls.
+
+**Validator classes**
+- hold product form rules outside the fragment,
+- return structured validation results that can be rendered by the UI.
+
+#### Why this improves the architecture
+This refactor reduces the amount of direct DAO usage inside `AdminMenuFragment` and moves important product form logic out of the UI layer.
+
+As a result:
+- the fragment is lighter,
+- product form logic is easier to understand,
+- validation rules are centralised,
+- the code is easier to extend and maintain,
+- the admin menu now follows the same design direction as the stronger MVVM-based parts of the application.
+
+#### Scope of this refactor
+This is the first stage of a wider admin menu refactor.
+
+At this point, the following flows are already improved:
+- product list observation,
+- category filtering,
+- product active / inactive switching,
+- product archiving,
+- add / edit product validation,
+- add / edit product save flow.
+
+The remaining admin menu areas such as size options, extras, allergens, and product detail loading still remain inside the fragment for now and are planned for the next refactor stages.
+
+
