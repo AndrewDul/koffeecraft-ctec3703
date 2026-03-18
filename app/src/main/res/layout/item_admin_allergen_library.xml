@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="10dp"
-    app:cardBackgroundColor="#FAF4EE"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
-    app:strokeColor="#E6D8CC"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Milk"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Available in the shared allergen library"
-            android:textColor="#6E5A4D"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="12sp" />
 
     </LinearLayout>

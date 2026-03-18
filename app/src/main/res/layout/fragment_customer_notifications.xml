@@ -13,7 +13,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/kc_surface_primary"
+        app:cardBackgroundColor="@color/kc_surface_panel"
         app:cardCornerRadius="24dp"
         app:cardElevation="1dp"
         app:strokeColor="@color/kc_border_soft"
@@ -29,7 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Notifications"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -50,7 +50,7 @@
         android:layout_marginTop="20dp"
         android:gravity="center"
         android:text="No notifications yet."
-        android:textColor="#7A6558"
+        android:textColor="@color/kc_text_muted"
         android:textSize="14sp"
         android:visibility="gone" />
 

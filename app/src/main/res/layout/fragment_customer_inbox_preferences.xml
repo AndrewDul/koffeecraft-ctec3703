@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:paddingEnd="10dp"
                 android:text="‹"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="30sp"
                 android:textStyle="bold" />
 
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Inbox Preferences"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
             app:strokeColor="@color/kc_border_soft"
@@ -60,16 +60,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Promotional Messages"
-                    android:textColor="#2E2018"
-                    android:textSize="16sp"
+                    android:textColor="@color/kc_text_primary"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Receive promotional updates, reward messages and special offers from the admin inbox."
-                    android:textColor="#6E5A4D"
+                    android:text="Choose whether you want to receive reward messages, special offers, and promotional updates from KoffeeCraft."
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -77,7 +77,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:text="Allow promotional messages" />
+                    android:text="Allow promotional messages"
+                    android:textColor="@color/kc_text_primary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSavePreferences"
@@ -88,10 +89,10 @@
                     android:paddingBottom="12dp"
                     android:text="Save preferences"
                     android:textAllCaps="false"
-                    android:textColor="@color/kc_surface_primary"
+                    android:textColor="@color/kc_text_inverse"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    app:backgroundTint="@color/kc_success"
+                    app:backgroundTint="@color/kc_brand_button"
                     app:cornerRadius="28dp"
                     app:elevation="0dp"
                     app:strokeWidth="0dp" />

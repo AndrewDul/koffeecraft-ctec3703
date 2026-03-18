@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Coffee Card"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -42,7 +42,7 @@
                 android:paddingEnd="10dp"
                 android:paddingBottom="5dp"
                 android:text="Default"
-                android:textColor="@color/kc_surface_primary"
+                android:textColor="@color/kc_warning_text"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -65,7 +65,7 @@
             android:layout_marginTop="6dp"
             android:letterSpacing="0.05"
             android:text="•••• •••• •••• 4821"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -85,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Cardholder"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="11sp" />
 
                 <TextView
@@ -108,7 +108,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Expiry"
-                    android:textColor="#7A6558"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="11sp" />
 
                 <TextView
@@ -137,7 +137,7 @@
                 android:minHeight="46dp"
                 android:text="Set as default"
                 android:textAllCaps="false"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textStyle="bold"
                 app:backgroundTint="@color/kc_surface_tertiary"
                 app:cornerRadius="22dp"
@@ -153,12 +153,12 @@
                 android:minHeight="46dp"
                 android:text="Remove"
                 android:textAllCaps="false"
-                android:textColor="#7B4A42"
+                android:textColor="@color/kc_danger_text"
                 android:textStyle="bold"
-                app:backgroundTint="#F8ECE7"
+                app:backgroundTint="@color/kc_surface_error"
                 app:cornerRadius="22dp"
                 app:elevation="0dp"
-                app:strokeColor="#E1C8C0"
+                app:strokeColor="@color/kc_danger_soft"
                 app:strokeWidth="1dp" />
         </LinearLayout>
 

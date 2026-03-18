@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Latte"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -36,7 +36,7 @@
             android:paddingEnd="10dp"
             android:paddingBottom="4dp"
             android:text="Crafted"
-            android:textColor="#7A5730"
+            android:textColor="@color/kc_warning_text"
             android:textSize="10sp"
             android:textStyle="bold"
             android:visibility="gone" />
@@ -66,7 +66,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="2"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -89,7 +89,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="£7.20"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>

@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Latte"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -26,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="£7.20"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="13sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="Qty 2 • £3.60 each"
-        android:textColor="#6E5A4D"
+        android:textColor="@color/kc_text_secondary"
         android:textSize="12sp" />
 
     <TextView
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="Crafted • Large • 450ml"
-        android:textColor="#7A5730"
+        android:textColor="@color/kc_warning_text"
         android:textSize="12sp"
         android:textStyle="bold"
         android:visibility="gone" />
@@ -56,8 +56,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
+        android:lineSpacingExtra="2dp"
         android:text="Add-ons • Vanilla, Oat Milk"
-        android:textColor="#7A6558"
+        android:textColor="@color/kc_text_muted"
         android:textSize="12sp"
         android:visibility="gone" />
 
@@ -67,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
         android:text="Approx. 210 kcal"
-        android:textColor="#7A6558"
+        android:textColor="@color/kc_text_muted"
         android:textSize="12sp"
         android:visibility="gone" />
 

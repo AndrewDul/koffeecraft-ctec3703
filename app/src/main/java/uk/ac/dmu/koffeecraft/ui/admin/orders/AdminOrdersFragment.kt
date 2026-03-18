@@ -236,7 +236,7 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
         chip.setTextColor(
             ContextCompat.getColor(
                 requireContext(),
-                if (isSelected) android.R.color.black else android.R.color.darker_gray
+                if (isSelected) R.color.kc_text_primary else R.color.kc_text_secondary
             )
         )
         chip.setTypeface(null, Typeface.BOLD)

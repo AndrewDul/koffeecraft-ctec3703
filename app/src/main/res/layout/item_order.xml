@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -54,7 +54,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="4dp"
                         android:text="Ready"
-                        android:textColor="#5C473A"
+                        android:textColor="@color/kc_text_section"
                         android:textSize="10sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -70,7 +70,7 @@
                     android:paddingEnd="12dp"
                     android:paddingBottom="5dp"
                     android:text="Crafted"
-                    android:textColor="#7A5730"
+                    android:textColor="@color/kc_warning_text"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -92,7 +92,7 @@
                 android:background="@drawable/bg_order_delete_circle"
                 android:gravity="center"
                 android:text="×"
-                android:textColor="#6B4F3A"
+                android:textColor="@color/kc_text_section"
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -270,7 +270,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Leave feedback"
-                    android:textColor="#5D4332"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:visibility="gone" />

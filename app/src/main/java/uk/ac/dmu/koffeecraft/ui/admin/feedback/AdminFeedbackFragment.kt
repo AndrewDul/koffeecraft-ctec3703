@@ -260,10 +260,10 @@ class AdminFeedbackFragment : Fragment(R.layout.fragment_admin_feedback) {
         chip.setTextColor(
             ContextCompat.getColor(
                 requireContext(),
-                if (isSelected) android.R.color.black else android.R.color.darker_gray
+                if (isSelected) R.color.kc_text_primary else R.color.kc_text_secondary
             )
         )
-        chip.setTypeface(null, if (isSelected) Typeface.BOLD else Typeface.BOLD)
+        chip.setTypeface(null, Typeface.BOLD)
         chip.alpha = if (isSelected) 1f else 0.92f
     }
 

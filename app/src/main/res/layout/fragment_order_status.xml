@@ -72,7 +72,7 @@
                     android:background="@drawable/bg_orders_filter_chip_selected"
                     android:gravity="center"
                     android:text="✓"
-                    android:textColor="#36533E"
+                    android:textColor="@color/kc_success_text"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -360,7 +360,7 @@
                     android:paddingEnd="10dp"
                     android:paddingBottom="4dp"
                     android:text="Placed"
-                    android:textColor="#5C473A"
+                    android:textColor="@color/kc_neutral_text"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -422,7 +422,7 @@
                             android:paddingEnd="14dp"
                             android:paddingBottom="10dp"
                             android:text="Placed"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 

@@ -19,7 +19,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
             app:strokeColor="@color/kc_border_soft"
@@ -35,7 +35,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Favourites"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -44,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Revisit your saved picks and crafted favourites."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

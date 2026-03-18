@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:paddingEnd="10dp"
                 android:text="‹"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="30sp"
                 android:textStyle="bold" />
 
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Payment Methods"
-                android:textColor="#2E2018"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
             app:strokeColor="@color/kc_border_soft"
@@ -60,7 +60,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Saved cards"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
@@ -69,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Save cards for faster checkout. This wallet is a premium local demo flow for KoffeeCraft."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -80,9 +80,9 @@
                     android:minHeight="50dp"
                     android:text="+ Add new card"
                     android:textAllCaps="false"
-                    android:textColor="@color/kc_surface_primary"
+                    android:textColor="@color/kc_text_inverse"
                     android:textStyle="bold"
-                    app:backgroundTint="@color/kc_brand_strong"
+                    app:backgroundTint="@color/kc_brand_button"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
                     app:strokeWidth="0dp" />
@@ -95,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="You have not saved any payment cards yet."
-            android:textColor="#7A6558"
+            android:textColor="@color/kc_text_muted"
             android:textSize="13sp"
             android:visibility="gone" />
 

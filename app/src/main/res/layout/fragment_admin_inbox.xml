@@ -18,7 +18,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
             app:strokeColor="@color/kc_border_soft"
@@ -34,7 +34,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Direct Message Centre"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -52,10 +52,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E4D5C8"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -68,7 +68,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Find Recipient"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -96,7 +96,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="By order number"
-                        android:textColor="#2E2018"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -128,16 +128,26 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSearch"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="Enter order number">
+                    android:hint="Enter order number"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
+                    app:boxCornerRadiusBottomEnd="18dp"
+                    app:boxCornerRadiusBottomStart="18dp"
+                    app:boxCornerRadiusTopEnd="18dp"
+                    app:boxCornerRadiusTopStart="18dp"
+                    app:boxStrokeColor="@color/kc_border_soft"
+                    app:hintTextColor="@color/kc_text_muted">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSearch"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="number" />
+                        android:inputType="number"
+                        android:textColor="@color/kc_text_primary"
+                        android:textColorHint="@color/kc_text_muted" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -148,9 +158,9 @@
                     android:minHeight="50dp"
                     android:text="Find customer"
                     android:textAllCaps="false"
-                    android:textColor="@color/kc_surface_primary"
+                    android:textColor="@color/kc_text_inverse"
                     android:textStyle="bold"
-                    app:backgroundTint="@color/kc_brand_strong"
+                    app:backgroundTint="@color/kc_brand_button"
                     app:cornerRadius="26dp"
                     app:elevation="0dp" />
 
@@ -160,7 +170,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="No matching customer found."
-                    android:textColor="#9B3D31"
+                    android:textColor="@color/kc_danger"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -173,10 +183,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:visibility="gone"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E4D5C8"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -189,7 +199,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Recipient Summary"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -199,7 +209,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="Andrew Dul"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
@@ -209,7 +219,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Customer #12 • andrew@example.com"
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <TextView
@@ -237,10 +247,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E4D5C8"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -253,7 +263,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Message Type"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -262,7 +272,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Use direct message templates for operational communication. Promotions are handled in Studio."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -273,9 +283,9 @@
                     android:minHeight="50dp"
                     android:text="Important"
                     android:textAllCaps="false"
-                    android:textColor="@color/kc_surface_primary"
+                    android:textColor="@color/kc_text_inverse"
                     android:textStyle="bold"
-                    app:backgroundTint="@color/kc_brand_strong"
+                    app:backgroundTint="@color/kc_brand_button"
                     app:cornerRadius="26dp"
                     app:elevation="0dp" />
 
@@ -287,12 +297,12 @@
                     android:minHeight="50dp"
                     android:text="Service"
                     android:textAllCaps="false"
-                    android:textColor="@color/kc_icon_primary"
+                    android:textColor="@color/kc_text_primary"
                     android:textStyle="bold"
-                    app:backgroundTint="#F2E5D8"
+                    app:backgroundTint="@color/kc_surface_chip"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
-                    app:strokeColor="@color/kc_border_warm"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -303,12 +313,12 @@
                     android:minHeight="50dp"
                     android:text="Custom"
                     android:textAllCaps="false"
-                    android:textColor="@color/kc_icon_primary"
+                    android:textColor="@color/kc_text_primary"
                     android:textStyle="bold"
-                    app:backgroundTint="#F2E5D8"
+                    app:backgroundTint="@color/kc_surface_chip"
                     app:cornerRadius="26dp"
                     app:elevation="0dp"
-                    app:strokeColor="@color/kc_border_warm"
+                    app:strokeColor="@color/kc_border_soft"
                     app:strokeWidth="1dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -317,10 +327,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E4D5C8"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -333,7 +343,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Compose Message"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -343,28 +353,46 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation in direct messages."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilMessageTitle"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Message title">
+                    android:hint="Message title"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
+                    app:boxCornerRadiusBottomEnd="18dp"
+                    app:boxCornerRadiusBottomStart="18dp"
+                    app:boxCornerRadiusTopEnd="18dp"
+                    app:boxCornerRadiusTopStart="18dp"
+                    app:boxStrokeColor="@color/kc_border_soft"
+                    app:hintTextColor="@color/kc_text_muted">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etMessageTitle"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/kc_text_primary"
+                        android:textColorHint="@color/kc_text_muted" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilMessageBody"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:hint="Message body">
+                    android:hint="Message body"
+                    app:boxBackgroundColor="@color/kc_surface_secondary"
+                    app:boxCornerRadiusBottomEnd="18dp"
+                    app:boxCornerRadiusBottomStart="18dp"
+                    app:boxCornerRadiusTopEnd="18dp"
+                    app:boxCornerRadiusTopStart="18dp"
+                    app:boxStrokeColor="@color/kc_border_soft"
+                    app:hintTextColor="@color/kc_text_muted">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etMessageBody"
@@ -372,7 +400,9 @@
                         android:layout_height="wrap_content"
                         android:gravity="top|start"
                         android:inputType="textMultiLine|textCapSentences"
-                        android:minLines="7" />
+                        android:minLines="7"
+                        android:textColor="@color/kc_text_primary"
+                        android:textColorHint="@color/kc_text_muted" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -387,10 +417,10 @@
             android:minHeight="54dp"
             android:text="Send direct message"
             android:textAllCaps="false"
-            android:textColor="@color/kc_surface_primary"
+            android:textColor="@color/kc_text_inverse"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:backgroundTint="@color/kc_brand_strong"
+            app:backgroundTint="@color/kc_brand_button"
             app:cornerRadius="28dp"
             app:elevation="0dp" />
 

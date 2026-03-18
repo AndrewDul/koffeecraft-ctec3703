@@ -1166,3 +1166,127 @@ Affected areas:
 - `CustomerInboxFragment`
 - `CustomerNotificationsFragment`
 
+## 58)Theme cleanup and build/runtime issues after dark mode refactor
+
+### Problem 1: Android resource linking failed after theme changes
+While I was moving the app from fixed colors to theme colors, the build failed with missing resource errors.
+
+Examples:
+- `attr/colorBackground not found`
+- `xml/data_extraction_rules not found`
+- `xml/backup_rules not found`
+- `color/kc_divider not found`
+- `color/kc_danger_soft not found`
+
+### Cause
+I referenced theme or XML resources that were not yet created or were named differently than expected.
+
+### Fix
+I added or restored the missing resources and aligned the XML files with the actual resource names used in the project.
+
+---
+
+### Problem 2: App crashed at runtime because of `Color.parseColor(...)`
+After part of the theme refactor, some screens crashed on launch or when opening specific fragments.
+
+Examples:
+- `AdminHomeFragment`
+- `AdminCampaignStudioFragment`
+- `CheckoutFragment`
+
+The crash reason was:
+- `IllegalArgumentException: Unknown color`
+
+### Cause
+Some Kotlin code still used `Color.parseColor(...)` with values that were no longer raw hex strings. After the refactor, some values came from theme/resource-based colors, so parsing them as plain strings caused a crash.
+
+### Fix
+I removed those unsafe color parsing cases and switched them to proper resource-based color usage.
+
+---
+
+### Problem 3: Kotlin compile error because XML IDs no longer matched the code
+After replacing some layout files, the build failed again.
+
+Examples:
+- `Unresolved reference 'tilExtraPrice'`
+- `Unresolved reference 'etExtraPrice'`
+- `Unresolved reference 'cbIsDefault'`
+- `Unresolved reference 'tvGoToRegister'`
+
+### Cause
+During layout cleanup, I renamed or removed IDs that were still used by Kotlin files such as:
+- `AdminMenuFragment.kt`
+- `LoginFragment.kt`
+
+### Fix
+I restored the missing IDs in the XML files instead of changing the Kotlin logic, so the existing code could continue working safely.
+
+Restored IDs:
+- `tilExtraPrice`
+- `etExtraPrice`
+- `cbIsDefault`
+- `tvGoToRegister`
+
+---
+
+### Problem 4: Theme looked inconsistent because some screens still used hardcoded colors
+Even after the main theme system was added, some layouts still used old fixed colors.
+
+This caused:
+- weak contrast in dark mode
+- bright cards inside dark screens
+- text that was hard to read
+- inconsistent premium look between screens
+
+### Cause
+Some XML files still contained old hardcoded values like:
+- `#2E2018`
+- `#6E5A4D`
+- `#7A5730`
+- `#B00020`
+- old light beige panel colors
+
+### Fix
+I replaced the remaining hardcoded values in the affected files with the KoffeeCraft theme color system, for example:
+- `@color/kc_text_primary`
+- `@color/kc_text_secondary`
+- `@color/kc_text_muted`
+- `@color/kc_success`
+- `@color/kc_success_text`
+- `@color/kc_danger`
+- `@color/kc_danger_text`
+- `@color/kc_surface_panel`
+- `@color/kc_surface_primary`
+- `@color/kc_surface_secondary`
+- `@color/kc_border_soft`
+
+---
+
+### Problem 5: Validation tiles used old Android system colors
+Password rule tiles in some fragments still used old Android colors:
+- `android.R.color.holo_green_dark`
+- `android.R.color.holo_red_dark`
+
+### Cause
+Those colors did not match the current KoffeeCraft theme and made the validation UI look inconsistent.
+
+### Fix
+I replaced them with app theme colors:
+- `R.color.kc_success_text`
+- `R.color.kc_danger_text`
+
+Affected Kotlin files:
+- `RegisterFragment.kt`
+- `CustomerChangePasswordFragment.kt`
+- `AdminCreateAccountFragment.kt`
+
+---
+
+### Result
+After these fixes:
+- the app builds again
+- the affected theme crashes are removed
+- the XML and Kotlin files use more consistent theme colors
+- dark mode is much more stable and visually aligned with the KoffeeCraft design
+- the login and admin menu flows work again after restoring the missing layout IDs

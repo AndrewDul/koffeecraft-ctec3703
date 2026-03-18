@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Latte"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -40,17 +40,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="Smooth espresso with milk."
-            android:textColor="#6B5547"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="14sp" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            app:cardBackgroundColor="#EEE2D7"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="4dp"
-            app:strokeColor="#D8C2B2"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -63,7 +63,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Choose your size"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -72,7 +72,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Pick the cup size that fits your order."
-                    android:textColor="#7C6557"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp" />
 
                 <com.google.android.material.chip.ChipGroup
@@ -91,10 +91,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#EEE2D7"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="4dp"
-            app:strokeColor="#D8C2B2"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -107,7 +107,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Add extras"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Make it yours with premium extras."
-                    android:textColor="#7C6557"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp" />
 
                 <com.google.android.material.chip.ChipGroup
@@ -135,10 +135,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#E9D9CC"
+            app:cardBackgroundColor="@color/kc_surface_secondary"
             app:cardCornerRadius="22dp"
-            app:cardElevation="4dp"
-            app:strokeColor="#D3B8A5"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/kc_border_warm"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -151,7 +151,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Order summary"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -167,7 +167,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Estimated calories"
-                        android:textColor="#6B5547"
+                        android:textColor="@color/kc_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -175,7 +175,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0 kcal"
-                        android:textColor="#2E2018"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -184,14 +184,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="12dp"
-                    android:background="#D7C1B2" />
+                    android:background="@color/kc_divider" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="Allergens"
-                    android:textColor="#6B5547"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <TextView
@@ -200,7 +200,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="No allergens listed"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
@@ -208,7 +208,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="12dp"
-                    android:background="#D7C1B2" />
+                    android:background="@color/kc_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -222,7 +222,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Total"
-                        android:textColor="#2E2018"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -231,7 +231,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="£0.00"
-                        android:textColor="#6F4E37"
+                        android:textColor="@color/kc_brand_button"
                         android:textSize="22sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -245,8 +245,8 @@
             android:layout_height="54dp"
             android:layout_marginTop="18dp"
             android:backgroundTint="@color/kc_action_button_bg_selector"
-            android:insetTop="0dp"
             android:insetBottom="0dp"
+            android:insetTop="0dp"
             android:text="Save as favourite combo"
             android:textAllCaps="false"
             android:textColor="@color/kc_action_button_text_selector"
@@ -261,12 +261,12 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="12dp"
-            android:backgroundTint="#6F4E37"
+            android:backgroundTint="@color/kc_brand_button"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:text="Add to cart"
             android:textAllCaps="false"
-            android:textColor="@color/kc_surface_primary"
+            android:textColor="@color/kc_text_inverse"
             android:textSize="16sp"
             android:textStyle="bold"
             app:cornerRadius="20dp"

@@ -7,7 +7,7 @@
     android:layout_marginTop="6dp"
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="6dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="22dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Latte"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -33,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:lineSpacingExtra="2dp"
             android:text="Smooth espresso with milk."
             android:textColor="@color/kc_icon_secondary"
             android:textSize="13sp" />
@@ -43,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Base reward included"
-            android:textColor="#7A6558"
+            android:textColor="@color/kc_text_muted"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>

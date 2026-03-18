@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Choose your reward"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -39,17 +39,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="Select one item to customise."
-            android:textColor="#6B5547"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="14sp" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            app:cardBackgroundColor="#EEE2D7"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="4dp"
-            app:strokeColor="#D8C2B2"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/kc_border_soft"
             app:strokeWidth="1dp">
 
             <androidx.recyclerview.widget.RecyclerView

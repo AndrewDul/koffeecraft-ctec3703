@@ -23,7 +23,7 @@ import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-
+import androidx.core.content.ContextCompat
 class RegisterFragment : Fragment(R.layout.fragment_register) {
 
     private lateinit var vm: RegisterViewModel
@@ -225,10 +225,14 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
     private fun updateRuleTile(view: TextView, isValid: Boolean) {
         if (isValid) {
             view.setBackgroundResource(R.drawable.bg_rule_valid)
-            view.setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+            view.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.kc_success_text)
+            )
         } else {
             view.setBackgroundResource(R.drawable.bg_rule_invalid)
-            view.setTextColor(resources.getColor(android.R.color.holo_red_dark, null))
+            view.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.kc_danger_text)
+            )
         }
     }
 

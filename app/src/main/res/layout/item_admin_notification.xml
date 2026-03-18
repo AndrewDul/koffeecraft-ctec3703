@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -26,7 +26,7 @@
             android:paddingEnd="10dp"
             android:paddingBottom="4dp"
             android:text="Placed"
-            android:textColor="#5C473A"
+            android:textColor="@color/kc_text_section"
             android:textSize="10sp"
             android:textStyle="bold" />
 
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Order #123 needs action"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -45,6 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:lineSpacingExtra="2dp"
             android:text="Order #123 is currently placed and waiting for the next operational step."
             android:textColor="@color/kc_text_secondary"
             android:textSize="13sp" />
@@ -81,9 +82,9 @@
                 android:minHeight="48dp"
                 android:text="Move to Preparing"
                 android:textAllCaps="false"
-                android:textColor="@color/kc_surface_primary"
+                android:textColor="@color/kc_text_inverse"
                 android:textStyle="bold"
-                app:backgroundTint="@color/kc_brand_strong"
+                app:backgroundTint="@color/kc_brand_button"
                 app:cornerRadius="26dp"
                 app:elevation="0dp"
                 app:strokeWidth="0dp" />
@@ -96,9 +97,9 @@
                 android:minHeight="48dp"
                 android:text="Remove notification"
                 android:textAllCaps="false"
-                android:textColor="@color/kc_icon_primary"
+                android:textColor="@color/kc_text_primary"
                 android:textStyle="bold"
-                app:backgroundTint="#F2E5D8"
+                app:backgroundTint="@color/kc_surface_tertiary"
                 app:cornerRadius="26dp"
                 app:elevation="0dp"
                 app:strokeColor="@color/kc_border_warm"

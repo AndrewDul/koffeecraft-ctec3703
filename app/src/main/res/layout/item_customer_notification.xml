@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -38,7 +38,7 @@
                     android:paddingEnd="10dp"
                     android:paddingBottom="4dp"
                     android:text="Preparing"
-                    android:textColor="#5C473A"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -48,7 +48,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="Order #123"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -58,7 +58,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Order #123 is now being prepared."
-                    android:textColor="#6E5A4D"
+                    android:textColor="@color/kc_text_secondary"
                     android:textSize="13sp" />
 
                 <LinearLayout
@@ -85,7 +85,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="£10.40"
-                        android:textColor="#2E2018"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
@@ -99,7 +99,7 @@
                 android:background="@drawable/bg_order_delete_circle"
                 android:gravity="center"
                 android:text="×"
-                android:textColor="#6B4F3A"
+                android:textColor="@color/kc_text_section"
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>

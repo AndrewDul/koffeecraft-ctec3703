@@ -8,7 +8,7 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Jane Smith • jane@example.com"
-                    android:textColor="#5B4739"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -77,7 +77,7 @@
                     android:paddingEnd="10dp"
                     android:paddingBottom="4dp"
                     android:text="Placed"
-                    android:textColor="#5C473A"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -100,7 +100,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="3 items • 1 crafted • 1 reward"
-            android:textColor="#8A7465"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="13sp" />
 
         <View
@@ -193,7 +193,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Card"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_section"
                     android:textSize="14sp" />
 
                 <TextView
@@ -202,7 +202,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="£12.40"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -237,7 +237,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="6dp"
                         android:text="Promo eligible"
-                        android:textColor="#5C473A"
+                        android:textColor="@color/kc_text_section"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
@@ -253,7 +253,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="6dp"
                         android:text="Feedback written"
-                        android:textColor="#5C473A"
+                        android:textColor="@color/kc_text_section"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
@@ -269,7 +269,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="6dp"
                         android:text="Crafted items"
-                        android:textColor="#5C473A"
+                        android:textColor="@color/kc_text_section"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
@@ -285,7 +285,7 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="6dp"
                         android:text="Reward included"
-                        android:textColor="#5C473A"
+                        android:textColor="@color/kc_text_section"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
@@ -419,7 +419,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Move to Preparing"
-                        android:textColor="@color/kc_icon_primary"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -434,7 +434,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Mark Ready"
-                        android:textColor="@color/kc_icon_primary"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -449,7 +449,7 @@
                         android:paddingEnd="14dp"
                         android:paddingBottom="10dp"
                         android:text="Mark Collected"
-                        android:textColor="@color/kc_icon_primary"
+                        android:textColor="@color/kc_text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>

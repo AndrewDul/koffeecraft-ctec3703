@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:angle="270"
-        android:startColor="#241811"
-        android:centerColor="#3A281D"
-        android:endColor="#1C130E" />
+        android:startColor="@color/kc_surface_overlay"
+        android:centerColor="@color/kc_surface_panel"
+        android:endColor="@color/kc_shell_background" />
 </shape>

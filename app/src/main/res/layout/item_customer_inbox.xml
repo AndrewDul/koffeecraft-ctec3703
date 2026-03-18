@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Special promotion"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -44,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="15 Mar 2026 • 14:20"
-                    android:textColor="#8A7465"
+                    android:textColor="@color/kc_text_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -55,7 +55,7 @@
                 android:background="@drawable/bg_order_delete_circle"
                 android:gravity="center"
                 android:text="×"
-                android:textColor="#6B4F3A"
+                android:textColor="@color/kc_text_section"
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -76,7 +76,7 @@
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
                 android:text="Unread"
-                android:textColor="#5C473A"
+                android:textColor="@color/kc_text_section"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
@@ -91,7 +91,7 @@
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
                 android:text="Promo"
-                android:textColor="#5C473A"
+                android:textColor="@color/kc_text_section"
                 android:textSize="10sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -104,7 +104,7 @@
             android:layout_marginTop="12dp"
             android:lineSpacingExtra="2dp"
             android:text="Message body"
-            android:textColor="#4B3A2F"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="14sp" />
 
         <TextView

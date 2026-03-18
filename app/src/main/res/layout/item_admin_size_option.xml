@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="10dp"
-    app:cardBackgroundColor="#FAF4EE"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
-    app:strokeColor="#E6D8CC"
+    app:strokeColor="@color/kc_border_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Large"
-            android:textColor="#2E2018"
+            android:textColor="@color/kc_text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="400 ml • +£0.50 • 180 kcal"
-            android:textColor="#6E5A4D"
+            android:textColor="@color/kc_text_secondary"
             android:textSize="13sp" />
 
         <TextView
@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Default option"
-            android:textColor="#8A5A2B"
+            android:textColor="@color/kc_warning_text"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -57,7 +57,7 @@
                 android:minHeight="46dp"
                 android:text="Edit size option"
                 android:textAllCaps="false"
-                android:textColor="@color/kc_surface_primary"
+                android:textColor="@color/kc_text_inverse"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:backgroundTint="@color/kc_brand_strong"
@@ -73,10 +73,10 @@
                 android:minHeight="46dp"
                 android:text="Delete size option"
                 android:textAllCaps="false"
-                android:textColor="@color/kc_icon_primary"
+                android:textColor="@color/kc_text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:backgroundTint="#F2E5D8"
+                app:backgroundTint="@color/kc_surface_tertiary"
                 app:cornerRadius="24dp"
                 app:elevation="0dp"
                 app:strokeColor="@color/kc_border_warm"

@@ -19,7 +19,7 @@ import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
-
+import androidx.core.content.ContextCompat
 class CustomerChangePasswordFragment : Fragment(R.layout.fragment_customer_change_password) {
 
     private lateinit var tilCurrentPassword: TextInputLayout
@@ -146,10 +146,14 @@ class CustomerChangePasswordFragment : Fragment(R.layout.fragment_customer_chang
     private fun updateRuleTile(view: TextView, isValid: Boolean) {
         if (isValid) {
             view.setBackgroundResource(R.drawable.bg_rule_valid)
-            view.setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+            view.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.kc_success_text)
+            )
         } else {
             view.setBackgroundResource(R.drawable.bg_rule_invalid)
-            view.setTextColor(resources.getColor(android.R.color.holo_red_dark, null))
+            view.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.kc_danger_text)
+            )
         }
     }
 

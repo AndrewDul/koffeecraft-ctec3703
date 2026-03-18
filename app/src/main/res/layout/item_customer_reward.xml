@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/kc_surface_primary"
+    app:cardBackgroundColor="@color/kc_surface_panel"
     app:cardCornerRadius="24dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/kc_border_soft"
@@ -43,7 +43,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Reward title"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -75,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
                     android:text="15 beans"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
@@ -89,7 +89,7 @@
             android:paddingBottom="12dp"
             android:text="Redeem"
             android:textAllCaps="false"
-            android:textColor="@color/kc_surface_primary"
+            android:textColor="@color/kc_text_inverse"
             android:textSize="14sp"
             android:textStyle="bold"
             app:backgroundTint="@color/kc_success"

@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/kc_shell_background"
-    android:fillViewport="true"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
             app:strokeColor="@color/kc_border_soft"
@@ -52,7 +52,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Menu Control"
-                            android:textColor="#2E2018"
+                            android:textColor="@color/kc_text_primary"
                             android:textSize="24sp"
                             android:textStyle="bold" />
 
@@ -73,7 +73,7 @@
                         android:contentDescription="Add product"
                         app:backgroundTint="@color/kc_brand_strong"
                         app:srcCompat="@android:drawable/ic_input_add"
-                        app:tint="@color/kc_surface_primary" />
+                        app:tint="@color/kc_text_inverse" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -86,7 +86,7 @@
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/kc_surface_primary"
+            app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
             app:cardElevation="1dp"
             app:strokeColor="@color/kc_border_soft"
@@ -102,7 +102,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Category Filter"
-                    android:textColor="#2E2018"
+                    android:textColor="@color/kc_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -182,7 +182,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text="No products match the selected filter."
-            android:textColor="@color/kc_text_secondary"
+            android:textColor="@color/kc_text_muted"
             android:textSize="14sp"
             android:visibility="gone" />
 
