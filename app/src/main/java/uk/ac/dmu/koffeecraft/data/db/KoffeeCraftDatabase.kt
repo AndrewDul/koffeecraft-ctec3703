@@ -68,7 +68,7 @@ import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
         CustomerFavouritePreset::class,
         CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {
@@ -643,6 +643,290 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("PRAGMA foreign_keys=OFF")
+
+                // Clean up existing orphan rows before moving data into FK-protected tables.
+                db.execSQL(
+                    """
+            DELETE FROM orders
+            WHERE customerId NOT IN (SELECT customerId FROM customers)
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            DELETE FROM order_items
+            WHERE orderId NOT IN (SELECT orderId FROM orders)
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            DELETE FROM payments
+            WHERE orderId NOT IN (SELECT orderId FROM orders)
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            DELETE FROM feedback
+            WHERE orderItemId NOT IN (SELECT orderItemId FROM order_items)
+               OR customerId NOT IN (SELECT customerId FROM customers)
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            DELETE FROM customer_payment_cards
+            WHERE customerId NOT IN (SELECT customerId FROM customers)
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            DELETE FROM favourites
+            WHERE customerId NOT IN (SELECT customerId FROM customers)
+               OR productId NOT IN (SELECT productId FROM products)
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS orders_new (
+                orderId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                customerId INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                totalAmount REAL NOT NULL,
+                createdAt INTEGER NOT NULL,
+                FOREIGN KEY(customerId) REFERENCES customers(customerId) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            INSERT INTO orders_new (orderId, customerId, status, totalAmount, createdAt)
+            SELECT orderId, customerId, status, totalAmount, createdAt
+            FROM orders
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS order_items_new (
+                orderItemId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                orderId INTEGER NOT NULL,
+                productId INTEGER NOT NULL,
+                quantity INTEGER NOT NULL,
+                unitPrice REAL NOT NULL,
+                selectedOptionLabel TEXT,
+                selectedOptionSizeValue INTEGER,
+                selectedOptionSizeUnit TEXT,
+                selectedAddOnsSummary TEXT,
+                estimatedCalories INTEGER,
+                FOREIGN KEY(orderId) REFERENCES orders(orderId) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            INSERT INTO order_items_new (
+                orderItemId,
+                orderId,
+                productId,
+                quantity,
+                unitPrice,
+                selectedOptionLabel,
+                selectedOptionSizeValue,
+                selectedOptionSizeUnit,
+                selectedAddOnsSummary,
+                estimatedCalories
+            )
+            SELECT
+                orderItemId,
+                orderId,
+                productId,
+                quantity,
+                unitPrice,
+                selectedOptionLabel,
+                selectedOptionSizeValue,
+                selectedOptionSizeUnit,
+                selectedAddOnsSummary,
+                estimatedCalories
+            FROM order_items
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS payments_new (
+                paymentId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                orderId INTEGER NOT NULL,
+                paymentType TEXT NOT NULL,
+                amount REAL NOT NULL,
+                paymentDate INTEGER NOT NULL,
+                FOREIGN KEY(orderId) REFERENCES orders(orderId) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            INSERT INTO payments_new (paymentId, orderId, paymentType, amount, paymentDate)
+            SELECT paymentId, orderId, paymentType, amount, paymentDate
+            FROM payments
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS feedback_new (
+                feedbackId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                orderItemId INTEGER NOT NULL,
+                customerId INTEGER NOT NULL,
+                rating INTEGER NOT NULL,
+                comment TEXT NOT NULL,
+                isHidden INTEGER NOT NULL DEFAULT 0,
+                isModerated INTEGER NOT NULL DEFAULT 0,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL,
+                FOREIGN KEY(orderItemId) REFERENCES order_items(orderItemId) ON DELETE CASCADE,
+                FOREIGN KEY(customerId) REFERENCES customers(customerId) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            INSERT INTO feedback_new (
+                feedbackId,
+                orderItemId,
+                customerId,
+                rating,
+                comment,
+                isHidden,
+                isModerated,
+                createdAt,
+                updatedAt
+            )
+            SELECT
+                feedbackId,
+                orderItemId,
+                customerId,
+                rating,
+                comment,
+                isHidden,
+                isModerated,
+                createdAt,
+                updatedAt
+            FROM feedback
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS customer_payment_cards_new (
+                cardId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                customerId INTEGER NOT NULL,
+                nickname TEXT NOT NULL,
+                cardholderName TEXT NOT NULL,
+                brand TEXT NOT NULL,
+                maskedCardNumber TEXT NOT NULL,
+                last4 TEXT NOT NULL,
+                expiryMonth INTEGER NOT NULL,
+                expiryYear INTEGER NOT NULL,
+                isDefault INTEGER NOT NULL DEFAULT 0,
+                createdAt INTEGER NOT NULL,
+                FOREIGN KEY(customerId) REFERENCES customers(customerId) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            INSERT INTO customer_payment_cards_new (
+                cardId,
+                customerId,
+                nickname,
+                cardholderName,
+                brand,
+                maskedCardNumber,
+                last4,
+                expiryMonth,
+                expiryYear,
+                isDefault,
+                createdAt
+            )
+            SELECT
+                cardId,
+                customerId,
+                nickname,
+                cardholderName,
+                brand,
+                maskedCardNumber,
+                last4,
+                expiryMonth,
+                expiryYear,
+                isDefault,
+                createdAt
+            FROM customer_payment_cards
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS favourites_new (
+                customerId INTEGER NOT NULL,
+                productId INTEGER NOT NULL,
+                createdAt INTEGER NOT NULL,
+                PRIMARY KEY(customerId, productId),
+                FOREIGN KEY(customerId) REFERENCES customers(customerId) ON DELETE CASCADE,
+                FOREIGN KEY(productId) REFERENCES products(productId) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            INSERT INTO favourites_new (customerId, productId, createdAt)
+            SELECT customerId, productId, createdAt
+            FROM favourites
+            """.trimIndent()
+                )
+
+                db.execSQL("DROP TABLE IF EXISTS feedback")
+                db.execSQL("DROP TABLE IF EXISTS payments")
+                db.execSQL("DROP TABLE IF EXISTS order_items")
+                db.execSQL("DROP TABLE IF EXISTS customer_payment_cards")
+                db.execSQL("DROP TABLE IF EXISTS favourites")
+                db.execSQL("DROP TABLE IF EXISTS orders")
+
+                db.execSQL("ALTER TABLE orders_new RENAME TO orders")
+                db.execSQL("ALTER TABLE order_items_new RENAME TO order_items")
+                db.execSQL("ALTER TABLE payments_new RENAME TO payments")
+                db.execSQL("ALTER TABLE feedback_new RENAME TO feedback")
+                db.execSQL("ALTER TABLE customer_payment_cards_new RENAME TO customer_payment_cards")
+                db.execSQL("ALTER TABLE favourites_new RENAME TO favourites")
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_orders_customerId ON orders(customerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_order_items_orderId ON order_items(orderId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_order_items_productId ON order_items(productId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_payments_orderId ON payments(orderId)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_feedback_orderItemId ON feedback(orderItemId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_feedback_customerId ON feedback(customerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_payment_cards_customerId ON customer_payment_cards(customerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_payment_cards_customerId_isDefault ON customer_payment_cards(customerId, isDefault)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_payment_cards_customerId_createdAt ON customer_payment_cards(customerId, createdAt)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_favourites_customerId ON favourites(customerId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_favourites_productId ON favourites(productId)")
+
+                db.execSQL("PRAGMA foreign_keys=ON")
+            }
+        }
+
 
         fun getInstance(context: Context): KoffeeCraftDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -666,7 +950,8 @@ abstract class KoffeeCraftDatabase : RoomDatabase() {
                         MIGRATION_12_13,
                         MIGRATION_13_14,
                         MIGRATION_14_15,
-                        MIGRATION_15_16
+                        MIGRATION_15_16,
+                        MIGRATION_16_17
                     )
                     .addCallback(SeedCallback())
                     .build()

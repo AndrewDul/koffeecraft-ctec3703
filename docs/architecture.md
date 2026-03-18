@@ -2807,3 +2807,48 @@ I cleaned the theme foundation of the app and prepared it for full light/dark mo
 - I prepared the app for the next stage of full UI theme migration.
 
 
+### Database integrity and notification flow hardening
+
+I strengthened two important areas of the application architecture: manual order status notifications and database-level relational integrity.
+
+#### 1. Manual admin order status updates now notify customers
+Previously, when an admin manually changed an order status inside `AdminOrdersFragment`, the application updated the order record in the database but did not create a customer-facing notification. This created a functional gap between simulated status updates and manual status updates.
+
+I updated the manual status change flow so that after the status is changed:
+- the updated order is reloaded,
+- a customer notification is created through `CustomerNotificationManager`,
+- the admin notification state is synchronised through `AdminNotificationManager`.
+
+This makes the manual order workflow consistent with the rest of the notification system and ensures that customer-visible status communication is reliable.
+
+#### 2. Added Room foreign key relations for core transactional tables
+The original schema relied mostly on logical relationships rather than database-enforced referential integrity. That meant related records could become orphaned and some cleanup had to be performed manually.
+
+I introduced foreign key constraints for the main relational flows:
+- `Order -> Customer`
+- `OrderItem -> Order`
+- `Payment -> Order`
+- `Feedback -> OrderItem / Customer`
+- `CustomerPaymentCard -> Customer`
+- `Favourite -> Customer / Product`
+
+I intentionally did not yet add `OrderItem -> Product` because product deletion behaviour still needs to be refactored to soft delete in order to preserve historical order data safely.
+
+#### 3. Added a Room migration for the new FK-protected schema
+Because SQLite requires table recreation when foreign key constraints are introduced, I added a migration that:
+- cleans orphaned legacy rows before migration,
+- recreates the affected tables with foreign keys,
+- restores data into the new schema,
+- recreates the required indices.
+
+During implementation, Room schema validation failures highlighted mismatches between entity definitions and migration SQL. I corrected these by aligning entity annotations and defaults with the migrated schema, especially for saved payment cards and other FK-enabled tables.
+
+#### Result
+These changes improve:
+- database consistency,
+- maintainability,
+- correctness of delete cascades,
+- reliability of order communication,
+- overall architectural quality of the application.
+
+

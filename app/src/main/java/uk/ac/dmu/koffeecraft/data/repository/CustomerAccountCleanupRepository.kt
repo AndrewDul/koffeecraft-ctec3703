@@ -22,11 +22,7 @@ class CustomerAccountCleanupRepository(
         sqlDb.beginTransaction()
         try {
             deleteFavouritePresetData(sqlDb, customerId)
-            deleteSavedPaymentCards(sqlDb, customerId)
-            deleteFavouriteData(sqlDb, customerId)
             deleteMessagingData(sqlDb, customerId)
-            deleteFeedbackData(sqlDb, customerId)
-            deleteOrderData(sqlDb, customerId)
             deleteCustomerRecord(sqlDb, customerId)
 
             sqlDb.setTransactionSuccessful()
@@ -49,19 +45,9 @@ class CustomerAccountCleanupRepository(
         )
     }
 
-    private fun deleteSavedPaymentCards(sqlDb: SupportSQLiteDatabase, customerId: Long) {
-        sqlDb.execSQL(
-            "DELETE FROM customer_payment_cards WHERE customerId = ?",
-            arrayOf(customerId)
-        )
-    }
 
-    private fun deleteFavouriteData(sqlDb: SupportSQLiteDatabase, customerId: Long) {
-        sqlDb.execSQL(
-            "DELETE FROM favourites WHERE customerId = ?",
-            arrayOf(customerId)
-        )
-    }
+
+
 
     private fun deleteMessagingData(sqlDb: SupportSQLiteDatabase, customerId: Long) {
         sqlDb.execSQL(
@@ -76,27 +62,9 @@ class CustomerAccountCleanupRepository(
         )
     }
 
-    private fun deleteFeedbackData(sqlDb: SupportSQLiteDatabase, customerId: Long) {
-        sqlDb.execSQL(
-            "DELETE FROM feedback WHERE customerId = ? OR orderItemId IN (SELECT orderItemId FROM order_items WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?))",
-            arrayOf(customerId, customerId)
-        )
-    }
 
-    private fun deleteOrderData(sqlDb: SupportSQLiteDatabase, customerId: Long) {
-        sqlDb.execSQL(
-            "DELETE FROM payments WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?)",
-            arrayOf(customerId)
-        )
-        sqlDb.execSQL(
-            "DELETE FROM order_items WHERE orderId IN (SELECT orderId FROM orders WHERE customerId = ?)",
-            arrayOf(customerId)
-        )
-        sqlDb.execSQL(
-            "DELETE FROM orders WHERE customerId = ?",
-            arrayOf(customerId)
-        )
-    }
+
+
 
     private fun deleteCustomerRecord(sqlDb: SupportSQLiteDatabase, customerId: Long) {
         sqlDb.execSQL(

@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
-
+import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
+import uk.ac.dmu.koffeecraft.util.notifications.CustomerNotificationManager
 class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
     private lateinit var adapter: AdminOrdersAdapter
@@ -362,8 +363,32 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     ) {
         if (row.status == targetStatus) return
 
+        val appContext = requireContext().applicationContext
+
         viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             db.orderDao().updateStatus(row.orderId, targetStatus)
+
+            val updatedOrder = db.orderDao().getById(row.orderId)
+
+            if (updatedOrder != null) {
+                CustomerNotificationManager.createCustomerOrderStatusNotification(
+                    context = appContext,
+                    db = db,
+                    customerId = updatedOrder.customerId,
+                    orderId = updatedOrder.orderId,
+                    orderCreatedAt = updatedOrder.createdAt,
+                    status = targetStatus
+                )
+
+                AdminNotificationManager.syncAdminOrderActionNotification(
+                    context = appContext,
+                    db = db,
+                    orderId = updatedOrder.orderId,
+                    orderCreatedAt = updatedOrder.createdAt,
+                    orderStatus = targetStatus,
+                    triggerPhoneNotificationForNewOnly = false
+                )
+            }
 
             detailCache.remove(row.orderId)
 

@@ -1290,3 +1290,64 @@ After these fixes:
 - the XML and Kotlin files use more consistent theme colors
 - dark mode is much more stable and visually aligned with the KoffeeCraft design
 - the login and admin menu flows work again after restoring the missing layout IDs
+
+
+
+## 59)Admin manual status update did not notify customers
+
+### Problem
+When an admin manually changed an order status in `AdminOrdersFragment`, the status value in the database was updated correctly, but the customer did not receive an order status notification.
+
+### Cause
+The manual status change path only called the DAO status update and refreshed the UI. It did not trigger:
+- `CustomerNotificationManager.createCustomerOrderStatusNotification(...)`
+- admin notification state synchronisation
+
+This meant the manual flow behaved differently from the simulated or automated notification flow.
+
+### Fix
+The status change handler was updated so that after the status is saved:
+1. the updated order is fetched from the database,
+2. a customer notification is created,
+3. the admin notification state is synchronised,
+4. the UI is refreshed.
+
+### Result
+Customers now receive notifications for manual admin-driven status changes, and admin notification records remain consistent with the latest order state.
+
+---
+
+## 60)Room migration crash after adding foreign keys
+
+### Problem
+After introducing foreign key relations and a new Room migration, the app crashed during startup with:
+`Migration didn't properly handle ...`
+
+### Cause
+The migration SQL created updated tables with foreign keys and default values, but some Room entity classes still reflected the old schema. Room validates the migrated database structure against the current entity definitions, so any mismatch causes startup failure.
+
+Examples of mismatches included:
+- migrated table had a foreign key, but the entity did not
+- migrated column had a default value, but the entity did not declare the same default
+
+### Fix
+The affected entity classes were updated so their definitions exactly matched the migrated schema. This included:
+- adding the required `foreignKeys = [...]`
+- preserving matching indices
+- adding `@ColumnInfo(defaultValue = "0")` where needed
+
+After aligning entities with the migration, the database upgrade completed successfully.
+
+### Result
+The app now starts correctly after migration and the database schema is enforced consistently by Room.
+
+---
+
+## Why this matters
+These fixes reduced the risk of:
+- orphaned records,
+- inconsistent notification behaviour,
+- schema-validation crashes during app startup,
+- hidden data integrity problems that would be harder to debug later.
+
+
