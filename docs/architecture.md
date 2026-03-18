@@ -2761,3 +2761,49 @@ Overall impact:
 - improved screen usability and scroll behaviour
 - identified Orders Control performance as a remaining area for further refinement
 
+## Theme and stability cleanup
+
+I cleaned the theme foundation of the app and prepared it for full light/dark mode support.
+
+### What I added
+- I added `KoffeeCraftApp` so the saved theme can be applied from app start.
+- I rebuilt the shared color system in `colors.xml` and `values-night/colors.xml`.
+- I kept the original app look as the light mode base.
+- I prepared the dark mode as a darker version of the same design language.
+
+### What I changed
+- I simplified `themes.xml` and `values-night/themes.xml` to a safer base theme.
+- I removed broken backup and data extraction manifest references.
+- I set `android:allowBackup="false"` as part of the security and cleanup pass.
+- I restored damaged color resources after a bad global replace changed literal color values into self-references.
+- I added missing shared colors such as `kc_divider` and `kc_danger_soft`.
+
+### Stability fixes
+- I removed all broken `Color.parseColor("@color/...")` calls and replaced them with resource-based color access.
+- I updated multiple screens and adapters so they now use `ContextCompat.getColor(...)` instead of invalid runtime color parsing.
+- I removed unsafe `!!` usage when parsing payment card expiry values in checkout-related flows.
+- I added RecyclerView `NO_POSITION` safety checks in swipe handlers.
+
+### Files and flows I cleaned
+- Admin:
+  - home
+  - campaign studio
+  - inbox
+  - notifications
+  - account management
+  - orders adapter
+- Customer:
+  - inbox
+  - notifications
+  - orders
+  - menu
+  - checkout
+  - payment methods
+
+### Result
+- I removed the main runtime crash pattern caused by invalid color parsing.
+- I made the theme foundation stable again.
+- I reduced the risk of crashes during checkout and swipe actions.
+- I prepared the app for the next stage of full UI theme migration.
+
+

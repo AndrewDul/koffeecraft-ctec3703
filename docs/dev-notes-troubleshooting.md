@@ -1032,3 +1032,137 @@ I restored the missing `adminCreateAccountFragment` entry inside `admin_nav_grap
 The build error was resolved and the admin navigation graph became complete again.
 
 Existing admin account creation navigation now works alongside the new Campaign Studio navigation structure.
+
+
+## 51)Theme and resource build problems
+
+### Problem: `attr/colorBackground not found`
+I got a resource linking error after changing the theme files.
+
+Error:
+- `style attribute 'attr/colorBackground' not found`
+
+Cause:
+- I used `colorBackground` in the theme in a way that Android could not resolve correctly.
+
+Fix:
+- I removed the unsafe theme setup.
+- I simplified the theme files and kept only a safe base configuration with `android:windowBackground`.
+
+---
+
+## 52)Manifest backup resource errors
+
+### Problem: missing `xml/data_extraction_rules` and `xml/backup_rules`
+The build failed because the manifest pointed to XML files that did not exist.
+
+Error:
+- `resource xml/data_extraction_rules not found`
+- `resource xml/backup_rules not found`
+
+Cause:
+- The manifest still contained old backup-related resource references.
+
+Fix:
+- I removed these XML references from the manifest.
+- I set `android:allowBackup="false"`.
+
+---
+
+## 53)Missing color resources
+
+### Problem: missing `kc_divider` and `kc_danger_soft`
+The build failed because some layouts referenced colors that were not defined.
+
+Error:
+- `resource color/kc_divider not found`
+- `resource color/kc_danger_soft not found`
+
+Cause:
+- The layouts were updated before those shared colors were added.
+
+Fix:
+- I added the missing color resources in both `values/colors.xml` and `values-night/colors.xml`.
+
+---
+
+## 54)App crash after global replace in colors
+
+### Problem: app crashed on startup after color cleanup
+The app stopped opening after I used global replace during theme work.
+
+Cause:
+- `colors.xml` was damaged by replace actions.
+- Some colors became self-references, for example:
+    - `@color/kc_shell_background` inside the definition of `kc_shell_background`
+
+Fix:
+- I restored the real hex values in `colors.xml`.
+- I checked the theme files again after that.
+
+---
+
+## 55)Runtime crash: `Unknown color`
+
+### Problem: app crashed with `IllegalArgumentException: Unknown color`
+The app started, but some screens crashed when opened.
+
+Cause:
+- Some Kotlin files still used:
+    - `Color.parseColor("@color/...")`
+- `Color.parseColor()` only accepts literal values like `#FFFFFF`, not Android resource references.
+
+Fix:
+- I replaced these calls with:
+    - `ContextCompat.getColor(requireContext(), R.color...)`
+    - or `ContextCompat.getColor(itemView.context, R.color...)`
+- I cleaned this problem from the affected fragments and adapters.
+
+Affected areas:
+- admin home
+- admin campaign studio
+- admin inbox
+- admin notifications
+- admin orders
+- customer inbox
+- customer notifications
+- orders
+- menu
+- checkout
+
+---
+
+## 56)Checkout safety fix
+
+### Problem: unsafe expiry parsing with `!!`
+There were places where card expiry parsing used `!!`.
+
+Cause:
+- If expiry parsing returned `null`, the app could crash.
+
+Fix:
+- I replaced the unsafe `!!` pattern with safe checks.
+- I now stop the action and show a message when the expiry cannot be parsed.
+
+Affected areas:
+- `CheckoutFragment`
+- `CustomerPaymentMethodsFragment`
+
+---
+
+## 57)RecyclerView swipe safety
+
+### Problem: swipe handlers could use an invalid adapter position
+Swipe-to-delete logic used `bindingAdapterPosition` directly.
+
+Cause:
+- In some RecyclerView edge cases, the position can be `NO_POSITION`.
+
+Fix:
+- I added a check before reading the item:
+    - if the position is `RecyclerView.NO_POSITION`, I return immediately.
+
+Affected areas:
+- `CustomerInboxFragment`
+- `CustomerNotificationsFragment`
+
