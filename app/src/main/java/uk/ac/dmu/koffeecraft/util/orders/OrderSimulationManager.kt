@@ -14,14 +14,17 @@ object OrderSimulationManager {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val runningOrderIds = mutableSetOf<Long>()
 
-    fun startIfNeeded(context: Context, orderId: Long) {
+    fun startIfNeeded(
+        context: Context,
+        db: KoffeeCraftDatabase,
+        orderId: Long
+    ) {
         synchronized(runningOrderIds) {
             if (runningOrderIds.contains(orderId)) return
             runningOrderIds.add(orderId)
         }
 
         val appContext = context.applicationContext
-        val db = KoffeeCraftDatabase.getInstance(appContext)
 
         scope.launch {
             try {

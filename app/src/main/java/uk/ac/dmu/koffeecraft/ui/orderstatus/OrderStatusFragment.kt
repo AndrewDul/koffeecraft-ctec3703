@@ -7,16 +7,15 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
-import uk.ac.dmu.koffeecraft.util.orders.OrderSimulationManager
 
 class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
 
@@ -54,8 +53,6 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         val simulate = requireArguments().getBoolean("simulate", false)
         val fromCheckout = requireArguments().getBoolean("fromCheckout", false)
 
-        val db = appContainer.database
-
         vm = ViewModelProvider(
             this,
             OrderStatusViewModelFactory(appContainer.customerOrdersRepository)
@@ -80,66 +77,48 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             )
         }
 
-        if (simulate) {
-            OrderSimulationManager.startIfNeeded(requireContext().applicationContext, orderId)
-        }
-
+        vm.startSimulationIfNeeded(orderId, simulate)
         vm.start(orderId = orderId, fromCheckout = fromCheckout)
 
-        var lastSyncedSignature: String? = null
-
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.state.collect { state ->
-                if (state.orderId == 0L) return@collect
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.state.collect { state ->
+                    if (state.orderId == 0L) return@collect
 
-                tvOrderId.text = "Order #${state.orderId}"
+                    tvOrderId.text = "Order #${state.orderId}"
 
-                tvStatusChip.text = state.statusLabel
-                tvStatus.text = state.statusLabel
-                bindStatusChip(tvStatusChip, state.statusRaw)
+                    tvStatusChip.text = state.statusLabel
+                    tvStatus.text = state.statusLabel
+                    bindStatusChip(tvStatusChip, state.statusRaw)
 
-                tvItemsOrderedValue.text = state.itemsOrderedLabel
-                tvTotalPaidValue.text = state.totalPaidLabel
-                tvPaymentTypeValue.text = state.paymentTypeLabel
-                tvEtaValue.text = state.etaLabel
-                tvStatusHelper.text = state.statusHelper
-                tvFeedbackHelper.text = state.feedbackHelper
+                    tvItemsOrderedValue.text = state.itemsOrderedLabel
+                    tvTotalPaidValue.text = state.totalPaidLabel
+                    tvPaymentTypeValue.text = state.paymentTypeLabel
+                    tvEtaValue.text = state.etaLabel
+                    tvStatusHelper.text = state.statusHelper
+                    tvFeedbackHelper.text = state.feedbackHelper
 
-                bindHero(
-                    iconView = tvHeroIcon,
-                    titleView = tvHeroTitle,
-                    subtitleView = tvHeroSubtitle,
-                    tone = state.heroTone,
-                    icon = state.heroIcon,
-                    title = state.heroTitle,
-                    subtitle = state.heroSubtitle
-                )
+                    bindHero(
+                        iconView = tvHeroIcon,
+                        titleView = tvHeroTitle,
+                        subtitleView = tvHeroSubtitle,
+                        tone = state.heroTone,
+                        icon = state.heroIcon,
+                        title = state.heroTitle,
+                        subtitle = state.heroSubtitle
+                    )
 
-                setJourneyStep(tvStepPlaced, state.stepPlacedActive)
-                setJourneyStep(tvStepPreparing, state.stepPreparingActive)
-                setJourneyStep(tvStepReady, state.stepReadyActive)
-                setJourneyStep(tvStepCollected, state.stepCollectedActive)
+                    setJourneyStep(tvStepPlaced, state.stepPlacedActive)
+                    setJourneyStep(tvStepPreparing, state.stepPreparingActive)
+                    setJourneyStep(tvStepReady, state.stepReadyActive)
+                    setJourneyStep(tvStepCollected, state.stepCollectedActive)
 
-                btnFeedback.visibility = View.VISIBLE
-                btnFeedback.isEnabled = state.feedbackEnabled
-                btnFeedback.alpha = if (state.feedbackEnabled) 1f else 0.45f
-                btnFeedback.text = state.feedbackButtonLabel
+                    btnFeedback.visibility = View.VISIBLE
+                    btnFeedback.isEnabled = state.feedbackEnabled
+                    btnFeedback.alpha = if (state.feedbackEnabled) 1f else 0.45f
+                    btnFeedback.text = state.feedbackButtonLabel
 
-                if (!simulate) {
-                    val signature = "${state.orderId}:${state.statusRaw}:${state.createdAt}"
-                    if (signature != lastSyncedSignature) {
-                        lastSyncedSignature = signature
-
-                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                            AdminNotificationManager.syncAdminOrderActionNotification(
-                                context = requireContext(),
-                                db = db,
-                                orderId = state.orderId,
-                                orderCreatedAt = state.createdAt,
-                                orderStatus = state.statusRaw
-                            )
-                        }
-                    }
+                    vm.syncAdminNotificationIfNeeded(state, simulate)
                 }
             }
         }

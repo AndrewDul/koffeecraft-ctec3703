@@ -5,30 +5,56 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 
 class AdminActivity : AppCompatActivity() {
 
+    private lateinit var viewModel: AdminActivityViewModel
+    private lateinit var navController: NavController
+
+    private lateinit var bottomNav: BottomNavigationView
+    private lateinit var btnInbox: ImageButton
+    private lateinit var btnNotifications: ImageButton
+    private lateinit var btnSettings: ImageButton
+    private lateinit var tvBadge: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        viewModel = ViewModelProvider(
+            this,
+            AdminActivityViewModel.Factory(applicationContext.appContainer.adminActivityRepository)
+        )[AdminActivityViewModel::class.java]
+
         setContentView(R.layout.activity_admin)
 
+        bindViews()
+        setupNavigationShell()
+        observeState()
+
+        viewModel.start()
+    }
+
+    private fun bindViews() {
         val navHost = supportFragmentManager.findFragmentById(R.id.adminNavHost) as NavHostFragment
-        val navController = navHost.navController
+        navController = navHost.navController
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.adminBottomNav)
+        bottomNav = findViewById(R.id.adminBottomNav)
+        btnInbox = findViewById(R.id.btnAdminInbox)
+        btnNotifications = findViewById(R.id.btnAdminNotifications)
+        btnSettings = findViewById(R.id.btnAdminSettings)
+        tvBadge = findViewById(R.id.tvAdminNotificationBadge)
+    }
 
-        val btnInbox = findViewById<ImageButton>(R.id.btnAdminInbox)
-        val btnNotifications = findViewById<ImageButton>(R.id.btnAdminNotifications)
-        val btnSettings = findViewById<ImageButton>(R.id.btnAdminSettings)
-        val tvBadge = findViewById<TextView>(R.id.tvAdminNotificationBadge)
-
+    private fun setupNavigationShell() {
         val bottomMenuDestinations = setOf(
             R.id.adminHomeFragment,
             R.id.adminOrdersFragment,
@@ -58,19 +84,6 @@ class AdminActivity : AppCompatActivity() {
             navigateIfNeeded(navController, R.id.adminSettingsFragment)
         }
 
-        val db = KoffeeCraftDatabase.getInstance(applicationContext)
-
-        lifecycleScope.launch {
-            db.notificationDao().observeUnreadAdminCount().collect { count ->
-                if (count > 0) {
-                    tvBadge.visibility = View.VISIBLE
-                    tvBadge.text = if (count > 99) "99+" else count.toString()
-                } else {
-                    tvBadge.visibility = View.GONE
-                }
-            }
-        }
-
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.id in bottomMenuDestinations) {
                 bottomNav.menu.findItem(destination.id)?.isChecked = true
@@ -79,6 +92,15 @@ class AdminActivity : AppCompatActivity() {
             }
 
             bottomNav.visibility = View.VISIBLE
+        }
+    }
+
+    private fun observeState() {
+        lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                tvBadge.visibility = if (state.showNotificationBadge) View.VISIBLE else View.GONE
+                tvBadge.text = state.notificationBadgeText
+            }
         }
     }
 

@@ -7,77 +7,48 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.switchmaterial.SwitchMaterial
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.MainActivity
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
-import uk.ac.dmu.koffeecraft.data.settings.ThemeSettings
 
 class AdminSettingsFragment : Fragment(R.layout.fragment_admin_settings) {
+
+    private lateinit var viewModel: AdminSettingsViewModel
 
     private lateinit var tvAdminName: TextView
     private lateinit var tvAdminEmail: TextView
     private lateinit var tvThemeModeStatus: TextView
+    private lateinit var tvSimulationStatus: TextView
+    private lateinit var switchSimulation: SwitchMaterial
+    private lateinit var switchThemeMode: SwitchMaterial
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProvider(
+            this,
+            AdminSettingsViewModel.Factory(appContainer.adminSettingsRepository)
+        )[AdminSettingsViewModel::class.java]
+
         tvAdminName = view.findViewById(R.id.tvAdminName)
         tvAdminEmail = view.findViewById(R.id.tvAdminEmail)
         tvThemeModeStatus = view.findViewById(R.id.tvThemeModeStatus)
+        tvSimulationStatus = view.findViewById(R.id.tvSimulationStatus)
+        switchSimulation = view.findViewById(R.id.switchAppSimulation)
+        switchThemeMode = view.findViewById(R.id.switchThemeMode)
 
         val rowCreateAdminAccount = view.findViewById<LinearLayout>(R.id.rowCreateAdminAccount)
         val rowAccountAccessCenter = view.findViewById<LinearLayout>(R.id.rowAccountAccessCenter)
         val rowNotificationsCenter = view.findViewById<LinearLayout>(R.id.rowNotificationsCenter)
         val rowInboxTools = view.findViewById<LinearLayout>(R.id.rowInboxTools)
         val rowSignOut = view.findViewById<LinearLayout>(R.id.rowSignOut)
-
-        val switchSimulation = view.findViewById<SwitchMaterial>(R.id.switchAppSimulation)
-        val tvSimulationStatus = view.findViewById<TextView>(R.id.tvSimulationStatus)
-        val switchThemeMode = view.findViewById<SwitchMaterial>(R.id.switchThemeMode)
-
-        fun updateSimulationText(enabled: Boolean) {
-            tvSimulationStatus.text = if (enabled) {
-                getString(R.string.admin_simulation_desc_on)
-            } else {
-                getString(R.string.admin_simulation_desc_off)
-            }
-        }
-
-        fun updateThemeText(enabled: Boolean) {
-            tvThemeModeStatus.text = if (enabled) {
-                getString(R.string.settings_theme_toggle_desc_dark)
-            } else {
-                getString(R.string.settings_theme_toggle_desc_light)
-            }
-        }
-
-        val initialSimulationState = SimulationSettings.isEnabled(requireContext())
-        switchSimulation.isChecked = initialSimulationState
-        updateSimulationText(initialSimulationState)
-
-        switchSimulation.setOnCheckedChangeListener { _, isChecked ->
-            SimulationSettings.setEnabled(requireContext(), isChecked)
-            updateSimulationText(isChecked)
-        }
-
-        val initialThemeState = ThemeSettings.isDarkModeEnabled(requireContext())
-        switchThemeMode.isChecked = initialThemeState
-        updateThemeText(initialThemeState)
-
-        switchThemeMode.setOnCheckedChangeListener { _, isChecked ->
-            updateThemeText(isChecked)
-            ThemeSettings.setDarkModeEnabled(requireContext(), isChecked)
-        }
 
         rowCreateAdminAccount.setOnClickListener {
             findNavController().navigate(R.id.adminCreateAccountFragment)
@@ -96,45 +67,86 @@ class AdminSettingsFragment : Fragment(R.layout.fragment_admin_settings) {
         }
 
         rowSignOut.setOnClickListener {
-            CartManager.clearInMemoryOnly()
-            SessionManager.clear()
-            RememberedSessionStore.clear(requireContext().applicationContext)
-            startActivity(Intent(requireContext(), MainActivity::class.java))
-            requireActivity().finish()
+            viewModel.signOut()
         }
+
+        switchSimulation.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setSimulationEnabled(isChecked)
+        }
+
+        switchThemeMode.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setDarkModeEnabled(isChecked)
+        }
+
+        observeState()
+        viewModel.load(SessionManager.currentAdminId)
     }
 
     override fun onResume() {
         super.onResume()
-        loadAdminSummary()
+        viewModel.load(SessionManager.currentAdminId)
     }
 
-    private fun loadAdminSummary() {
-        val adminId = SessionManager.currentAdminId
-        if (adminId == null) {
-            tvAdminName.text = getString(R.string.admin_settings_fallback_name)
-            tvAdminEmail.text = getString(R.string.admin_settings_fallback_email)
-            return
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                bindState(state)
+            }
         }
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effects.collectLatest { effect ->
+                when (effect) {
+                    is AdminSettingsViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val admin = db.adminDao().getById(adminId)
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                if (admin == null) {
-                    tvAdminName.text = getString(R.string.admin_settings_fallback_name)
-                    tvAdminEmail.text = getString(R.string.admin_settings_fallback_email)
-                    Toast.makeText(requireContext(), getString(R.string.admin_settings_profile_missing), Toast.LENGTH_SHORT).show()
-                    return@withContext
+                    AdminSettingsViewModel.UiEffect.NavigateToSignedOut -> {
+                        startActivity(Intent(requireContext(), MainActivity::class.java))
+                        requireActivity().finish()
+                    }
                 }
-
-                tvAdminName.text = admin.fullName
-                tvAdminEmail.text = admin.email
             }
+        }
+    }
+
+    private fun bindState(state: AdminSettingsUiState) {
+        tvAdminName.text = if (state.adminName.isBlank()) {
+            getString(R.string.admin_settings_fallback_name)
+        } else {
+            state.adminName
+        }
+
+        tvAdminEmail.text = if (state.adminEmail.isBlank()) {
+            getString(R.string.admin_settings_fallback_email)
+        } else {
+            state.adminEmail
+        }
+
+        switchSimulation.setOnCheckedChangeListener(null)
+        switchThemeMode.setOnCheckedChangeListener(null)
+
+        switchSimulation.isChecked = state.simulationEnabled
+        switchThemeMode.isChecked = state.darkModeEnabled
+
+        tvSimulationStatus.text = if (state.simulationEnabled) {
+            getString(R.string.admin_simulation_desc_on)
+        } else {
+            getString(R.string.admin_simulation_desc_off)
+        }
+
+        tvThemeModeStatus.text = if (state.darkModeEnabled) {
+            getString(R.string.settings_theme_toggle_desc_dark)
+        } else {
+            getString(R.string.settings_theme_toggle_desc_light)
+        }
+
+        switchSimulation.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setSimulationEnabled(isChecked)
+        }
+
+        switchThemeMode.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setDarkModeEnabled(isChecked)
         }
     }
 }

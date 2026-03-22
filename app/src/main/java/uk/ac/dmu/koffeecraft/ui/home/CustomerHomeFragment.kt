@@ -4,23 +4,22 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.progressindicator.LinearProgressIndicator
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Locale
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 
 class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
+
+    private lateinit var viewModel: CustomerHomeViewModel
 
     private lateinit var tvBeansValue: TextView
     private lateinit var tvBeansMeta: TextView
@@ -52,6 +51,11 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(
+            this,
+            CustomerHomeViewModel.Factory(appContainer.customerHomeRepository)
+        )[CustomerHomeViewModel::class.java]
 
         tvBeansValue = view.findViewById(R.id.tvBeansValue)
         tvBeansMeta = view.findViewById(R.id.tvBeansMeta)
@@ -101,12 +105,48 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
         cardBeansBalance.setOnClickListener { openRewards() }
         cardRewardsSection.setOnClickListener { openRewards() }
 
-        loadHomeContent()
+        observeState()
+
+        customerId?.let { viewModel.refresh(it) }
     }
 
     override fun onResume() {
         super.onResume()
-        loadHomeContent()
+        customerId?.let { viewModel.refresh(it) }
+    }
+
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                tvBeansValue.text = state.beansValue
+                tvBeansMeta.text = state.beansMeta
+                tvBeansProgressValue.text = state.beansProgressValue
+
+                progressBeansHome.max = 10
+                progressBeansHome.progress = state.beansProgress
+
+                rewardsAdapter.submitList(state.rewardItems)
+                newArrivalsAdapter.submitList(state.newArrivalItems)
+                topCoffeesAdapter.submitList(state.topCoffeeItems)
+                topCakesAdapter.submitList(state.topCakeItems)
+                mostLovedAdapter.submitList(state.mostLovedItems)
+
+                tvRewardsEmpty.visibility = if (state.rewardItems.isEmpty()) View.VISIBLE else View.GONE
+                rvRewardsPreview.visibility = if (state.rewardItems.isEmpty()) View.GONE else View.VISIBLE
+
+                tvNewArrivalsEmpty.visibility = if (state.newArrivalItems.isEmpty()) View.VISIBLE else View.GONE
+                rvNewArrivals.visibility = if (state.newArrivalItems.isEmpty()) View.GONE else View.VISIBLE
+
+                tvTopCoffeesEmpty.visibility = if (state.topCoffeeItems.isEmpty()) View.VISIBLE else View.GONE
+                rvTopCoffees.visibility = if (state.topCoffeeItems.isEmpty()) View.GONE else View.VISIBLE
+
+                tvTopCakesEmpty.visibility = if (state.topCakeItems.isEmpty()) View.VISIBLE else View.GONE
+                rvTopCakes.visibility = if (state.topCakeItems.isEmpty()) View.GONE else View.VISIBLE
+
+                tvMostLovedEmpty.visibility = if (state.mostLovedItems.isEmpty()) View.VISIBLE else View.GONE
+                rvMostLoved.visibility = if (state.mostLovedItems.isEmpty()) View.GONE else View.VISIBLE
+            }
+        }
     }
 
     private fun setupHorizontalRecycler(
@@ -116,186 +156,6 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
         recyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = adapter
-    }
-
-    private fun loadHomeContent() {
-        val cid = customerId ?: return
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val customer = db.customerDao().getById(cid) ?: return@launch
-            val rewardProducts = db.productDao().getRewardProducts()
-            val newProducts = db.productDao().getActiveNewProducts()
-            val topCoffees = db.feedbackDao().getTopRatedProductsByFamily(
-                productFamily = "COFFEE",
-                minimumRatings = 1,
-                limit = 3
-            )
-            val topCakes = db.feedbackDao().getTopRatedProductsByFamily(
-                productFamily = "CAKE",
-                minimumRatings = 1,
-                limit = 3
-            )
-            val mostLovedProducts = db.favouriteDao().getMostLovedProducts(limit = 5)
-
-            val rewardItems = buildRewardPreviewItems(
-                customer.beansBalance,
-                customer.beansBoosterProgress,
-                customer.pendingBeansBoosters,
-                rewardProducts
-            )
-
-            val newArrivalItems = newProducts.map { product ->
-                CustomerHomeCarouselItem(
-                    title = product.name,
-                    subtitle = product.description.ifBlank {
-                        "Freshly added to the KoffeeCraft collection."
-                    },
-                    metaLine = if (product.isMerch) {
-                        if (product.rewardEnabled) "Reward item" else "Merch item"
-                    } else {
-                        String.format(Locale.UK, "From £%.2f", product.price)
-                    },
-                    badgeLabel = "NEW"
-                )
-            }
-
-            val topCoffeeItems = topCoffees.map { item ->
-                CustomerHomeCarouselItem(
-                    title = item.productName,
-                    subtitle = item.productDescription.ifBlank { "Top-rated crafted coffee." },
-                    metaLine = String.format(
-                        Locale.UK,
-                        "★ %.1f • %d ratings • From £%.2f",
-                        item.averageRating,
-                        item.ratingCount,
-                        item.price
-                    ),
-                    badgeLabel = "COFFEE"
-                )
-            }
-
-            val topCakeItems = topCakes.map { item ->
-                CustomerHomeCarouselItem(
-                    title = item.productName,
-                    subtitle = item.productDescription.ifBlank { "Top-rated crafted cake." },
-                    metaLine = String.format(
-                        Locale.UK,
-                        "★ %.1f • %d ratings • From £%.2f",
-                        item.averageRating,
-                        item.ratingCount,
-                        item.price
-                    ),
-                    badgeLabel = "CAKE"
-                )
-            }
-
-            val mostLovedItems = mostLovedProducts.map { item ->
-                CustomerHomeCarouselItem(
-                    title = item.productName,
-                    subtitle = item.productDescription.ifBlank { "Customer favourite across the KoffeeCraft menu." },
-                    metaLine = String.format(
-                        Locale.UK,
-                        "♥ %d favourites • From £%.2f",
-                        item.favouriteCount,
-                        item.price
-                    ),
-                    badgeLabel = when {
-                        item.productFamily.equals("COFFEE", ignoreCase = true) -> "COFFEE"
-                        item.productFamily.equals("CAKE", ignoreCase = true) -> "CAKE"
-                        else -> "LOVED"
-                    }
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                tvBeansValue.text = "${customer.beansBalance} beans"
-
-                val boosterProgress = customer.beansBoosterProgress.coerceIn(0, 9)
-                progressBeansHome.max = 10
-                progressBeansHome.progress = boosterProgress
-                tvBeansMeta.text = "Bean booster progress"
-                tvBeansProgressValue.text =
-                    if (customer.pendingBeansBoosters > 0) {
-                        "${customer.pendingBeansBoosters} ready • ${boosterProgress}/10"
-                    } else {
-                        "${boosterProgress}/10"
-                    }
-
-                rewardsAdapter.submitList(rewardItems)
-                newArrivalsAdapter.submitList(newArrivalItems)
-                topCoffeesAdapter.submitList(topCoffeeItems)
-                topCakesAdapter.submitList(topCakeItems)
-                mostLovedAdapter.submitList(mostLovedItems)
-
-                tvRewardsEmpty.visibility = if (rewardItems.isEmpty()) View.VISIBLE else View.GONE
-                rvRewardsPreview.visibility = if (rewardItems.isEmpty()) View.GONE else View.VISIBLE
-
-                tvNewArrivalsEmpty.visibility = if (newArrivalItems.isEmpty()) View.VISIBLE else View.GONE
-                rvNewArrivals.visibility = if (newArrivalItems.isEmpty()) View.GONE else View.VISIBLE
-
-                tvTopCoffeesEmpty.visibility = if (topCoffeeItems.isEmpty()) View.VISIBLE else View.GONE
-                rvTopCoffees.visibility = if (topCoffeeItems.isEmpty()) View.GONE else View.VISIBLE
-
-                tvTopCakesEmpty.visibility = if (topCakeItems.isEmpty()) View.VISIBLE else View.GONE
-                rvTopCakes.visibility = if (topCakeItems.isEmpty()) View.GONE else View.VISIBLE
-
-                tvMostLovedEmpty.visibility = if (mostLovedItems.isEmpty()) View.VISIBLE else View.GONE
-                rvMostLoved.visibility = if (mostLovedItems.isEmpty()) View.GONE else View.VISIBLE
-            }
-        }
-    }
-
-    private fun buildRewardPreviewItems(
-        beansBalance: Int,
-        beansBoosterProgress: Int,
-        pendingBeansBoosters: Int,
-        rewardProducts: List<Product>
-    ): List<CustomerHomeCarouselItem> {
-        val items = mutableListOf<CustomerHomeCarouselItem>()
-
-        items += CustomerHomeCarouselItem(
-            title = "5 Bean Booster",
-            subtitle = "Every 10 earned beans unlock a +5 bean booster.",
-            metaLine = BeansBoosterManager.rewardMetaLine(beansBoosterProgress, pendingBeansBoosters),
-            badgeLabel = if (pendingBeansBoosters > 0) "READY" else "REWARD"
-        )
-
-        items += CustomerHomeCarouselItem(
-            title = "Free Coffee",
-            subtitle = "Redeem a crafted coffee from the rewards screen.",
-            metaLine = "15 beans",
-            badgeLabel = if (beansBalance >= 15) "AVAILABLE" else "REWARD"
-        )
-
-        items += CustomerHomeCarouselItem(
-            title = "Free Cake",
-            subtitle = "Redeem a crafted cake from the rewards screen.",
-            metaLine = "18 beans",
-            badgeLabel = if (beansBalance >= 18) "AVAILABLE" else "REWARD"
-        )
-
-        rewardProducts.forEach { product ->
-            val beansCost = when (product.name) {
-                "KoffeeCraft Mug" -> 125
-                "KoffeeCraft Teddy Bear" -> 250
-                "1kg Crafted Coffee Beans" -> 370
-                else -> 0
-            }
-
-            items += CustomerHomeCarouselItem(
-                title = product.name,
-                subtitle = product.description.ifBlank {
-                    "Special reward item available in the rewards screen."
-                },
-                metaLine = if (beansCost > 0) "$beansCost beans" else "Reward item",
-                badgeLabel = if (beansCost > 0 && beansBalance >= beansCost) "AVAILABLE" else "REWARD"
-            )
-        }
-
-        return items
     }
 
     private fun openRewards() {

@@ -3,7 +3,6 @@ package uk.ac.dmu.koffeecraft.data.cart
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
@@ -67,6 +66,17 @@ object CartManager {
             customerId = customerId,
             items = items.values.toList()
         )
+    }
+
+    fun replaceAll(
+        newItems: List<CartItem>,
+        persist: Boolean = true
+    ) {
+        items.clear()
+        newItems.forEach { item ->
+            items[item.lineKey] = item
+        }
+        refreshItemCount(persist = persist)
     }
 
     fun add(product: Product) {
@@ -280,103 +290,6 @@ object CartManager {
         customerId: Long
     ) {
         RememberedCartStore.clearCartForCustomer(context.applicationContext, customerId)
-    }
-
-    suspend fun restorePersistedCart(
-        context: Context,
-        customerId: Long,
-        db: KoffeeCraftDatabase
-    ) {
-        attachContext(context)
-
-        val snapshots = RememberedCartStore.loadCartForCustomer(appContext, customerId)
-        val restoredItems = linkedMapOf<String, CartItem>()
-
-        snapshots.forEach { snapshot ->
-            val restored = buildRestoredCartItem(snapshot, db)
-            if (restored != null) {
-                restoredItems[restored.lineKey] = restored
-            }
-        }
-
-        items.clear()
-        items.putAll(restoredItems)
-        refreshItemCount(persist = false)
-
-        RememberedCartStore.saveCartForCustomer(
-            context = appContext,
-            customerId = customerId,
-            items = items.values.toList()
-        )
-    }
-
-    private suspend fun buildRestoredCartItem(
-        snapshot: RememberedCartStore.CartItemSnapshot,
-        db: KoffeeCraftDatabase
-    ): CartItem? {
-        val product = db.productDao().getById(snapshot.productId) ?: return null
-        if (!product.isActive) return null
-
-        val optionId = snapshot.selectedOptionId
-        if (optionId != null) {
-            val option = db.productOptionDao().getById(optionId) ?: return null
-            if (option.productId != product.productId) return null
-        }
-
-        if (snapshot.selectedAddOnIds.isNotEmpty()) {
-            val activeAssignedAddOns = db.addOnDao().getActiveForProduct(product.productId)
-            val activeAssignedIds = activeAssignedAddOns.map { it.addOnId }.toSet()
-
-            val allAddOnsStillValid = snapshot.selectedAddOnIds.all { it in activeAssignedIds }
-            if (!allAddOnsStillValid) return null
-        }
-
-        if (snapshot.isReward && !product.rewardEnabled) {
-            return null
-        }
-
-        val displayProduct = buildDisplayProductForRestore(
-            sourceProduct = product,
-            isReward = snapshot.isReward,
-            rewardType = snapshot.rewardType,
-            hasCustomisation = optionId != null || snapshot.selectedAddOnIds.isNotEmpty()
-        )
-
-        return CartItem(
-            lineKey = snapshot.lineKey,
-            product = displayProduct,
-            quantity = snapshot.quantity.coerceAtLeast(1),
-            unitPrice = snapshot.unitPrice,
-            isReward = snapshot.isReward,
-            rewardType = snapshot.rewardType,
-            beansCostPerUnit = snapshot.beansCostPerUnit,
-            selectedOptionId = snapshot.selectedOptionId,
-            selectedOptionLabel = snapshot.selectedOptionLabel,
-            selectedOptionSizeValue = snapshot.selectedOptionSizeValue,
-            selectedOptionSizeUnit = snapshot.selectedOptionSizeUnit,
-            selectedAddOnIds = snapshot.selectedAddOnIds,
-            selectedAddOnsSummary = snapshot.selectedAddOnsSummary,
-            estimatedCalories = snapshot.estimatedCalories
-        )
-    }
-
-    private fun buildDisplayProductForRestore(
-        sourceProduct: Product,
-        isReward: Boolean,
-        rewardType: String?,
-        hasCustomisation: Boolean
-    ): Product {
-        if (!isReward) return sourceProduct
-
-        val shouldPrefixRewardName = hasCustomisation ||
-                rewardType == "FREE_COFFEE" ||
-                rewardType == "FREE_CAKE" ||
-                rewardType == "CUSTOM_REWARD"
-
-        return sourceProduct.copy(
-            name = if (shouldPrefixRewardName) "Reward: ${sourceProduct.name}" else sourceProduct.name,
-            price = 0.0
-        )
     }
 
     fun getItems(): List<CartItem> {

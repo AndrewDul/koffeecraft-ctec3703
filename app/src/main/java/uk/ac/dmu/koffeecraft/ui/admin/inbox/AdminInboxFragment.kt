@@ -9,20 +9,20 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.CustomerInboxTarget
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 
 class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
+
+    private lateinit var viewModel: AdminInboxViewModel
 
     private lateinit var tvModeOrderNumber: TextView
     private lateinit var tvModeCustomerId: TextView
@@ -47,39 +47,32 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
     private lateinit var etMessageBody: TextInputEditText
     private lateinit var btnSendMessage: MaterialButton
 
-    private var selectedTarget: CustomerInboxTarget? = null
-    private var currentTargetMode: TargetMode = TargetMode.ORDER_NUMBER
-    private var currentMessageType: MessageType = MessageType.CUSTOM
-
-    private enum class TargetMode {
-        ORDER_NUMBER,
-        CUSTOMER_ID
-    }
-
-    private enum class MessageType {
-        CUSTOM,
-        IMPORTANT,
-        SERVICE
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(
+            this,
+            AdminInboxViewModel.Factory(appContainer.adminInboxRepository)
+        )[AdminInboxViewModel::class.java]
 
         bindViews(view)
         setupModeClicks()
         setupTypeClicks()
         setupTextWatchers()
-
-        applyTargetMode(TargetMode.ORDER_NUMBER)
-        applyMessageType(MessageType.CUSTOM, forceTemplate = true)
+        observeState()
 
         btnSearch.setOnClickListener {
-            performTargetLookup()
+            viewModel.performTargetLookup(etSearch.text?.toString().orEmpty())
         }
 
         btnSendMessage.setOnClickListener {
-            sendDirectMessage()
+            viewModel.sendDirectMessage(
+                title = etMessageTitle.text?.toString().orEmpty(),
+                body = etMessageBody.text?.toString().orEmpty()
+            )
         }
+
+        viewModel.initialise()
     }
 
     private fun bindViews(view: View) {
@@ -109,32 +102,47 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
 
     private fun setupModeClicks() {
         tvModeOrderNumber.setOnClickListener {
-            applyTargetMode(TargetMode.ORDER_NUMBER)
+            viewModel.applyTargetMode(AdminInboxTargetMode.ORDER_NUMBER)
         }
 
         tvModeCustomerId.setOnClickListener {
-            applyTargetMode(TargetMode.CUSTOMER_ID)
+            viewModel.applyTargetMode(AdminInboxTargetMode.CUSTOMER_ID)
         }
     }
 
     private fun setupTypeClicks() {
         btnTemplateImportant.setOnClickListener {
-            applyMessageType(MessageType.IMPORTANT)
+            viewModel.applyMessageType(
+                type = AdminInboxMessageType.IMPORTANT,
+                currentTitle = etMessageTitle.text?.toString().orEmpty(),
+                currentBody = etMessageBody.text?.toString().orEmpty()
+            )
         }
 
         btnTemplateService.setOnClickListener {
-            applyMessageType(MessageType.SERVICE)
+            viewModel.applyMessageType(
+                type = AdminInboxMessageType.SERVICE,
+                currentTitle = etMessageTitle.text?.toString().orEmpty(),
+                currentBody = etMessageBody.text?.toString().orEmpty()
+            )
         }
 
         btnTemplateCustom.setOnClickListener {
-            applyMessageType(MessageType.CUSTOM)
+            viewModel.applyMessageType(
+                type = AdminInboxMessageType.CUSTOM,
+                currentTitle = etMessageTitle.text?.toString().orEmpty(),
+                currentBody = etMessageBody.text?.toString().orEmpty()
+            )
         }
     }
 
     private fun setupTextWatchers() {
         val watcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                updateSendState()
+                viewModel.onDraftChanged(
+                    title = etMessageTitle.text?.toString().orEmpty(),
+                    body = etMessageBody.text?.toString().orEmpty()
+                )
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -145,31 +153,58 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
         etMessageBody.addTextChangedListener(watcher)
     }
 
-    private fun applyTargetMode(mode: TargetMode) {
-        currentTargetMode = mode
-
-        styleModeChip(tvModeOrderNumber, mode == TargetMode.ORDER_NUMBER)
-        styleModeChip(tvModeCustomerId, mode == TargetMode.CUSTOMER_ID)
-
-        when (mode) {
-            TargetMode.ORDER_NUMBER -> {
-                tvSearchHint.text = "Find customer by order number"
-                tilSearch.hint = "Enter order number"
-                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            }
-
-            TargetMode.CUSTOMER_ID -> {
-                tvSearchHint.text = "Find customer by customer ID"
-                tilSearch.hint = "Enter customer ID"
-                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                renderState(state)
             }
         }
 
-        etSearch.setText("")
-        selectedTarget = null
-        cardSelectedTarget.visibility = View.GONE
-        tvTargetsEmpty.visibility = View.GONE
-        updateSendState()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effects.collectLatest { effect ->
+                when (effect) {
+                    is AdminInboxViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is AdminInboxViewModel.UiEffect.ApplyTemplate -> {
+                        etMessageTitle.setText(effect.title)
+                        etMessageBody.setText(effect.body)
+                    }
+
+                    AdminInboxViewModel.UiEffect.ClearSearch -> {
+                        etSearch.setText("")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun renderState(state: AdminInboxUiState) {
+        styleModeChip(tvModeOrderNumber, state.currentTargetMode == AdminInboxTargetMode.ORDER_NUMBER)
+        styleModeChip(tvModeCustomerId, state.currentTargetMode == AdminInboxTargetMode.CUSTOMER_ID)
+
+        tilSearch.hint = state.searchFieldHint
+        tvSearchHint.text = state.searchHint
+        etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+
+        styleTypeButton(btnTemplateImportant, state.currentMessageType == AdminInboxMessageType.IMPORTANT)
+        styleTypeButton(btnTemplateService, state.currentMessageType == AdminInboxMessageType.SERVICE)
+        styleTypeButton(btnTemplateCustom, state.currentMessageType == AdminInboxMessageType.CUSTOM)
+
+        tvMessageHint.text = state.messageHint
+
+        tvTargetsEmpty.visibility = if (state.targetsEmptyVisible) View.VISIBLE else View.GONE
+        cardSelectedTarget.visibility = if (state.selectedTargetVisible) View.VISIBLE else View.GONE
+
+        tvSelectedTarget.text = state.selectedTargetText
+        tvTargetMeta.text = state.targetMetaText
+        tvConsentStatus.text = state.consentStatusText
+        tvConsentStatus.setTextColor(color(state.consentStatusColorRes))
+        tvAudienceSummary.text = state.audienceSummaryText
+
+        btnSendMessage.isEnabled = state.canSend
+        btnSendMessage.alpha = if (state.canSend) 1f else 0.5f
     }
 
     private fun styleModeChip(view: TextView, selected: Boolean) {
@@ -185,39 +220,6 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
         view.alpha = if (selected) 1f else 0.95f
     }
 
-    private fun applyMessageType(type: MessageType, forceTemplate: Boolean = false) {
-        currentMessageType = type
-
-        styleTypeButton(btnTemplateImportant, type == MessageType.IMPORTANT)
-        styleTypeButton(btnTemplateService, type == MessageType.SERVICE)
-        styleTypeButton(btnTemplateCustom, type == MessageType.CUSTOM)
-
-        tvMessageHint.text = when (type) {
-            MessageType.IMPORTANT -> {
-                "Use this for direct important notices linked to one customer or one order."
-            }
-
-            MessageType.SERVICE -> {
-                "Use this for direct service follow-ups, order issues, or operational updates."
-            }
-
-            MessageType.CUSTOM -> {
-                "Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation in direct messages."
-            }
-        }
-
-        val shouldApplyTemplate = forceTemplate ||
-                etMessageTitle.text.isNullOrBlank() ||
-                etMessageBody.text.isNullOrBlank()
-
-        if (shouldApplyTemplate) {
-            etMessageTitle.setText(defaultTitle(type))
-            etMessageBody.setText(defaultBody(type))
-        }
-
-        updateSendState()
-    }
-
     private fun styleTypeButton(button: MaterialButton, selected: Boolean) {
         if (selected) {
             button.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_brand_strong))
@@ -228,182 +230,6 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
             button.setTextColor(color(R.color.kc_icon_primary))
             button.strokeWidth = 1
             button.strokeColor = ColorStateList.valueOf(color(R.color.kc_border_warm))
-        }
-    }
-
-    private fun defaultTitle(type: MessageType): String {
-        return when (type) {
-            MessageType.IMPORTANT -> "Important KoffeeCraft Notice"
-            MessageType.SERVICE -> "KoffeeCraft Service Update"
-            MessageType.CUSTOM -> "Message from KoffeeCraft"
-        }
-    }
-
-    private fun defaultBody(type: MessageType): String {
-        return when (type) {
-            MessageType.IMPORTANT -> {
-                """
-Hello [FIRST_NAME],
-
-This is an important message from KoffeeCraft regarding your account or recent order.
-
-Please review the update and contact us if you need any support.
-
-KoffeeCraft
-                """.trimIndent()
-            }
-
-            MessageType.SERVICE -> {
-                """
-Hello [FIRST_NAME],
-
-We are contacting you with a service update related to your recent KoffeeCraft experience.
-
-If you need any help, please let us know.
-
-KoffeeCraft
-                """.trimIndent()
-            }
-
-            MessageType.CUSTOM -> {
-                """
-Hello [FIRST_NAME],
-
-[WRITE_YOUR_MESSAGE_HERE]
-
-KoffeeCraft
-                """.trimIndent()
-            }
-        }
-    }
-
-    private fun performTargetLookup() {
-        tvTargetsEmpty.visibility = View.GONE
-
-        val rawQuery = etSearch.text?.toString()?.trim().orEmpty()
-        if (rawQuery.isBlank()) {
-            Toast.makeText(requireContext(), "Enter a value first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val result = when (currentTargetMode) {
-                TargetMode.ORDER_NUMBER -> {
-                    val orderId = rawQuery.toLongOrNull()
-                    if (orderId == null) null else db.customerDao().getInboxTargetByOrderId(orderId)
-                }
-
-                TargetMode.CUSTOMER_ID -> {
-                    val customerId = rawQuery.toLongOrNull()
-                    if (customerId == null) null else db.customerDao().getInboxTargetByCustomerId(customerId)
-                }
-            }
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                if (result == null) {
-                    selectedTarget = null
-                    cardSelectedTarget.visibility = View.GONE
-                    tvTargetsEmpty.visibility = View.VISIBLE
-                } else {
-                    selectedTarget = result
-                    tvTargetsEmpty.visibility = View.GONE
-                    renderSelectedTarget(result)
-                }
-
-                updateSendState()
-            }
-        }
-    }
-
-    private fun renderSelectedTarget(target: CustomerInboxTarget) {
-        cardSelectedTarget.visibility = View.VISIBLE
-
-        val displayName = "${target.firstName} ${target.lastName}".trim().ifBlank {
-            "Customer #${target.customerId}"
-        }
-
-        tvSelectedTarget.text = displayName
-        tvTargetMeta.text = "Customer #${target.customerId} • ${target.email}"
-        tvConsentStatus.text = if (target.marketingInboxConsent) {
-            "Marketing consent: ON • Promotional campaigns are available in Studio"
-        } else {
-            "Marketing consent: OFF • Direct service messages can still be sent here"
-        }
-        tvConsentStatus.setTextColor(
-            color(
-                if (target.marketingInboxConsent) R.color.kc_info_text else R.color.kc_danger
-            )
-        )
-        tvAudienceSummary.text = "1 customer will receive this direct message"
-    }
-
-    private fun updateSendState() {
-        val canSend = selectedTarget != null &&
-                !etMessageTitle.text.isNullOrBlank() &&
-                !etMessageBody.text.isNullOrBlank()
-
-        btnSendMessage.isEnabled = canSend
-        btnSendMessage.alpha = if (canSend) 1f else 0.5f
-    }
-
-    private fun sendDirectMessage() {
-        val target = selectedTarget
-        if (target == null) {
-            Toast.makeText(requireContext(), "Find a customer first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val title = etMessageTitle.text?.toString()?.trim().orEmpty()
-        val body = etMessageBody.text?.toString()?.trim().orEmpty()
-
-        if (title.isBlank()) {
-            Toast.makeText(requireContext(), "Enter a message title.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (body.isBlank()) {
-            Toast.makeText(requireContext(), "Write a message first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-        val resolvedBody = body
-            .replace("[FIRST_NAME]", target.firstName.ifBlank { "Customer" })
-            .replace("[LAST_NAME]", target.lastName.ifBlank { "" })
-
-        val deliveryType = when (currentMessageType) {
-            MessageType.IMPORTANT -> "IMPORTANT_DIRECT"
-            MessageType.SERVICE -> "SERVICE_DIRECT"
-            MessageType.CUSTOM -> "CUSTOM_DIRECT"
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            db.inboxMessageDao().insertAll(
-                listOf(
-                    InboxMessage(
-                        recipientCustomerId = target.customerId,
-                        title = title,
-                        body = resolvedBody,
-                        deliveryType = deliveryType
-                    )
-                )
-            )
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                Toast.makeText(
-                    requireContext(),
-                    "Direct message sent successfully.",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                applyMessageType(MessageType.CUSTOM, forceTemplate = true)
-            }
         }
     }
 

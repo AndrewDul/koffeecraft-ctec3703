@@ -12,56 +12,33 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.AddOn
-import uk.ac.dmu.koffeecraft.data.entities.Allergen
-import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePreset
-import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.Product
-import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import java.util.Locale
 
 class ProductAdapter(
-    private val scope: CoroutineScope,
-    private val db: KoffeeCraftDatabase,
-    private val appContext: android.content.Context,
     private var items: List<Product>,
     private var favouriteIds: Set<Long>,
-    private val onFavouriteToggle: (Product, Boolean) -> Unit
+    private var cardStates: Map<Long, ProductCardUiState>,
+    private var expandedProductId: Long?,
+    private val onToggleExpand: (Long) -> Unit,
+    private val onFavouriteToggle: (Product, Boolean) -> Unit,
+    private val onOptionSelected: (Long, Long) -> Unit,
+    private val onAddOnToggled: (Long, Long, Boolean) -> Unit,
+    private val onSavePreset: (Product) -> Unit,
+    private val onAddToCart: (Product) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
-    data class ProductCardState(
-        val options: List<ProductOption> = emptyList(),
-        val addOns: List<AddOn> = emptyList(),
-        val baseAllergens: List<Allergen> = emptyList(),
-        val addOnAllergens: Map<Long, List<Allergen>> = emptyMap(),
-        val selectedOptionId: Long? = null,
-        val selectedAddOnIds: Set<Long> = emptySet(),
-        val isLoaded: Boolean = false,
-        val isLoading: Boolean = false
-    )
-
-    private val stateByProductId = mutableMapOf<Long, ProductCardState>()
-    private var expandedProductId: Long? = null
-
-    fun submitList(newItems: List<Product>) {
+    fun submitData(
+        newItems: List<Product>,
+        newFavouriteIds: Set<Long>,
+        newCardStates: Map<Long, ProductCardUiState>,
+        newExpandedProductId: Long?
+    ) {
         items = newItems
-        if (expandedProductId != null && items.none { it.productId == expandedProductId }) {
-            expandedProductId = null
-        }
-        newItems.forEach { ensureLoaded(it.productId) }
-        notifyDataSetChanged()
-    }
-
-    fun updateFavouriteIds(newFavouriteIds: Set<Long>) {
         favouriteIds = newFavouriteIds
+        cardStates = newCardStates
+        expandedProductId = newExpandedProductId
         notifyDataSetChanged()
     }
 
@@ -74,7 +51,7 @@ class ProductAdapter(
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = items[position]
-        val state = stateByProductId[product.productId] ?: ProductCardState()
+        val state = cardStates[product.productId] ?: ProductCardUiState()
         val expanded = expandedProductId == product.productId
 
         holder.bind(
@@ -82,245 +59,23 @@ class ProductAdapter(
             isFavourite = favouriteIds.contains(product.productId),
             expanded = expanded,
             state = state,
-            onToggleExpand = { toggleExpand(product.productId) },
+            onToggleExpand = { onToggleExpand(product.productId) },
             onFavouriteToggle = { shouldFavourite ->
                 onFavouriteToggle(product, shouldFavourite)
             },
             onOptionSelected = { optionId ->
-                updateSelectedOption(product.productId, optionId)
+                onOptionSelected(product.productId, optionId)
             },
             onAddOnToggled = { addOnId, checked ->
-                updateSelectedAddOn(product.productId, addOnId, checked)
+                onAddOnToggled(product.productId, addOnId, checked)
             },
             onSavePreset = {
-                saveCurrentConfiguration(product)
+                onSavePreset(product)
             },
             onAddToCart = {
-                addCurrentConfigurationToCart(product)
+                onAddToCart(product)
             }
         )
-    }
-
-    private fun toggleExpand(productId: Long) {
-        val previousExpanded = expandedProductId
-        expandedProductId = if (expandedProductId == productId) null else productId
-
-        ensureLoaded(productId)
-
-        val previousIndex = items.indexOfFirst { it.productId == previousExpanded }
-        if (previousIndex != -1) notifyItemChanged(previousIndex)
-
-        val newIndex = items.indexOfFirst { it.productId == expandedProductId }
-        if (newIndex != -1) notifyItemChanged(newIndex)
-    }
-
-    private fun updateSelectedOption(productId: Long, optionId: Long) {
-        val state = stateByProductId[productId] ?: return
-        stateByProductId[productId] = state.copy(selectedOptionId = optionId)
-        notifyProductChanged(productId)
-    }
-
-    private fun updateSelectedAddOn(productId: Long, addOnId: Long, checked: Boolean) {
-        val state = stateByProductId[productId] ?: return
-        val newIds = state.selectedAddOnIds.toMutableSet()
-
-        if (checked) {
-            newIds.add(addOnId)
-        } else {
-            newIds.remove(addOnId)
-        }
-
-        stateByProductId[productId] = state.copy(selectedAddOnIds = newIds)
-        notifyProductChanged(productId)
-    }
-
-    private fun ensureLoaded(productId: Long) {
-        val currentState = stateByProductId[productId]
-        if (currentState?.isLoaded == true || currentState?.isLoading == true) return
-
-        stateByProductId[productId] = (currentState ?: ProductCardState()).copy(isLoading = true)
-
-        scope.launch(Dispatchers.IO) {
-            val options = db.productOptionDao().getForProduct(productId)
-            val addOns = db.addOnDao().getActiveForProduct(productId)
-            val baseAllergens = db.allergenDao().getForProduct(productId)
-            val addOnAllergens = addOns.associate { addOn ->
-                addOn.addOnId to db.allergenDao().getForAddOn(addOn.addOnId)
-            }
-
-            val previousState = stateByProductId[productId] ?: ProductCardState()
-            val defaultOptionId = options.firstOrNull { it.isDefault }?.optionId ?: options.firstOrNull()?.optionId
-
-            val resolvedSelectedOptionId = when {
-                previousState.selectedOptionId != null && options.any { it.optionId == previousState.selectedOptionId } ->
-                    previousState.selectedOptionId
-
-                else -> defaultOptionId
-            }
-
-            val resolvedAddOnIds = previousState.selectedAddOnIds.intersect(addOns.map { it.addOnId }.toSet())
-
-            val newState = ProductCardState(
-                options = options,
-                addOns = addOns,
-                baseAllergens = baseAllergens,
-                addOnAllergens = addOnAllergens,
-                selectedOptionId = resolvedSelectedOptionId,
-                selectedAddOnIds = resolvedAddOnIds,
-                isLoaded = true,
-                isLoading = false
-            )
-
-            withContext(Dispatchers.Main) {
-                stateByProductId[productId] = newState
-                notifyProductChanged(productId)
-            }
-        }
-    }
-
-    private fun saveCurrentConfiguration(product: Product) {
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            android.widget.Toast.makeText(
-                appContext,
-                "Please sign in first.",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        val state = stateByProductId[product.productId] ?: return
-        val option = state.options.firstOrNull { it.optionId == state.selectedOptionId } ?: return
-        if (!shouldEnableSavePresetButton(product, state)) return
-
-        val selectedAddOns = state.addOns.filter { state.selectedAddOnIds.contains(it.addOnId) }
-        val totalPrice = calculateTotal(product, state)
-        val totalCalories = calculateCalories(state)
-
-        scope.launch(Dispatchers.IO) {
-            val presetId = db.customerFavouritePresetDao().insertPreset(
-                CustomerFavouritePreset(
-                    customerId = customerId,
-                    productId = product.productId,
-                    optionId = option.optionId,
-                    totalPriceSnapshot = totalPrice,
-                    totalCaloriesSnapshot = totalCalories
-                )
-            )
-
-            if (selectedAddOns.isNotEmpty()) {
-                db.customerFavouritePresetDao().insertAddOnRefs(
-                    selectedAddOns.map { addOn ->
-                        CustomerFavouritePresetAddOnCrossRef(
-                            presetId = presetId,
-                            addOnId = addOn.addOnId
-                        )
-                    }
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                android.widget.Toast.makeText(
-                    appContext,
-                    "Favourite combo saved.",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
-    private fun addCurrentConfigurationToCart(product: Product) {
-        val state = stateByProductId[product.productId] ?: return
-        val option = state.options.firstOrNull { it.optionId == state.selectedOptionId } ?: return
-        val selectedAddOns = state.addOns.filter { state.selectedAddOnIds.contains(it.addOnId) }
-
-        CartManager.addCustomisedProduct(
-            product = product,
-            option = option,
-            addOns = selectedAddOns
-        )
-
-        android.widget.Toast.makeText(
-            appContext,
-            "Product added to cart.",
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
-    }
-
-    private fun notifyProductChanged(productId: Long) {
-        val index = items.indexOfFirst { it.productId == productId }
-        if (index != -1) notifyItemChanged(index)
-    }
-
-    private fun defaultOptionId(state: ProductCardState): Long? {
-        return state.options.firstOrNull { it.isDefault }?.optionId ?: state.options.firstOrNull()?.optionId
-    }
-
-    private fun shouldEnableSavePresetButton(product: Product, state: ProductCardState): Boolean {
-        if (!product.isActive) return false
-        if (SessionManager.currentCustomerId == null) return false
-
-        val defaultOptionId = defaultOptionId(state)
-        val sizeChanged = state.selectedOptionId != null && state.selectedOptionId != defaultOptionId
-        val hasAddOns = state.selectedAddOnIds.isNotEmpty()
-
-        return sizeChanged || hasAddOns
-    }
-
-    private fun calculateExtrasTotal(state: ProductCardState): Double {
-        return state.addOns
-            .filter { state.selectedAddOnIds.contains(it.addOnId) }
-            .sumOf { it.price }
-    }
-
-    private fun calculateTotal(product: Product, state: ProductCardState): Double {
-        val selectedOption = state.options.firstOrNull { it.optionId == state.selectedOptionId }
-        val optionExtra = selectedOption?.extraPrice ?: 0.0
-        return product.price + optionExtra + calculateExtrasTotal(state)
-    }
-
-    private fun calculateCalories(state: ProductCardState): Int {
-        val selectedOption = state.options.firstOrNull { it.optionId == state.selectedOptionId }
-        val optionCalories = selectedOption?.estimatedCalories ?: 0
-        val extrasCalories = state.addOns
-            .filter { state.selectedAddOnIds.contains(it.addOnId) }
-            .sumOf { it.estimatedCalories }
-
-        return optionCalories + extrasCalories
-    }
-
-    private fun buildAllergensText(state: ProductCardState): String {
-        val allergenNames = (
-                state.baseAllergens.map { it.name } +
-                        state.addOns.flatMap { addOn ->
-                            if (state.selectedAddOnIds.contains(addOn.addOnId)) {
-                                state.addOnAllergens[addOn.addOnId].orEmpty().map { it.name }
-                            } else {
-                                emptyList()
-                            }
-                        }
-                ).distinct().sorted()
-
-        return if (allergenNames.isEmpty()) {
-            "No allergens listed"
-        } else {
-            allergenNames.joinToString(", ")
-        }
-    }
-
-    private fun buildStandardSizeText(state: ProductCardState): String {
-        val option = state.options.firstOrNull { it.isDefault } ?: state.options.firstOrNull()
-
-        return if (option == null) {
-            "Loading..."
-        } else {
-            buildString {
-                append(option.displayLabel)
-                append(" • ")
-                append(option.sizeValue)
-                append(option.sizeUnit.lowercase(Locale.UK))
-            }
-        }
     }
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -357,7 +112,7 @@ class ProductAdapter(
             product: Product,
             isFavourite: Boolean,
             expanded: Boolean,
-            state: ProductCardState,
+            state: ProductCardUiState,
             onToggleExpand: () -> Unit,
             onFavouriteToggle: (Boolean) -> Unit,
             onOptionSelected: (Long) -> Unit,
@@ -383,7 +138,15 @@ class ProductAdapter(
             layoutExpandedContent.visibility = if (expanded) View.VISIBLE else View.GONE
 
             if (expanded) {
-                bindExpandedState(product, state, isAvailable, onOptionSelected, onAddOnToggled, onSavePreset, onAddToCart)
+                bindExpandedState(
+                    product = product,
+                    state = state,
+                    isAvailable = isAvailable,
+                    onOptionSelected = onOptionSelected,
+                    onAddOnToggled = onAddOnToggled,
+                    onSavePreset = onSavePreset,
+                    onAddToCart = onAddToCart
+                )
             }
 
             cardRoot.setOnClickListener { onToggleExpand() }
@@ -396,7 +159,7 @@ class ProductAdapter(
 
         private fun bindExpandedState(
             product: Product,
-            state: ProductCardState,
+            state: ProductCardUiState,
             isAvailable: Boolean,
             onOptionSelected: (Long) -> Unit,
             onAddOnToggled: (Long, Boolean) -> Unit,
@@ -429,13 +192,12 @@ class ProductAdapter(
             tvExtrasTotalValue.text = formatMoney(extrasTotal)
             tvTotalValue.text = formatMoney(total)
 
-            val saveEnabled = shouldEnableSavePresetButton(product, state)
-            tvSavePreset.alpha = if (saveEnabled) 1f else 0.45f
+            tvSavePreset.alpha = if (state.savePresetEnabled) 1f else 0.45f
             tvSavePreset.setTextColor(
-                if (saveEnabled) color(R.color.kc_success) else color(R.color.kc_text_muted)
+                if (state.savePresetEnabled) color(R.color.kc_success) else color(R.color.kc_text_muted)
             )
             tvSavePreset.setOnClickListener {
-                if (saveEnabled) onSavePreset()
+                if (state.savePresetEnabled) onSavePreset()
             }
 
             btnAddToCart.isEnabled = isAvailable
@@ -447,7 +209,7 @@ class ProductAdapter(
         }
 
         private fun bindOptionChips(
-            state: ProductCardState,
+            state: ProductCardUiState,
             isAvailable: Boolean,
             onOptionSelected: (Long) -> Unit
         ) {
@@ -483,7 +245,7 @@ class ProductAdapter(
         }
 
         private fun bindAddOnChips(
-            state: ProductCardState,
+            state: ProductCardUiState,
             isAvailable: Boolean,
             onAddOnToggled: (Long, Boolean) -> Unit
         ) {
@@ -552,6 +314,62 @@ class ProductAdapter(
 
         private fun color(colorResId: Int): Int {
             return ContextCompat.getColor(itemView.context, colorResId)
+        }
+    }
+
+    private fun calculateExtrasTotal(state: ProductCardUiState): Double {
+        return state.addOns
+            .filter { state.selectedAddOnIds.contains(it.addOnId) }
+            .sumOf { it.price }
+    }
+
+    private fun calculateTotal(product: Product, state: ProductCardUiState): Double {
+        val selectedOption = state.options.firstOrNull { it.optionId == state.selectedOptionId }
+        val optionExtra = selectedOption?.extraPrice ?: 0.0
+        return product.price + optionExtra + calculateExtrasTotal(state)
+    }
+
+    private fun calculateCalories(state: ProductCardUiState): Int {
+        val selectedOption = state.options.firstOrNull { it.optionId == state.selectedOptionId }
+        val optionCalories = selectedOption?.estimatedCalories ?: 0
+        val extrasCalories = state.addOns
+            .filter { state.selectedAddOnIds.contains(it.addOnId) }
+            .sumOf { it.estimatedCalories }
+
+        return optionCalories + extrasCalories
+    }
+
+    private fun buildAllergensText(state: ProductCardUiState): String {
+        val allergenNames = (
+                state.baseAllergens.map { it.name } +
+                        state.addOns.flatMap { addOn ->
+                            if (state.selectedAddOnIds.contains(addOn.addOnId)) {
+                                state.addOnAllergens[addOn.addOnId].orEmpty().map { it.name }
+                            } else {
+                                emptyList()
+                            }
+                        }
+                ).distinct().sorted()
+
+        return if (allergenNames.isEmpty()) {
+            "No allergens listed"
+        } else {
+            allergenNames.joinToString(", ")
+        }
+    }
+
+    private fun buildStandardSizeText(state: ProductCardUiState): String {
+        val option = state.options.firstOrNull { it.isDefault } ?: state.options.firstOrNull()
+
+        return if (option == null) {
+            "Loading..."
+        } else {
+            buildString {
+                append(option.displayLabel)
+                append(" • ")
+                append(option.sizeValue)
+                append(option.sizeUnit.lowercase(Locale.UK))
+            }
         }
     }
 }

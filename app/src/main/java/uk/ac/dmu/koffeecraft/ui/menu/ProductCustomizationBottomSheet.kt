@@ -6,24 +6,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.os.bundleOf
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.AddOn
-import uk.ac.dmu.koffeecraft.data.entities.Allergen
-import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePreset
-import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
-import uk.ac.dmu.koffeecraft.data.entities.Product
-import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet_product_customize) {
 
@@ -31,6 +24,8 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
     private var rewardMode: Boolean = false
     private var rewardType: String? = null
     private var rewardBeansCost: Int = 0
+
+    private lateinit var viewModel: ProductCustomizationViewModel
 
     private lateinit var tvTitle: TextView
     private lateinit var tvDescription: TextView
@@ -41,15 +36,6 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
     private lateinit var tvTotal: TextView
     private lateinit var btnSavePreset: MaterialButton
     private lateinit var btnAddToCart: MaterialButton
-
-    private lateinit var product: Product
-    private var options: List<ProductOption> = emptyList()
-    private var addOns: List<AddOn> = emptyList()
-    private var baseAllergens: List<Allergen> = emptyList()
-    private var addOnAllergens: Map<Long, List<Allergen>> = emptyMap()
-
-    private var selectedOption: ProductOption? = null
-    private val selectedAddOnIds = mutableSetOf<Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +48,13 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        CartManager.attachContext(requireContext().applicationContext)
+
+        viewModel = ViewModelProvider(
+            this,
+            ProductCustomizationViewModel.Factory(appContainer.productCustomizationRepository)
+        )[ProductCustomizationViewModel::class.java]
+
         tvTitle = view.findViewById(R.id.tvSheetTitle)
         tvDescription = view.findViewById(R.id.tvSheetDescription)
         chipGroupOptions = view.findViewById(R.id.chipGroupOptions)
@@ -72,151 +65,100 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
         btnSavePreset = view.findViewById(R.id.btnSavePreset)
         btnAddToCart = view.findViewById(R.id.btnAddToCart)
 
-        loadData()
+        btnSavePreset.setOnClickListener {
+            if (btnSavePreset.isEnabled) {
+                viewModel.savePreset()
+            }
+        }
+
+        btnAddToCart.setOnClickListener {
+            viewModel.addToCart()
+        }
+
+        observeState()
+
+        viewModel.start(
+            productId = productId,
+            rewardMode = rewardMode,
+            rewardType = rewardType,
+            rewardBeansCost = rewardBeansCost
+        )
     }
 
-    private fun loadData() {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                tvTitle.text = state.title
+                tvDescription.text = state.description
+                tvAllergens.text = state.allergensText
+                tvCalories.text = state.caloriesText
+                tvTotal.text = state.totalText
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val loadedProduct = db.productDao().getById(productId)
-            val loadedOptions = db.productOptionDao().getForProduct(productId)
-            val loadedAddOns = db.addOnDao().getActiveForProduct(productId)
-            val loadedBaseAllergens = db.allergenDao().getForProduct(productId)
-            val loadedAddOnAllergens = loadedAddOns.associate { addOn ->
-                addOn.addOnId to db.allergenDao().getForAddOn(addOn.addOnId)
+                btnSavePreset.visibility = if (state.savePresetVisible) View.VISIBLE else View.GONE
+                btnSavePreset.text = "Save as favourite combo"
+                btnSavePreset.isEnabled = state.savePresetEnabled
+                btnSavePreset.alpha = if (state.savePresetEnabled) 1f else 0.45f
+
+                btnAddToCart.text = state.addToCartText
+
+                bindOptions(state.optionItems)
+                bindAddOns(state.addOnItems)
             }
+        }
 
-            withContext(Dispatchers.Main) {
-                if (!isAdded || loadedProduct == null) return@withContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effects.collectLatest { effect ->
+                when (effect) {
+                    is ProductCustomizationViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
 
-                product = loadedProduct
-                options = loadedOptions
-                addOns = loadedAddOns
-                baseAllergens = loadedBaseAllergens
-                addOnAllergens = loadedAddOnAllergens
-
-                bindUi()
+                    ProductCustomizationViewModel.UiEffect.Dismiss -> {
+                        dismiss()
+                    }
+                }
             }
         }
     }
 
-    private fun bindUi() {
-        tvTitle.text = product.name
-        tvDescription.text = if (rewardMode) {
-            if (product.description.isBlank()) {
-                "Base item included. You only pay for size upgrades and extras."
-            } else {
-                "${product.description}\n\nBase item included. You only pay for size upgrades and extras."
-            }
-        } else {
-            product.description
-        }
-
+    private fun bindOptions(items: List<ProductCustomizationOptionUi>) {
         chipGroupOptions.removeAllViews()
-        chipGroupAddOns.removeAllViews()
 
-        selectedOption = options.firstOrNull { it.isDefault } ?: options.firstOrNull()
-
-        options.forEach { option ->
+        items.forEach { item ->
             val chip = Chip(requireContext()).apply {
                 isCheckable = true
                 isCheckedIconVisible = false
-                text = buildString {
-                    append(option.displayLabel)
-                    append(" • ")
-                    append(option.sizeValue)
-                    append(option.sizeUnit.lowercase())
-                    if (option.extraPrice > 0.0) {
-                        append(" (+£")
-                        append(String.format("%.2f", option.extraPrice))
-                        append(")")
-                    }
-                }
-                isChecked = selectedOption?.optionId == option.optionId
+                text = item.label
+                isChecked = item.selected
                 styleChoiceChip(this)
 
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        selectedOption = option
-                        recalculate()
+                        viewModel.selectOption(item.optionId)
                     }
                 }
             }
             chipGroupOptions.addView(chip)
         }
+    }
 
-        addOns.forEach { addOn ->
+    private fun bindAddOns(items: List<ProductCustomizationAddOnUi>) {
+        chipGroupAddOns.removeAllViews()
+
+        items.forEach { item ->
             val chip = Chip(requireContext()).apply {
                 isCheckable = true
                 isCheckedIconVisible = false
-                text = "${addOn.name} +£%.2f".format(addOn.price)
+                text = item.label
+                isChecked = item.selected
                 styleChoiceChip(this)
 
                 setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        selectedAddOnIds.add(addOn.addOnId)
-                    } else {
-                        selectedAddOnIds.remove(addOn.addOnId)
-                    }
-                    recalculate()
+                    viewModel.toggleAddOn(item.addOnId, isChecked)
                 }
             }
             chipGroupAddOns.addView(chip)
         }
-
-        btnSavePreset.text = "Save as favourite combo"
-        btnSavePreset.visibility = if (rewardMode) View.GONE else View.VISIBLE
-
-        btnSavePreset.setOnClickListener {
-            if (!btnSavePreset.isEnabled) return@setOnClickListener
-            saveCurrentConfiguration()
-        }
-
-        btnAddToCart.text = if (rewardMode) "Add reward to cart" else "Add to cart"
-
-        btnAddToCart.setOnClickListener {
-            val option = selectedOption
-            if (option == null) {
-                Toast.makeText(requireContext(), "Please choose a size first.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
-            val hasMeaningfulCustomisation = !option.isDefault || selectedAddOns.isNotEmpty()
-
-            if (rewardMode) {
-                if (hasMeaningfulCustomisation) {
-                    CartManager.addRewardCustomisedProduct(
-                        sourceProduct = product,
-                        rewardType = rewardType ?: "CUSTOM_REWARD",
-                        beansCostPerUnit = rewardBeansCost,
-                        option = option,
-                        addOns = selectedAddOns
-                    )
-                } else {
-                    CartManager.addReward(
-                        sourceProduct = product,
-                        rewardType = rewardType ?: "CUSTOM_REWARD",
-                        beansCostPerUnit = rewardBeansCost
-                    )
-                }
-
-                Toast.makeText(requireContext(), "Reward added to cart.", Toast.LENGTH_SHORT).show()
-            } else {
-                CartManager.addCustomisedProduct(
-                    product = product,
-                    option = option,
-                    addOns = selectedAddOns
-                )
-
-                Toast.makeText(requireContext(), "Product added to cart.", Toast.LENGTH_SHORT).show()
-            }
-
-            dismiss()
-        }
-
-        recalculate()
     }
 
     private fun styleChoiceChip(chip: Chip) {
@@ -240,99 +182,6 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
         chip.rippleColor =
             AppCompatResources.getColorStateList(requireContext(), R.color.kc_chip_ripple_selector)
         chip.setEnsureMinTouchTargetSize(false)
-    }
-
-    private fun saveCurrentConfiguration() {
-        val customerId = SessionManager.currentCustomerId
-        val option = selectedOption
-
-        if (customerId == null) {
-            Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (option == null) {
-            Toast.makeText(requireContext(), "Please choose a size first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
-        val basePrice = if (rewardMode) 0.0 else product.price
-        val totalPrice = basePrice + option.extraPrice + selectedAddOns.sumOf { it.price }
-        val totalCalories = option.estimatedCalories + selectedAddOns.sumOf { it.estimatedCalories }
-
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val presetId = db.customerFavouritePresetDao().insertPreset(
-                CustomerFavouritePreset(
-                    customerId = customerId,
-                    productId = product.productId,
-                    optionId = option.optionId,
-                    totalPriceSnapshot = totalPrice,
-                    totalCaloriesSnapshot = totalCalories
-                )
-            )
-
-            if (selectedAddOns.isNotEmpty()) {
-                db.customerFavouritePresetDao().insertAddOnRefs(
-                    selectedAddOns.map { addOn ->
-                        CustomerFavouritePresetAddOnCrossRef(
-                            presetId = presetId,
-                            addOnId = addOn.addOnId
-                        )
-                    }
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                Toast.makeText(
-                    requireContext(),
-                    "Favourite combo saved.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
-    private fun shouldEnableSavePresetButton(): Boolean {
-        val defaultOptionId =
-            options.firstOrNull { it.isDefault }?.optionId ?: options.firstOrNull()?.optionId
-        val selectedOptionId = selectedOption?.optionId
-
-        val sizeChanged = selectedOptionId != null && selectedOptionId != defaultOptionId
-        val hasAddOns = selectedAddOnIds.isNotEmpty()
-
-        return SessionManager.currentCustomerId != null && (sizeChanged || hasAddOns)
-    }
-
-    private fun recalculate() {
-        val option = selectedOption ?: return
-        val selectedAddOns = addOns.filter { selectedAddOnIds.contains(it.addOnId) }
-
-        val basePrice = if (rewardMode) 0.0 else product.price
-        val totalPrice = basePrice + option.extraPrice + selectedAddOns.sumOf { it.price }
-        val totalCalories = option.estimatedCalories + selectedAddOns.sumOf { it.estimatedCalories }
-
-        val allergenNames = (
-                baseAllergens.map { it.name } +
-                        selectedAddOns.flatMap { addOn ->
-                            addOnAllergens[addOn.addOnId].orEmpty().map { it.name }
-                        }
-                ).distinct().sorted()
-
-        tvTotal.text = "£%.2f".format(totalPrice)
-        tvCalories.text = "$totalCalories kcal"
-        tvAllergens.text = if (allergenNames.isEmpty()) {
-            "No allergens listed"
-        } else {
-            allergenNames.joinToString(", ")
-        }
-
-        val enabled = shouldEnableSavePresetButton()
-        btnSavePreset.isEnabled = enabled
-        btnSavePreset.alpha = if (enabled) 1f else 0.45f
     }
 
     companion object {

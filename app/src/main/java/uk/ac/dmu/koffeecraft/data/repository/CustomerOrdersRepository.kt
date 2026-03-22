@@ -7,6 +7,8 @@ import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.settings.HiddenOrdersStore
+import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
+import uk.ac.dmu.koffeecraft.util.orders.OrderSimulationManager
 import java.util.Calendar
 
 class CustomerOrdersRepository(
@@ -93,6 +95,28 @@ class CustomerOrdersRepository(
                 eligibleItemCount = feedbackItems.size,
                 reviewedItemCount = reviewedCount
             )
+        )
+    }
+
+    fun startOrderSimulationIfNeeded(orderId: Long) {
+        OrderSimulationManager.startIfNeeded(
+            context = appContext,
+            db = db,
+            orderId = orderId
+        )
+    }
+
+    suspend fun syncAdminOrderActionNotification(
+        orderId: Long,
+        orderCreatedAt: Long,
+        orderStatus: String
+    ) {
+        AdminNotificationManager.syncAdminOrderActionNotification(
+            context = appContext,
+            db = db,
+            orderId = orderId,
+            orderCreatedAt = orderCreatedAt,
+            orderStatus = orderStatus
         )
     }
 

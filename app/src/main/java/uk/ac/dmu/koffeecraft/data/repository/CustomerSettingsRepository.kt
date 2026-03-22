@@ -1,11 +1,21 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import android.content.Context
+import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Customer
+import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
+import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.settings.ThemeSettings
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
 import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
+
+data class CustomerSettingsScreenData(
+    val customerName: String?,
+    val customerEmail: String?,
+    val darkModeEnabled: Boolean
+)
 
 class CustomerSettingsRepository(
     context: Context,
@@ -17,6 +27,36 @@ class CustomerSettingsRepository(
 
     suspend fun getCustomer(customerId: Long): Customer? {
         return db.customerDao().getById(customerId)
+    }
+
+    suspend fun loadScreenData(customerId: Long?): CustomerSettingsScreenData {
+        val darkModeEnabled = ThemeSettings.isDarkModeEnabled(appContext)
+
+        if (customerId == null) {
+            return CustomerSettingsScreenData(
+                customerName = null,
+                customerEmail = null,
+                darkModeEnabled = darkModeEnabled
+            )
+        }
+
+        val customer = db.customerDao().getById(customerId)
+
+        return CustomerSettingsScreenData(
+            customerName = customer?.let { "${it.firstName} ${it.lastName}".trim() },
+            customerEmail = customer?.email,
+            darkModeEnabled = darkModeEnabled
+        )
+    }
+
+    fun setDarkModeEnabled(enabled: Boolean) {
+        ThemeSettings.setDarkModeEnabled(appContext, enabled)
+    }
+
+    fun signOut() {
+        CartManager.clearInMemoryOnly()
+        SessionManager.clear()
+        RememberedSessionStore.clear(appContext)
     }
 
     suspend fun updatePersonalInfo(

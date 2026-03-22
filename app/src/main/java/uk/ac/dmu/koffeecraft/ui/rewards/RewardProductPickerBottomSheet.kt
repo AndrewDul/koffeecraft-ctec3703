@@ -5,15 +5,15 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.ui.menu.ProductCustomizationBottomSheet
 
 class RewardProductPickerBottomSheet : BottomSheetDialogFragment(R.layout.sheet_reward_product_picker) {
@@ -22,9 +22,11 @@ class RewardProductPickerBottomSheet : BottomSheetDialogFragment(R.layout.sheet_
     private var rewardType: String = ""
     private var beansCost: Int = 0
 
+    private lateinit var viewModel: RewardProductPickerViewModel
     private lateinit var tvPickerTitle: TextView
     private lateinit var tvPickerSubtitle: TextView
     private lateinit var rvPicker: RecyclerView
+    private lateinit var adapter: RewardProductPickerAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +37,11 @@ class RewardProductPickerBottomSheet : BottomSheetDialogFragment(R.layout.sheet_
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel = ViewModelProvider(
+            this,
+            RewardProductPickerViewModel.Factory(appContainer.rewardProductPickerRepository)
+        )[RewardProductPickerViewModel::class.java]
 
         tvPickerTitle = view.findViewById(R.id.tvPickerTitle)
         tvPickerSubtitle = view.findViewById(R.id.tvPickerSubtitle)
@@ -51,35 +58,35 @@ class RewardProductPickerBottomSheet : BottomSheetDialogFragment(R.layout.sheet_
 
         rvPicker.layoutManager = LinearLayoutManager(requireContext())
 
-        loadProducts()
+        adapter = RewardProductPickerAdapter(emptyList()) { selected ->
+            dismiss()
+            ProductCustomizationBottomSheet.newRewardInstance(
+                productId = selected.productId,
+                rewardType = rewardType,
+                beansCost = beansCost
+            ).show(parentFragmentManager, "reward_customize")
+        }
+
+        rvPicker.adapter = adapter
+
+        observeState()
+        viewModel.loadProducts(category)
     }
 
-    private fun loadProducts() {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                adapter.submitList(state.items)
+            }
+        }
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val products = db.productDao().getAvailableByCategory(category)
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                if (products.isEmpty()) {
-                    Toast.makeText(
-                        requireContext(),
-                        "No products are available in this category right now.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    dismiss()
-                    return@withContext
-                }
-
-                rvPicker.adapter = RewardProductPickerAdapter(products) { selected ->
-                    dismiss()
-                    ProductCustomizationBottomSheet.newRewardInstance(
-                        productId = selected.productId,
-                        rewardType = rewardType,
-                        beansCost = beansCost
-                    ).show(parentFragmentManager, "reward_customize")
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effects.collectLatest { effect ->
+                when (effect) {
+                    is RewardProductPickerViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                        dismiss()
+                    }
                 }
             }
         }

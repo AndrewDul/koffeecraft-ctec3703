@@ -14,6 +14,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.AdminActivity
@@ -40,9 +41,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val tvGoToRegister = view.findViewById<TextView>(R.id.tvGoToRegister)
 
         val appContext = requireContext().applicationContext
-        val container = appContainer
-        val db = container.database
+        val container = appContext.appContainer
         val repo = container.authRepository
+        val cartPersistenceRepository = container.cartPersistenceRepository
 
         vm = ViewModelProvider(this, LoginViewModelFactory(repo))[LoginViewModel::class.java]
 
@@ -80,14 +81,14 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.state.collect { state ->
+                vm.state.collectLatest { state ->
                     renderLoginState(
                         state = state,
                         btnSignIn = btnSignIn,
                         tvError = tvError
                     )
 
-                    val success = state.loginSuccess ?: return@collect
+                    val success = state.loginSuccess ?: return@collectLatest
 
                     when (success.role) {
                         AuthRepository.UserRole.ADMIN -> {
@@ -113,14 +114,12 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                             vm.consumeLoginSuccess()
 
                             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                CartManager.restorePersistedCart(
-                                    context = appContext,
-                                    customerId = success.userId,
-                                    db = db
-                                )
+                                val restoredItems =
+                                    cartPersistenceRepository.restoreCartForCustomer(success.userId)
 
                                 withContext(Dispatchers.Main) {
                                     if (!isAdded) return@withContext
+                                    CartManager.replaceAll(restoredItems, persist = false)
                                     findNavController().navigate(R.id.action_login_to_menu)
                                 }
                             }

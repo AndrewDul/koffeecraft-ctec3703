@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.repository.CustomerOrderFeedbackCounters
+import uk.ac.dmu.koffeecraft.data.repository.CustomerOrderStatusSnapshot
 import uk.ac.dmu.koffeecraft.data.repository.CustomerOrdersRepository
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -23,6 +24,8 @@ class OrderStatusViewModel(
 
     private var observeJob: Job? = null
     private var startedOrderId: Long? = null
+    private var simulationStartedForOrderId: Long? = null
+    private var lastSyncedSignature: String? = null
 
     fun start(orderId: Long, fromCheckout: Boolean) {
         if (startedOrderId == orderId && observeJob != null) return
@@ -35,18 +38,44 @@ class OrderStatusViewModel(
                 if (order == null) return@collectLatest
 
                 val snapshot = customerOrdersRepository.loadOrderStatusSnapshot(orderId)
-                _state.value = buildState(
+                val newState = buildState(
                     order = order,
                     snapshot = snapshot,
                     fromCheckout = fromCheckout
                 )
+                _state.value = newState
             }
+        }
+    }
+
+    fun startSimulationIfNeeded(orderId: Long, simulate: Boolean) {
+        if (!simulate) return
+        if (simulationStartedForOrderId == orderId) return
+
+        simulationStartedForOrderId = orderId
+        customerOrdersRepository.startOrderSimulationIfNeeded(orderId)
+    }
+
+    fun syncAdminNotificationIfNeeded(state: OrderStatusUiState, simulate: Boolean) {
+        if (simulate) return
+        if (state.orderId == 0L) return
+
+        val signature = "${state.orderId}:${state.statusRaw}:${state.createdAt}"
+        if (signature == lastSyncedSignature) return
+        lastSyncedSignature = signature
+
+        viewModelScope.launch {
+            customerOrdersRepository.syncAdminOrderActionNotification(
+                orderId = state.orderId,
+                orderCreatedAt = state.createdAt,
+                orderStatus = state.statusRaw
+            )
         }
     }
 
     private fun buildState(
         order: Order,
-        snapshot: uk.ac.dmu.koffeecraft.data.repository.CustomerOrderStatusSnapshot,
+        snapshot: CustomerOrderStatusSnapshot,
         fromCheckout: Boolean
     ): OrderStatusUiState {
         val status = order.status

@@ -8,16 +8,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.OrderFeedbackItem
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.Feedback
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
@@ -25,6 +23,8 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
 
     private var orderId: Long = 0L
     private var orderItemId: Long = 0L
+
+    private lateinit var viewModel: ProductFeedbackViewModel
 
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
@@ -35,13 +35,16 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
     private lateinit var btnSave: MaterialButton
     private lateinit var btnBack: MaterialButton
 
-    private var currentItem: OrderFeedbackItem? = null
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         orderId = requireArguments().getLong("orderId")
         orderItemId = requireArguments().getLong("orderItemId")
+
+        viewModel = ViewModelProvider(
+            this,
+            ProductFeedbackViewModel.Factory(appContainer.feedbackRepository)
+        )[ProductFeedbackViewModel::class.java]
 
         tvTitle = view.findViewById(R.id.tvTitle)
         tvSubtitle = view.findViewById(R.id.tvSubtitle)
@@ -52,107 +55,85 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
         btnSave = view.findViewById(R.id.btnSave)
         btnBack = view.findViewById(R.id.btnBack)
 
-        btnBack.setOnClickListener { findNavController().navigateUp() }
-
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            tvError.visibility = View.VISIBLE
-            tvError.text = "You are not logged in as a customer."
-            btnSave.isEnabled = false
-            return
+        btnBack.setOnClickListener {
+            findNavController().navigateUp()
         }
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        loadCurrentItem(db)
+        ratingBar.setOnRatingBarChangeListener { _, value, _ ->
+            viewModel.updateRating(value)
+        }
 
         btnSave.setOnClickListener {
-            saveFeedback(db, customerId)
+            viewModel.updateComment(etComment.text.toString())
+            viewModel.save()
         }
+
+        observeState()
+
+        viewModel.start(
+            orderId = orderId,
+            orderItemId = orderItemId,
+            customerId = SessionManager.currentCustomerId
+        )
     }
 
-    private fun loadCurrentItem(db: KoffeeCraftDatabase) {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val item = db.orderItemDao().getFeedbackItemByOrderItemId(orderItemId)
+    private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                tvTitle.text = state.title
+                tvSubtitle.text = state.subtitle
+                tvCraftedBadge.visibility = if (state.craftedVisible) View.VISIBLE else View.GONE
 
-            withContext(Dispatchers.Main) {
-                if (item == null) {
-                    tvError.visibility = View.VISIBLE
-                    tvError.text = "This purchased product could not be found."
-                    btnSave.isEnabled = false
-                    return@withContext
+                if (ratingBar.rating != state.rating) {
+                    ratingBar.rating = state.rating
                 }
 
-                currentItem = item
-                tvError.visibility = View.GONE
+                val currentComment = etComment.text?.toString().orEmpty()
+                if (currentComment != state.comment) {
+                    etComment.setText(state.comment)
+                    etComment.setSelection(etComment.text.length)
+                }
 
-                tvTitle.text = item.productName
-                tvSubtitle.text = "Order #${item.orderId} • Quantity: ${item.quantity}"
-                tvCraftedBadge.visibility = if (item.isCrafted) View.VISIBLE else View.GONE
-
-                ratingBar.rating = (item.rating ?: 5).toFloat()
-                etComment.setText(item.comment.orEmpty())
-                btnSave.text = "Submit & Next"
+                tvError.visibility = if (state.errorVisible) View.VISIBLE else View.GONE
+                tvError.text = state.errorText
+                btnSave.isEnabled = state.saveEnabled
+                btnSave.text = state.saveText
             }
         }
-    }
 
-    private fun saveFeedback(db: KoffeeCraftDatabase, customerId: Long) {
-        val item = currentItem ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effects.collectLatest { effect ->
+                when (effect) {
+                    is ProductFeedbackViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
 
-        val rating = ratingBar.rating.toInt().coerceIn(1, 5)
-        val comment = etComment.text.toString().trim()
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val now = System.currentTimeMillis()
-            val existing = db.feedbackDao().getByOrderItemId(item.orderItemId)
-
-            db.feedbackDao().upsert(
-                Feedback(
-                    feedbackId = existing?.feedbackId ?: 0,
-                    orderItemId = item.orderItemId,
-                    customerId = customerId,
-                    rating = rating,
-                    comment = comment,
-                    createdAt = existing?.createdAt ?: now,
-                    updatedAt = now
-                )
-            )
-
-            val nextItem = db.orderItemDao().getNextUnreviewedItem(orderId)
-
-            withContext(Dispatchers.Main) {
-                val message = if (comment.isBlank()) {
-                    "Thanks for your rating!"
-                } else {
-                    "Thanks for your rating and feedback!"
-                }
-
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-
-                if (nextItem != null) {
-                    findNavController().navigate(
-                        R.id.productFeedbackFragment,
-                        bundleOf(
-                            "orderId" to nextItem.orderId,
-                            "orderItemId" to nextItem.orderItemId
-                        )
-                    )
-                } else {
-                    NotificationHelper.showCustomerOrderNotification(
-                        context = requireContext(),
-                        title = "Thank you!",
-                        message = "All purchased products from order #$orderId have been reviewed.",
-                        notificationId = 350000 + (orderId % 50000).toInt(),
-                        orderId = orderId
-                    )
-
-                    val popped = findNavController().popBackStack(R.id.feedbackFragment, false)
-                    if (!popped) {
+                    is ProductFeedbackViewModel.UiEffect.NavigateNext -> {
                         findNavController().navigate(
-                            R.id.feedbackFragment,
-                            bundleOf("orderId" to orderId)
+                            R.id.productFeedbackFragment,
+                            bundleOf(
+                                "orderId" to effect.orderId,
+                                "orderItemId" to effect.orderItemId
+                            )
                         )
+                    }
+
+                    is ProductFeedbackViewModel.UiEffect.CompletedAll -> {
+                        NotificationHelper.showCustomerOrderNotification(
+                            context = requireContext(),
+                            title = "Thank you!",
+                            message = "All purchased products from order #${effect.orderId} have been reviewed.",
+                            notificationId = 350000 + (effect.orderId % 50000).toInt(),
+                            orderId = effect.orderId
+                        )
+
+                        val popped = findNavController().popBackStack(R.id.feedbackFragment, false)
+                        if (!popped) {
+                            findNavController().navigate(
+                                R.id.feedbackFragment,
+                                bundleOf("orderId" to effect.orderId)
+                            )
+                        }
                     }
                 }
             }

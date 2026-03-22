@@ -1514,3 +1514,35 @@ I replaced the problematic compact expressions with explicit conditional logic.
 The build error was removed and cart persistence still keeps all required values. The load logic still works correctly because optLong can read the stored numeric text values.
 
 
+
+## 63)Cart restore refactor and lifecycle collection issues
+
+### Problem
+
+After the latest architecture cleanup, the project failed to compile. Two issues appeared at the same time:
+
+1. `MainActivityRepository.kt` still referenced `CartManager.restorePersistedCart(...)`, but this method had already been removed as part of the cart cleanup.
+2. `OrderStatusFragment.kt` still used `launchWhenStarted`, which showed a deprecation warning and needed to be replaced with a lifecycle-safe alternative.
+
+### Cause
+
+The main cause was an incomplete refactor. I had already introduced `CartPersistenceRepository` and changed the cart structure so restore logic no longer belonged inside `CartManager`. However, one part of the app shell (`MainActivityRepository`) still used the old restore method.
+
+At the same time, the order status screen still used an older lifecycle collection approach. While this did not break the build by itself, it was a sign that the lifecycle cleanup in this fragment was not fully finished.
+
+### Fix
+
+I fixed the cart restore issue by updating `MainActivityRepository` so it now restores cart items through `CartPersistenceRepository` and then passes the restored data into `CartManager.replaceAll(...)`.
+
+I also updated the dependency wiring in `AppContainer` so `MainActivityRepository` receives `CartPersistenceRepository` directly.
+
+For the lifecycle warning, I replaced `launchWhenStarted` in `OrderStatusFragment` with `repeatOnLifecycle(Lifecycle.State.STARTED)`, which is the recommended modern approach.
+
+### Result
+
+After these changes:
+- the unresolved reference to `restorePersistedCart(...)` was removed
+- cart restore logic became fully consistent with the new architecture
+- the order status screen no longer used deprecated lifecycle collection
+- the build became clean again and the refactor was properly completed
+

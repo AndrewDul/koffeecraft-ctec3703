@@ -2991,3 +2991,32 @@ Overall, this cleanup improved:
 The application behaviour stayed the same, but the internal structure is now cleaner, more modular, and more suitable for the assessment requirements. The code is easier to explain because responsibilities are more clearly separated and large files have been reduced or split into more focused parts.
 
 
+
+## Architecture cleanup update
+
+In this stage I continued the cleanup work on the main application shell, shared customer flow, and cart handling. The goal was to make the project structure more consistent and reduce the amount of logic kept inside activities, adapters, and utility classes.
+
+One of the biggest improvements was the application shell. I refactored both `MainActivity` and `AdminActivity` so they no longer handle as much logic directly. Instead of mixing navigation, session bootstrap, unread badge logic, and other behaviour inside the activity layer, I moved this into dedicated ViewModel and Repository classes. This made the activities much easier to read and more consistent with the rest of the app architecture.
+
+I also cleaned the menu flow further. `ProductAdapter` had previously become too heavy and was doing more than a normal adapter should do. I moved product card logic into `MenuViewModel` and `MenuRepository`, and introduced `ProductCardUiState` to manage menu card state in a clearer way. This reduced the responsibility of the adapter and made the menu feature easier to understand and extend.
+
+Another important improvement was cart persistence. I introduced `CartPersistenceRepository` so cart restore logic is no longer mixed into `CartManager`. The cart manager now focuses more on in-memory cart state and cart operations, while persistence and restore behaviour are handled separately. This also made the login and app startup flow cleaner, because `LoginFragment` and `MainActivity` now restore carts through the repository instead of older direct restore logic.
+
+I also cleaned `CustomerAccountCleanupRepository` so it no longer creates its own database instance. Instead, it now uses injected dependencies in the same way as the rest of the repositories. This made the project structure more consistent and reduced hidden dependency creation.
+
+The order status flow was improved as well. `OrderSimulationManager` no longer creates the database itself, and the simulation flow is now routed through repository-level logic. I also updated `OrderStatusFragment` to replace deprecated lifecycle collection with `repeatOnLifecycle`, which is safer and more modern.
+
+During this cleanup I also had to fix a few refactor-related build issues. The most important one happened after cart restore logic was moved out of `CartManager`. Some older code still tried to call the removed `restorePersistedCart(...)` method, which caused a compilation error inside `MainActivityRepository`. I fixed this by switching the restore flow fully to `CartPersistenceRepository` and updating the repository wiring in `AppContainer`. I also cleaned the order status collection logic to remove the deprecated `launchWhenStarted` usage.
+
+Overall, this update improved:
+- separation of concerns
+- dependency injection consistency
+- readability of activities and adapters
+- cart persistence structure
+- maintainability of shared app flow
+- architectural consistency across the project
+
+The application behaviour stayed the same, but the internal structure is now cleaner, more modular, and closer to a top-level clean architecture suitable for the assessment.
+
+
+

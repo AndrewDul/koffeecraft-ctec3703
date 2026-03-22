@@ -5,19 +5,20 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 
 class FeedbackFragment : Fragment(R.layout.fragment_feedback) {
 
+    private lateinit var viewModel: FeedbackViewModel
     private lateinit var adapter: FeedbackProductsAdapter
     private var orderId: Long = 0L
 
@@ -25,6 +26,11 @@ class FeedbackFragment : Fragment(R.layout.fragment_feedback) {
         super.onViewCreated(view, savedInstanceState)
 
         orderId = requireArguments().getLong("orderId")
+
+        viewModel = ViewModelProvider(
+            this,
+            FeedbackViewModel.Factory(appContainer.feedbackRepository)
+        )[FeedbackViewModel::class.java]
 
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val tvSubtitle = view.findViewById<TextView>(R.id.tvSubtitle)
@@ -57,24 +63,18 @@ class FeedbackFragment : Fragment(R.layout.fragment_feedback) {
 
         rv.adapter = adapter
 
-        loadItems(tvEmpty)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                adapter.submitList(state.items)
+                tvEmpty.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
+            }
+        }
+
+        viewModel.load(orderId)
     }
 
     override fun onResume() {
         super.onResume()
-        view?.findViewById<TextView>(R.id.tvEmpty)?.let { loadItems(it) }
-    }
-
-    private fun loadItems(tvEmpty: TextView) {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val items = db.orderItemDao().getFeedbackItemsForOrder(orderId)
-
-            withContext(Dispatchers.Main) {
-                adapter.submitList(items)
-                tvEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
-            }
-        }
+        viewModel.load(orderId)
     }
 }

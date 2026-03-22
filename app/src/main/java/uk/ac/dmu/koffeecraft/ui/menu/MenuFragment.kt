@@ -10,11 +10,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class MenuFragment : Fragment(R.layout.fragment_menu) {
 
@@ -24,17 +23,10 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
     private lateinit var tvFilterCoffee: TextView
     private lateinit var tvFilterCake: TextView
 
-    private var currentCategory: String = "COFFEE"
-    private var currentProducts: List<uk.ac.dmu.koffeecraft.data.entities.Product> = emptyList()
-    private var favouriteIds: Set<Long> = emptySet()
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val container = appContainer
-        val db = container.database
-        val menuRepository = container.menuRepository
-        val appContext = requireContext().applicationContext
+        val menuRepository = appContainer.menuRepository
 
         vm = ViewModelProvider(
             this,
@@ -50,31 +42,27 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         rv.clipToPadding = false
 
         adapter = ProductAdapter(
-            scope = viewLifecycleOwner.lifecycleScope,
-            db = db,
-            appContext = appContext,
             items = emptyList(),
             favouriteIds = emptySet(),
+            cardStates = emptyMap(),
+            expandedProductId = null,
+            onToggleExpand = { productId ->
+                vm.toggleExpand(productId)
+            },
             onFavouriteToggle = { product, shouldFavourite ->
-                val customerId = SessionManager.currentCustomerId
-                if (customerId == null) {
-                    Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-                    return@ProductAdapter
-                }
-
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    if (shouldFavourite) {
-                        menuRepository.addFavourite(
-                            customerId = customerId,
-                            productId = product.productId
-                        )
-                    } else {
-                        menuRepository.removeFavourite(
-                            customerId = customerId,
-                            productId = product.productId
-                        )
-                    }
-                }
+                vm.onFavouriteToggle(product, shouldFavourite)
+            },
+            onOptionSelected = { productId, optionId ->
+                vm.onOptionSelected(productId, optionId)
+            },
+            onAddOnToggled = { productId, addOnId, checked ->
+                vm.onAddOnToggled(productId, addOnId, checked)
+            },
+            onSavePreset = { product ->
+                vm.onSavePreset(product)
+            },
+            onAddToCart = { product ->
+                vm.onAddToCart(product)
             }
         )
 
@@ -83,34 +71,32 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         tvFilterCoffee.setOnClickListener { vm.setCategory("COFFEE") }
         tvFilterCake.setOnClickListener { vm.setCategory("CAKE") }
 
-        vm.start()
-
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.state.collect { state ->
-                currentCategory = state.category
-                currentProducts = state.products
-                renderProducts()
-                renderCategoryChips()
+            vm.state.collectLatest { state ->
+                adapter.submitData(
+                    newItems = state.products,
+                    newFavouriteIds = state.favouriteIds,
+                    newCardStates = state.cardStates,
+                    newExpandedProductId = state.expandedProductId
+                )
+                renderCategoryChips(state.category)
             }
         }
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId != null) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                menuRepository.observeFavouriteProductIds(customerId).collect { ids ->
-                    favouriteIds = ids.toSet()
-                    renderProducts()
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.effects.collectLatest { effect ->
+                when (effect) {
+                    is MenuViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
+
+        vm.start()
     }
 
-    private fun renderProducts() {
-        adapter.submitList(currentProducts)
-        adapter.updateFavouriteIds(favouriteIds)
-    }
-
-    private fun renderCategoryChips() {
+    private fun renderCategoryChips(currentCategory: String) {
         styleFilterChip(tvFilterCoffee, currentCategory == "COFFEE")
         styleFilterChip(tvFilterCake, currentCategory == "CAKE")
     }
