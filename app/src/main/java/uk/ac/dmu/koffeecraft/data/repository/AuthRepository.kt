@@ -3,6 +3,9 @@ package uk.ac.dmu.koffeecraft.data.repository
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Customer
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
+import uk.ac.dmu.koffeecraft.util.validation.DateOfBirthValidator
+import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
+import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
 
 class AuthRepository(private val db: KoffeeCraftDatabase) {
 
@@ -90,10 +93,12 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
         val em = email.trim().lowercase()
 
         if (fn.isBlank() || ln.isBlank() || ct.isBlank() || dob.isBlank() || em.isBlank() || password.isEmpty()) {
+            password.fill('\u0000')
             return RegisterResult.Error("All required fields must be completed.")
         }
 
-        if (!em.contains("@") || !em.contains(".")) {
+        if (!EmailValidator.isValid(em)) {
+            password.fill('\u0000')
             return RegisterResult.Error("Please enter a valid email address.")
         }
 
@@ -108,12 +113,12 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
         }
 
         val passwordText = password.concatToString()
-        if (!isPasswordValid(passwordText)) {
+        if (!PasswordRulesValidator.isValid(passwordText)) {
             password.fill('\u0000')
             return RegisterResult.Error("Password does not meet all required rules.")
         }
 
-        if (!isValidDateOfBirth(dob)) {
+        if (!DateOfBirthValidator.isValid(dob)) {
             password.fill('\u0000')
             return RegisterResult.Error("Date of birth must use the format YYYY-MM-DD.")
         }
@@ -145,18 +150,5 @@ class AuthRepository(private val db: KoffeeCraftDatabase) {
         )
 
         return RegisterResult.Success(customerId)
-    }
-
-    private fun isPasswordValid(password: String): Boolean {
-        return password.any { it.isUpperCase() } &&
-                password.any { it.isLowerCase() } &&
-                password.any { it.isDigit() } &&
-                password.any { !it.isLetterOrDigit() } &&
-                password.length >= 8
-    }
-
-    private fun isValidDateOfBirth(value: String): Boolean {
-        val regex = Regex("""^\d{4}-\d{2}-\d{2}$""")
-        return regex.matches(value)
     }
 }

@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
@@ -18,25 +19,18 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
-import uk.ac.dmu.koffeecraft.data.repository.OrderRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 import uk.ac.dmu.koffeecraft.util.payment.PaymentCardValidator
-import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
-    private var selectedPaymentType: String = "CARD"
-    private var selectedSavedCardId: Long? = null
-    private var savedCards: List<CustomerPaymentCard> = emptyList()
+    private lateinit var vm: CheckoutViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -44,11 +38,14 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         val customerId = SessionManager.currentCustomerId
         if (customerId == null) {
             Toast.makeText(requireContext(), "Not logged in as customer.", Toast.LENGTH_SHORT).show()
+            findNavController().navigateUp()
             return
         }
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-        val repo = OrderRepository(db)
+        vm = ViewModelProvider(
+            this,
+            CheckoutViewModelFactory(appContainer.checkoutRepository)
+        )[CheckoutViewModel::class.java]
 
         val tvTotalValue = view.findViewById<TextView>(R.id.tvTotalValue)
         val tvBeans = view.findViewById<TextView>(R.id.tvBeans)
@@ -87,17 +84,6 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         val btnPay = view.findViewById<MaterialButton>(R.id.btnPay)
         val btnBackToCart = view.findViewById<MaterialButton>(R.id.btnBackToCart)
 
-        val initialTotal = CartManager.total()
-        val initialBeansToSpend = CartManager.beansToSpend()
-
-        tvTotalValue.text = String.format("£%.2f", initialTotal)
-        if (initialBeansToSpend > 0) {
-            tvBeans.visibility = View.VISIBLE
-            tvBeans.text = "Beans to spend: $initialBeansToSpend"
-        } else {
-            tvBeans.visibility = View.GONE
-        }
-
         tilNumber.helperText = PaymentCardValidator.demoCardExamplesText()
 
         fun updatePreview() {
@@ -129,6 +115,7 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                     formattingNumber = false
                 }
 
+                vm.clearCardValidation()
                 updatePreview()
             }
 
@@ -148,6 +135,7 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                     formattingExpiry = false
                 }
 
+                vm.clearCardValidation()
                 updatePreview()
             }
 
@@ -155,331 +143,223 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
         })
 
-        etNickname.addTextChangedListener(simpleWatcher { updatePreview() })
-        etHolder.addTextChangedListener(simpleWatcher { updatePreview() })
+        etNickname.addTextChangedListener(simpleWatcher {
+            vm.clearCardValidation()
+            updatePreview()
+        })
+        etHolder.addTextChangedListener(simpleWatcher {
+            vm.clearCardValidation()
+            updatePreview()
+        })
+        etCvv.addTextChangedListener(simpleWatcher {
+            vm.clearCardValidation()
+        })
 
         updatePreview()
 
-        fun renderSavedCards() {
-            containerSavedCards.removeAllViews()
-            tvSavedCardsEmpty.visibility = if (savedCards.isEmpty()) View.VISIBLE else View.GONE
-
-            savedCards.forEach { card ->
-                val itemView = LayoutInflater.from(requireContext())
-                    .inflate(R.layout.item_checkout_saved_card, containerSavedCards, false)
-
-                val rootCard = itemView.findViewById<MaterialCardView>(R.id.cardCheckoutSavedPayment)
-                val tvNickname = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardNickname)
-                val tvBrand = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardBrand)
-                val tvNumber = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardNumber)
-                val tvHolder = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardHolder)
-                val tvExpiry = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardExpiry)
-                val tvDefault = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardDefault)
-                val tvSelected = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardSelected)
-
-                val isSelected = selectedSavedCardId == card.cardId
-
-                tvNickname.text = card.nickname
-                tvBrand.text = card.brand
-                tvNumber.text = card.maskedCardNumber
-                tvHolder.text = card.cardholderName
-                tvExpiry.text = "Exp ${card.expiryLabel}"
-                tvDefault.visibility = if (card.isDefault) View.VISIBLE else View.GONE
-                tvSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
-
-                rootCard.strokeWidth = if (isSelected) 2 else 1
-                rootCard.strokeColor = color(
-                    if (isSelected) R.color.kc_brand_strong else R.color.kc_border_soft
-                )
-
-                itemView.setOnClickListener {
-                    selectedSavedCardId = card.cardId
-                    renderSavedCards()
-                }
-
-                containerSavedCards.addView(itemView)
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            db.customerPaymentCardDao().observeForCustomer(customerId).collect { cards ->
-                savedCards = cards
-
-                val currentSelectionStillExists = cards.any { it.cardId == selectedSavedCardId }
-
-                if (!currentSelectionStillExists) {
-                    selectedSavedCardId = cards.firstOrNull { it.isDefault }?.cardId
-                        ?: cards.firstOrNull()?.cardId
-                }
-
-                renderSavedCards()
-            }
-        }
-
-        fun updatePaymentSelectionUi() {
-            val selectedBg = R.drawable.bg_orders_filter_chip_selected
-            val unselectedBg = R.drawable.bg_orders_filter_chip
-
-            tvPaymentCard.setBackgroundResource(if (selectedPaymentType == "CARD") selectedBg else unselectedBg)
-            tvPaymentApplePay.setBackgroundResource(if (selectedPaymentType == "APPLE_PAY") selectedBg else unselectedBg)
-            tvPaymentCash.setBackgroundResource(if (selectedPaymentType == "CASH") selectedBg else unselectedBg)
-
-            tvPaymentCard.setTextColor(
-                color(if (selectedPaymentType == "CARD") R.color.kc_text_primary else R.color.kc_text_secondary)
-            )
-            tvPaymentApplePay.setTextColor(
-                color(if (selectedPaymentType == "APPLE_PAY") R.color.kc_text_primary else R.color.kc_text_secondary)
-            )
-            tvPaymentCash.setTextColor(
-                color(if (selectedPaymentType == "CASH") R.color.kc_text_primary else R.color.kc_text_secondary)
-            )
-
-            cardSection.visibility = if (selectedPaymentType == "CARD") View.VISIBLE else View.GONE
-            applePaySection.visibility = if (selectedPaymentType == "APPLE_PAY") View.VISIBLE else View.GONE
-            cashSection.visibility = if (selectedPaymentType == "CASH") View.VISIBLE else View.GONE
-        }
-
         tvPaymentCard.setOnClickListener {
-            selectedPaymentType = "CARD"
-            updatePaymentSelectionUi()
+            vm.selectPaymentType("CARD")
         }
 
         tvPaymentApplePay.setOnClickListener {
-            selectedPaymentType = "APPLE_PAY"
-            updatePaymentSelectionUi()
+            vm.selectPaymentType("APPLE_PAY")
         }
 
         tvPaymentCash.setOnClickListener {
-            selectedPaymentType = "CASH"
-            updatePaymentSelectionUi()
+            vm.selectPaymentType("CASH")
         }
-
-        updatePaymentSelectionUi()
 
         btnBackToCart.setOnClickListener {
             findNavController().navigateUp()
         }
 
         btnPay.setOnClickListener {
-            val total = CartManager.total()
-            val beansToSpend = CartManager.beansToSpend()
-            val beansToEarn = CartManager.purchasedProductCountForBeans()
-            val cartItems = CartManager.getItems()
+            vm.submitOrder(
+                customerId = customerId,
+                cardNickname = etNickname.text?.toString()?.trim().orEmpty(),
+                cardholderName = etHolder.text?.toString()?.trim().orEmpty(),
+                cardNumber = etNumber.text?.toString()?.trim().orEmpty(),
+                expiryText = etExpiry.text?.toString()?.trim().orEmpty(),
+                cvv = etCvv.text?.toString()?.trim().orEmpty(),
+                saveNewCardForFuture = switchSaveCard.isChecked
+            )
+        }
 
-            if (cartItems.isEmpty()) {
-                Toast.makeText(requireContext(), "Cart is empty.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+        vm.start(customerId)
 
-            tilNickname.error = null
-            tilHolder.error = null
-            tilNumber.error = null
-            tilExpiry.error = null
-            tilCvv.error = null
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state.collect { state ->
+                tvTotalValue.text = String.format("£%.2f", state.total)
 
-            var saveNewCardForFuture = false
-
-            if (selectedPaymentType == "CARD") {
-                val nicknameInput = etNickname.text?.toString()?.trim().orEmpty()
-                val holderInput = etHolder.text?.toString()?.trim().orEmpty()
-                val numberInput = etNumber.text?.toString()?.trim().orEmpty()
-                val expiryInput = etExpiry.text?.toString()?.trim().orEmpty()
-                val cvvInput = etCvv.text?.toString()?.trim().orEmpty()
-
-                val hasStartedTypingNewCard = listOf(
-                    nicknameInput,
-                    holderInput,
-                    numberInput,
-                    expiryInput,
-                    cvvInput
-                ).any { it.isNotBlank() }
-
-                if (hasStartedTypingNewCard) {
-                    val brand = PaymentCardValidator.detectBrand(numberInput)
-
-                    var hasError = false
-
-                    if (!PaymentCardValidator.isValidCardholderName(holderInput)) {
-                        tilHolder.error = "Enter the cardholder first and last name as shown on the card"
-                        hasError = true
-                    }
-
-                    val numberError = PaymentCardValidator.explainInvalidCardNumber(numberInput)
-                    if (numberError != null) {
-                        tilNumber.error = numberError
-                        hasError = true
-                    }
-
-                    val expiry = PaymentCardValidator.parseExpiry(expiryInput)
-                    if (expiry == null || !PaymentCardValidator.isExpiryValid(expiry.first, expiry.second)) {
-                        tilExpiry.error = "Enter a valid future expiry date"
-                        hasError = true
-                    }
-
-                    if (!PaymentCardValidator.isValidCvv(cvvInput, brand)) {
-                        tilCvv.error = if (brand == PaymentCardValidator.CardBrand.AMEX) {
-                            "AmEx uses a 4-digit security code"
-                        } else {
-                            "Enter a valid 3-digit security code"
-                        }
-                        hasError = true
-                    }
-
-                    if (hasError) return@setOnClickListener
-                    saveNewCardForFuture = switchSaveCard.isChecked
-                } else if (selectedSavedCardId == null) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Select a saved card or enter a new card.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@setOnClickListener
-                }
-            }
-
-            lifecycleScope.launch(Dispatchers.IO) {
-                val customer = db.customerDao().getById(customerId)
-                if (customer == null) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "Customer not found.", Toast.LENGTH_SHORT).show()
-                    }
-                    return@launch
+                if (state.beansToSpend > 0) {
+                    tvBeans.visibility = View.VISIBLE
+                    tvBeans.text = "Beans to spend: ${state.beansToSpend}"
+                } else {
+                    tvBeans.visibility = View.GONE
                 }
 
-                if (customer.beansBalance < beansToSpend) {
-                    withContext(Dispatchers.Main) {
+                applyValidationErrors(
+                    validation = state.cardValidation,
+                    tilHolder = tilHolder,
+                    tilNumber = tilNumber,
+                    tilExpiry = tilExpiry,
+                    tilCvv = tilCvv
+                )
+
+                renderSavedCards(
+                    savedCards = state.savedCards,
+                    selectedSavedCardId = state.selectedSavedCardId,
+                    containerSavedCards = containerSavedCards,
+                    tvSavedCardsEmpty = tvSavedCardsEmpty,
+                    onCardSelected = { cardId ->
+                        vm.selectSavedCard(cardId)
+                    }
+                )
+
+                updatePaymentSelectionUi(
+                    selectedPaymentType = state.paymentType,
+                    tvPaymentCard = tvPaymentCard,
+                    tvPaymentApplePay = tvPaymentApplePay,
+                    tvPaymentCash = tvPaymentCash,
+                    cardSection = cardSection,
+                    applePaySection = applePaySection,
+                    cashSection = cashSection
+                )
+
+                btnPay.isEnabled = !state.isSubmitting
+                btnPay.alpha = if (state.isSubmitting) 0.7f else 1f
+                btnPay.text = if (state.isSubmitting) "Processing..." else "Pay now"
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.effects.collect { effect ->
+                when (effect) {
+                    is CheckoutUiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is CheckoutUiEffect.CheckoutCompleted -> {
+                        if (!isAdded) return@collect
+
                         Toast.makeText(
                             requireContext(),
-                            "You do not have enough beans for the selected rewards.",
+                            effect.paymentMessage,
                             Toast.LENGTH_SHORT
                         ).show()
-                    }
-                    return@launch
-                }
 
-                if (selectedPaymentType == "CARD") {
-                    val nicknameInput = etNickname.text?.toString()?.trim().orEmpty()
-                    val holderInput = etHolder.text?.toString()?.trim().orEmpty()
-                    val numberInput = etNumber.text?.toString()?.trim().orEmpty()
-                    val expiryInput = etExpiry.text?.toString()?.trim().orEmpty()
+                        NotificationHelper.showCustomerOrderNotification(
+                            context = requireContext(),
+                            title = "Payment confirmed",
+                            message = "Your order #${effect.orderId} has been placed successfully.",
+                            notificationId = (effect.orderId % Int.MAX_VALUE).toInt(),
+                            orderId = effect.orderId
+                        )
 
-                    val hasStartedTypingNewCard = listOf(
-                        nicknameInput,
-                        holderInput,
-                        numberInput,
-                        expiryInput,
-                        etCvv.text?.toString()?.trim().orEmpty()
-                    ).any { it.isNotBlank() }
+                        val simulate = SimulationSettings.isEnabled(requireContext())
 
-                    if (hasStartedTypingNewCard && saveNewCardForFuture) {
-                        val brand = PaymentCardValidator.detectBrand(numberInput)
-                        val numberDigits = PaymentCardValidator.extractDigits(numberInput)
-                        val expiry = PaymentCardValidator.parseExpiry(expiryInput)
-
-                        if (expiry == null) {
-                            withContext(Dispatchers.Main) {
-                                if (!isAdded) return@withContext
-                                Toast.makeText(
-                                    requireContext(),
-                                    "The card expiry could not be read. Please check the expiry date and try again.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                            return@launch
-                        }
-
-                        val last4 = numberDigits.takeLast(4)
-
-                        val finalNickname = if (nicknameInput.isBlank()) {
-                            PaymentCardValidator.defaultNickname(brand, last4)
-                        } else {
-                            nicknameInput
-                        }
-
-                        val currentDefault = db.customerPaymentCardDao().getDefaultForCustomer(customerId)
-                        val shouldBeDefault = currentDefault == null
-
-                        if (shouldBeDefault) {
-                            db.customerPaymentCardDao().clearDefaultForCustomer(customerId)
-                        }
-
-                        db.customerPaymentCardDao().insert(
-                            CustomerPaymentCard(
-                                customerId = customerId,
-                                nickname = finalNickname,
-                                cardholderName = holderInput,
-                                brand = brand.displayName,
-                                maskedCardNumber = PaymentCardValidator.buildMaskedNumber(numberInput),
-                                last4 = last4,
-                                expiryMonth = expiry.first,
-                                expiryYear = expiry.second,
-                                isDefault = shouldBeDefault
+                        findNavController().navigate(
+                            R.id.action_checkout_to_status,
+                            bundleOf(
+                                "orderId" to effect.orderId,
+                                "simulate" to simulate,
+                                "fromCheckout" to true
                             )
                         )
                     }
                 }
-
-                val orderId = repo.placeOrder(
-                    customerId = customerId,
-                    items = cartItems,
-                    paymentType = selectedPaymentType,
-                    totalAmount = total
-                )
-
-                val updatedBeansBalance = customer.beansBalance - beansToSpend + beansToEarn
-
-                val boosterState = BeansBoosterManager.applyEarnedBeans(
-                    currentProgress = customer.beansBoosterProgress,
-                    currentPendingBoosters = customer.pendingBeansBoosters,
-                    earnedBeans = beansToEarn
-                )
-
-                db.customerDao().update(
-                    customer.copy(
-                        beansBalance = updatedBeansBalance,
-                        beansBoosterProgress = boosterState.progress,
-                        pendingBeansBoosters = boosterState.pendingBoosters
-                    )
-                )
-
-                CartManager.clear()
-
-                withContext(Dispatchers.Main) {
-                    if (!isAdded) return@withContext
-
-                    val paymentMessage = when (selectedPaymentType) {
-                        "APPLE_PAY" -> "Apple Pay payment successful."
-                        "CASH" -> "Cash payment selected for collection."
-                        else -> "Card payment successful."
-                    }
-
-                    Toast.makeText(
-                        requireContext(),
-                        paymentMessage,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    NotificationHelper.showCustomerOrderNotification(
-                        context = requireContext(),
-                        title = "Payment confirmed",
-                        message = "Your order #$orderId has been placed successfully.",
-                        notificationId = (orderId % Int.MAX_VALUE).toInt(),
-                        orderId = orderId
-                    )
-
-                    val simulate = SimulationSettings.isEnabled(requireContext())
-
-                    findNavController().navigate(
-                        R.id.action_checkout_to_status,
-                        bundleOf(
-                            "orderId" to orderId,
-                            "simulate" to simulate,
-                            "fromCheckout" to true
-                        )
-                    )
-                }
             }
         }
+    }
+
+    private fun renderSavedCards(
+        savedCards: List<CustomerPaymentCard>,
+        selectedSavedCardId: Long?,
+        containerSavedCards: LinearLayout,
+        tvSavedCardsEmpty: TextView,
+        onCardSelected: (Long) -> Unit
+    ) {
+        containerSavedCards.removeAllViews()
+        tvSavedCardsEmpty.visibility = if (savedCards.isEmpty()) View.VISIBLE else View.GONE
+
+        savedCards.forEach { card ->
+            val itemView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_checkout_saved_card, containerSavedCards, false)
+
+            val rootCard = itemView.findViewById<MaterialCardView>(R.id.cardCheckoutSavedPayment)
+            val tvNickname = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardNickname)
+            val tvBrand = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardBrand)
+            val tvNumber = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardNumber)
+            val tvHolder = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardHolder)
+            val tvExpiry = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardExpiry)
+            val tvDefault = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardDefault)
+            val tvSelected = itemView.findViewById<TextView>(R.id.tvCheckoutSavedCardSelected)
+
+            val isSelected = selectedSavedCardId == card.cardId
+
+            tvNickname.text = card.nickname
+            tvBrand.text = card.brand
+            tvNumber.text = card.maskedCardNumber
+            tvHolder.text = card.cardholderName
+            tvExpiry.text = "Exp ${card.expiryLabel}"
+            tvDefault.visibility = if (card.isDefault) View.VISIBLE else View.GONE
+            tvSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
+
+            rootCard.strokeWidth = if (isSelected) 2 else 1
+            rootCard.strokeColor = color(
+                if (isSelected) R.color.kc_brand_strong else R.color.kc_border_soft
+            )
+
+            itemView.setOnClickListener {
+                onCardSelected(card.cardId)
+            }
+
+            containerSavedCards.addView(itemView)
+        }
+    }
+
+    private fun applyValidationErrors(
+        validation: uk.ac.dmu.koffeecraft.util.validation.CheckoutCardValidationResult,
+        tilHolder: TextInputLayout,
+        tilNumber: TextInputLayout,
+        tilExpiry: TextInputLayout,
+        tilCvv: TextInputLayout
+    ) {
+        tilHolder.error = validation.holderError
+        tilNumber.error = validation.numberError
+        tilExpiry.error = validation.expiryError
+        tilCvv.error = validation.cvvError
+    }
+
+    private fun updatePaymentSelectionUi(
+        selectedPaymentType: String,
+        tvPaymentCard: TextView,
+        tvPaymentApplePay: TextView,
+        tvPaymentCash: TextView,
+        cardSection: View,
+        applePaySection: View,
+        cashSection: View
+    ) {
+        val selectedBg = R.drawable.bg_orders_filter_chip_selected
+        val unselectedBg = R.drawable.bg_orders_filter_chip
+
+        tvPaymentCard.setBackgroundResource(if (selectedPaymentType == "CARD") selectedBg else unselectedBg)
+        tvPaymentApplePay.setBackgroundResource(if (selectedPaymentType == "APPLE_PAY") selectedBg else unselectedBg)
+        tvPaymentCash.setBackgroundResource(if (selectedPaymentType == "CASH") selectedBg else unselectedBg)
+
+        tvPaymentCard.setTextColor(
+            color(if (selectedPaymentType == "CARD") R.color.kc_text_primary else R.color.kc_text_secondary)
+        )
+        tvPaymentApplePay.setTextColor(
+            color(if (selectedPaymentType == "APPLE_PAY") R.color.kc_text_primary else R.color.kc_text_secondary)
+        )
+        tvPaymentCash.setTextColor(
+            color(if (selectedPaymentType == "CASH") R.color.kc_text_primary else R.color.kc_text_secondary)
+        )
+
+        cardSection.visibility = if (selectedPaymentType == "CARD") View.VISIBLE else View.GONE
+        applePaySection.visibility = if (selectedPaymentType == "APPLE_PAY") View.VISIBLE else View.GONE
+        cashSection.visibility = if (selectedPaymentType == "CASH") View.VISIBLE else View.GONE
     }
 
     private fun simpleWatcher(onAfterChanged: () -> Unit): TextWatcher {

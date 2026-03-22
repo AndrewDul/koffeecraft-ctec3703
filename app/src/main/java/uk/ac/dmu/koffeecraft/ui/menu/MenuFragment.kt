@@ -13,9 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.Favourite
-import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class MenuFragment : Fragment(R.layout.fragment_menu) {
@@ -27,14 +25,21 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
     private lateinit var tvFilterCake: TextView
 
     private var currentCategory: String = "COFFEE"
-    private var currentProducts: List<Product> = emptyList()
+    private var currentProducts: List<uk.ac.dmu.koffeecraft.data.entities.Product> = emptyList()
     private var favouriteIds: Set<Long> = emptySet()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-        vm = ViewModelProvider(this, MenuViewModelFactory(db.productDao()))[MenuViewModel::class.java]
+        val container = appContainer
+        val db = container.database
+        val menuRepository = container.menuRepository
+        val appContext = requireContext().applicationContext
+
+        vm = ViewModelProvider(
+            this,
+            MenuViewModelFactory(menuRepository)
+        )[MenuViewModel::class.java]
 
         tvFilterCoffee = view.findViewById(R.id.tvFilterCoffee)
         tvFilterCake = view.findViewById(R.id.tvFilterCake)
@@ -47,7 +52,7 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         adapter = ProductAdapter(
             scope = viewLifecycleOwner.lifecycleScope,
             db = db,
-            appContext = requireContext().applicationContext,
+            appContext = appContext,
             items = emptyList(),
             favouriteIds = emptySet(),
             onFavouriteToggle = { product, shouldFavourite ->
@@ -59,9 +64,15 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
 
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     if (shouldFavourite) {
-                        db.favouriteDao().insert(Favourite(customerId = customerId, productId = product.productId))
+                        menuRepository.addFavourite(
+                            customerId = customerId,
+                            productId = product.productId
+                        )
                     } else {
-                        db.favouriteDao().delete(customerId, product.productId)
+                        menuRepository.removeFavourite(
+                            customerId = customerId,
+                            productId = product.productId
+                        )
                     }
                 }
             }
@@ -86,7 +97,7 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         val customerId = SessionManager.currentCustomerId
         if (customerId != null) {
             viewLifecycleOwner.lifecycleScope.launch {
-                db.favouriteDao().observeFavouriteProductIdsForCustomer(customerId).collect { ids ->
+                menuRepository.observeFavouriteProductIds(customerId).collect { ids ->
                     favouriteIds = ids.toSet()
                     renderProducts()
                 }

@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.AdminActivity
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
@@ -40,8 +40,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val tvGoToRegister = view.findViewById<TextView>(R.id.tvGoToRegister)
 
         val appContext = requireContext().applicationContext
-        val db = KoffeeCraftDatabase.getInstance(appContext)
-        val repo = AuthRepository(db)
+        val container = appContainer
+        val db = container.database
+        val repo = container.authRepository
 
         vm = ViewModelProvider(this, LoginViewModelFactory(repo))[LoginViewModel::class.java]
 

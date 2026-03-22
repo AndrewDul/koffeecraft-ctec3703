@@ -3,7 +3,6 @@ package uk.ac.dmu.koffeecraft.ui.admin.accounts
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Patterns
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -18,10 +17,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.entities.Admin
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
-import androidx.core.content.ContextCompat
+import uk.ac.dmu.koffeecraft.util.ui.ValidationUiStyler
+import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
+import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
+import uk.ac.dmu.koffeecraft.util.validation.PhoneValidator
+import uk.ac.dmu.koffeecraft.util.validation.UsernameValidator
+
 class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_account) {
 
     private lateinit var tilFullName: TextInputLayout
@@ -128,22 +132,22 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
             hasError = true
         }
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!EmailValidator.isValid(email)) {
             tilEmail.error = "Enter a valid email address"
             hasError = true
         }
 
-        if (!isPhoneValid(phone)) {
+        if (!PhoneValidator.isValid(phone)) {
             tilPhone.error = "Enter a valid phone number"
             hasError = true
         }
 
-        if (!isUsernameValid(username)) {
+        if (!UsernameValidator.isValid(username)) {
             tilUsername.error = "Use 4-20 lowercase characters, numbers, dot, dash, or underscore"
             hasError = true
         }
 
-        if (!isPasswordValid(password)) {
+        if (!PasswordRulesValidator.isValid(password)) {
             tilPassword.error = "Password does not meet all rules"
             hasError = true
         }
@@ -155,7 +159,7 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
 
         if (hasError) return
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        val db = appContainer.database
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val existingEmail = db.adminDao().findByEmail(email)
@@ -232,10 +236,10 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
         val confirmPassword = etConfirmPassword.text?.toString().orEmpty()
 
         val isValid = fullName.length >= 3 &&
-                Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
-                isPhoneValid(phone) &&
-                isUsernameValid(username) &&
-                isPasswordValid(password) &&
+                EmailValidator.isValid(email) &&
+                PhoneValidator.isValid(phone) &&
+                UsernameValidator.isValid(username) &&
+                PasswordRulesValidator.isValid(password) &&
                 confirmPassword == password
 
         btnCreateAdmin.isEnabled = isValid
@@ -243,41 +247,12 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
     }
 
     private fun updatePasswordRules(password: String) {
-        updateRuleTile(tvRuleUpper, password.any { it.isUpperCase() })
-        updateRuleTile(tvRuleLower, password.any { it.isLowerCase() })
-        updateRuleTile(tvRuleLength, password.length >= 8)
-        updateRuleTile(tvRuleSpecial, password.any { !it.isLetterOrDigit() })
-        updateRuleTile(tvRuleNumber, password.any { it.isDigit() })
-    }
+        val rules = PasswordRulesValidator.describe(password)
 
-    private fun updateRuleTile(view: TextView, isValid: Boolean) {
-        if (isValid) {
-            view.setBackgroundResource(R.drawable.bg_rule_valid)
-            view.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.kc_success_text)
-            )
-        } else {
-            view.setBackgroundResource(R.drawable.bg_rule_invalid)
-            view.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.kc_danger_text)
-            )
-        }
-    }
-
-    private fun isPhoneValid(phone: String): Boolean {
-        val compact = phone.replace(" ", "")
-        return compact.length in 7..20 && compact.matches(Regex("^[0-9+()\\- ]+$"))
-    }
-
-    private fun isUsernameValid(username: String): Boolean {
-        return username.matches(Regex("^[a-z0-9._-]{4,20}$"))
-    }
-
-    private fun isPasswordValid(password: String): Boolean {
-        return password.any { it.isUpperCase() } &&
-                password.any { it.isLowerCase() } &&
-                password.any { it.isDigit() } &&
-                password.any { !it.isLetterOrDigit() } &&
-                password.length >= 8
+        ValidationUiStyler.applyPasswordRuleStyle(tvRuleUpper, rules.hasUppercase)
+        ValidationUiStyler.applyPasswordRuleStyle(tvRuleLower, rules.hasLowercase)
+        ValidationUiStyler.applyPasswordRuleStyle(tvRuleLength, rules.hasMinLength)
+        ValidationUiStyler.applyPasswordRuleStyle(tvRuleSpecial, rules.hasSpecial)
+        ValidationUiStyler.applyPasswordRuleStyle(tvRuleNumber, rules.hasDigit)
     }
 }

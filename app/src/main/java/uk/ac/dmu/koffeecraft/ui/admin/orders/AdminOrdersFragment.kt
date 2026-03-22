@@ -6,27 +6,23 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
-import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
-import uk.ac.dmu.koffeecraft.util.notifications.CustomerNotificationManager
+import uk.ac.dmu.koffeecraft.core.di.appContainer
+import uk.ac.dmu.koffeecraft.data.repository.AdminOrderSearchMode
+import uk.ac.dmu.koffeecraft.data.repository.AdminOrderSortDirection
 
 class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
 
+    private lateinit var vm: AdminOrdersViewModel
     private lateinit var adapter: AdminOrdersAdapter
-    private lateinit var db: KoffeeCraftDatabase
 
     private lateinit var tvEmpty: TextView
     private lateinit var tvFeedSummary: TextView
@@ -47,34 +43,19 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
     private lateinit var tvSortNewest: TextView
     private lateinit var tvSortOldest: TextView
 
-    private var currentStatusFilter: String? = null
-    private var currentSubmittedQuery: String = ""
-    private var currentSearchMode: SearchMode = SearchMode.ORDER_ID
-    private var sortDir: String = "DESC"
-
-    private var collectJob: Job? = null
-
-    private var currentRows: List<AdminOrderRow> = emptyList()
-    private var expandedOrderId: Long? = null
-    private var loadingOrderId: Long? = null
-    private val detailCache = mutableMapOf<Long, AdminOrderDetailsUi>()
-
-    private enum class SearchMode {
-        ORDER_ID,
-        CUSTOMER_ID
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        vm = ViewModelProvider(
+            this,
+            AdminOrdersViewModel.Factory(appContainer.adminOrdersRepository)
+        )[AdminOrdersViewModel::class.java]
 
         val rv = view.findViewById<RecyclerView>(R.id.rvAdminOrders)
         tvEmpty = view.findViewById(R.id.tvEmpty)
         tvFeedSummary = view.findViewById(R.id.tvFeedSummary)
 
         bindFilterViews(view)
-        setupFilterDefaults()
 
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.isNestedScrollingEnabled = false
@@ -86,8 +67,8 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
             expandedOrderId = null,
             loadingOrderId = null,
             detailByOrderId = emptyMap(),
-            onToggleExpand = { row -> handleExpandToggle(row) },
-            onStatusAction = { row, targetStatus -> handleStatusAction(row, targetStatus) }
+            onToggleExpand = { row -> vm.toggleExpand(row) },
+            onStatusAction = { row, targetStatus -> vm.updateStatus(row, targetStatus) }
         )
         rv.adapter = adapter
 
@@ -95,8 +76,25 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
         setupFilterClicks()
         setupSearchActions()
 
-        applySearchMode(SearchMode.ORDER_ID)
-        startCollecting()
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state.collect { state ->
+                renderState(state)
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.effects.collect { effect ->
+                when (effect) {
+                    is AdminOrdersViewModel.UiEffect.ShowMessage -> {
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            effect.message,
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun bindFilterViews(view: View) {
@@ -117,118 +115,91 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
         tvSortOldest = view.findViewById(R.id.tvSortOldest)
     }
 
-    private fun setupFilterDefaults() {
-        currentStatusFilter = null
-        currentSubmittedQuery = ""
-        currentSearchMode = SearchMode.ORDER_ID
-        sortDir = "DESC"
-        updateFilterChipStyles()
-    }
-
     private fun setupSearchModeClicks() {
         tvSearchByOrderId.setOnClickListener {
-            applySearchMode(SearchMode.ORDER_ID)
+            vm.setSearchMode(AdminOrderSearchMode.ORDER_ID)
+            etSearch.setText("")
         }
 
         tvSearchByCustomerId.setOnClickListener {
-            applySearchMode(SearchMode.CUSTOMER_ID)
+            vm.setSearchMode(AdminOrderSearchMode.CUSTOMER_ID)
+            etSearch.setText("")
         }
-    }
-
-    private fun applySearchMode(mode: SearchMode) {
-        currentSearchMode = mode
-
-        setChipSelected(tvSearchByOrderId, mode == SearchMode.ORDER_ID)
-        setChipSelected(tvSearchByCustomerId, mode == SearchMode.CUSTOMER_ID)
-
-        when (mode) {
-            SearchMode.ORDER_ID -> {
-                tvSearchHint.text = "Find order by order ID"
-                tilSearch.hint = "Enter order ID"
-                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            }
-
-            SearchMode.CUSTOMER_ID -> {
-                tvSearchHint.text = "Find orders by customer ID"
-                tilSearch.hint = "Enter customer ID"
-                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            }
-        }
-
-        etSearch.setText("")
-        currentSubmittedQuery = ""
-        startCollecting()
     }
 
     private fun setupSearchActions() {
         btnFind.setOnClickListener {
-            currentSubmittedQuery = etSearch.text?.toString()?.trim().orEmpty()
-            startCollecting()
+            vm.submitSearch(etSearch.text?.toString().orEmpty())
         }
 
         etSearch.setOnEditorActionListener { _, _, _ ->
-            currentSubmittedQuery = etSearch.text?.toString()?.trim().orEmpty()
-            startCollecting()
+            vm.submitSearch(etSearch.text?.toString().orEmpty())
             true
         }
     }
 
     private fun setupFilterClicks() {
-        tvStatusAll.setOnClickListener {
-            currentStatusFilter = null
-            updateFilterChipStyles()
-            startCollecting()
-        }
-
-        tvStatusPlaced.setOnClickListener {
-            currentStatusFilter = "PLACED"
-            updateFilterChipStyles()
-            startCollecting()
-        }
-
-        tvStatusPreparing.setOnClickListener {
-            currentStatusFilter = "PREPARING"
-            updateFilterChipStyles()
-            startCollecting()
-        }
-
-        tvStatusReady.setOnClickListener {
-            currentStatusFilter = "READY"
-            updateFilterChipStyles()
-            startCollecting()
-        }
-
-        tvStatusCollected.setOnClickListener {
-            currentStatusFilter = "COLLECTED"
-            updateFilterChipStyles()
-            startCollecting()
-        }
+        tvStatusAll.setOnClickListener { vm.setStatusFilter(null) }
+        tvStatusPlaced.setOnClickListener { vm.setStatusFilter("PLACED") }
+        tvStatusPreparing.setOnClickListener { vm.setStatusFilter("PREPARING") }
+        tvStatusReady.setOnClickListener { vm.setStatusFilter("READY") }
+        tvStatusCollected.setOnClickListener { vm.setStatusFilter("COLLECTED") }
 
         tvSortNewest.setOnClickListener {
-            sortDir = "DESC"
-            updateFilterChipStyles()
-            startCollecting()
+            vm.setSortDirection(AdminOrderSortDirection.DESC)
         }
 
         tvSortOldest.setOnClickListener {
-            sortDir = "ASC"
-            updateFilterChipStyles()
-            startCollecting()
+            vm.setSortDirection(AdminOrderSortDirection.ASC)
         }
     }
 
-    private fun updateFilterChipStyles() {
-        setChipSelected(tvSearchByOrderId, currentSearchMode == SearchMode.ORDER_ID)
-        setChipSelected(tvSearchByCustomerId, currentSearchMode == SearchMode.CUSTOMER_ID)
+    private fun renderState(state: AdminOrdersUiState) {
+        renderSearchMode(state.currentSearchMode)
+        renderFilterChipStyles(state)
+        renderAdapterState(state)
 
-        setChipSelected(tvStatusAll, currentStatusFilter == null)
-        setChipSelected(tvStatusPlaced, currentStatusFilter == "PLACED")
-        setChipSelected(tvStatusPreparing, currentStatusFilter == "PREPARING")
-        setChipSelected(tvStatusReady, currentStatusFilter == "READY")
-        setChipSelected(tvStatusCollected, currentStatusFilter == "COLLECTED")
+        tvFeedSummary.text = state.summaryText
+        tvEmpty.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
+    }
 
-        setChipSelected(tvSortNewest, sortDir == "DESC")
-        setChipSelected(tvSortOldest, sortDir == "ASC")
+    private fun renderSearchMode(searchMode: AdminOrderSearchMode) {
+        setChipSelected(tvSearchByOrderId, searchMode == AdminOrderSearchMode.ORDER_ID)
+        setChipSelected(tvSearchByCustomerId, searchMode == AdminOrderSearchMode.CUSTOMER_ID)
+
+        when (searchMode) {
+            AdminOrderSearchMode.ORDER_ID -> {
+                tvSearchHint.text = "Find order by order ID"
+                tilSearch.hint = "Enter order ID"
+                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            }
+
+            AdminOrderSearchMode.CUSTOMER_ID -> {
+                tvSearchHint.text = "Find orders by customer ID"
+                tilSearch.hint = "Enter customer ID"
+                etSearch.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            }
+        }
+    }
+
+    private fun renderFilterChipStyles(state: AdminOrdersUiState) {
+        setChipSelected(tvStatusAll, state.currentStatusFilter == null)
+        setChipSelected(tvStatusPlaced, state.currentStatusFilter == "PLACED")
+        setChipSelected(tvStatusPreparing, state.currentStatusFilter == "PREPARING")
+        setChipSelected(tvStatusReady, state.currentStatusFilter == "READY")
+        setChipSelected(tvStatusCollected, state.currentStatusFilter == "COLLECTED")
+
+        setChipSelected(tvSortNewest, state.sortDirection == AdminOrderSortDirection.DESC)
+        setChipSelected(tvSortOldest, state.sortDirection == AdminOrderSortDirection.ASC)
+    }
+
+    private fun renderAdapterState(state: AdminOrdersUiState) {
+        adapter.submitState(
+            items = state.rows,
+            expandedOrderId = state.expandedOrderId,
+            loadingOrderId = state.loadingOrderId,
+            detailByOrderId = state.detailByOrderId
+        )
     }
 
     private fun setChipSelected(chip: TextView, isSelected: Boolean) {
@@ -245,215 +216,4 @@ class AdminOrdersFragment : Fragment(R.layout.fragment_admin_orders) {
         chip.setTypeface(null, Typeface.BOLD)
         chip.alpha = if (isSelected) 1f else 0.92f
     }
-
-    private fun startCollecting() {
-        collectJob?.cancel()
-
-        collectJob = viewLifecycleOwner.lifecycleScope.launch {
-            db.orderDao()
-                .observeAdminOrdersFiltered(
-                    status = currentStatusFilter,
-                    query = currentSubmittedQuery,
-                    searchMode = currentSearchMode.name,
-                    sortDir = sortDir
-                )
-                .collectLatest { rows ->
-                    currentRows = rows
-
-                    val expanded = expandedOrderId
-                    if (expanded != null) {
-                        val expandedRow = rows.firstOrNull { it.orderId == expanded }
-                        if (expandedRow == null) {
-                            expandedOrderId = null
-                            loadingOrderId = null
-                        } else {
-                            val cached = detailCache[expanded]
-                            if (cached != null && !cached.status.equals(expandedRow.status, ignoreCase = true)) {
-                                detailCache.remove(expanded)
-                                loadingOrderId = expanded
-                                loadOrderDetails(expanded)
-                            }
-                        }
-                    }
-
-                    submitAdapterState()
-                }
-        }
-    }
-
-    private fun handleExpandToggle(row: AdminOrderRow) {
-        if (expandedOrderId == row.orderId) {
-            expandedOrderId = null
-            loadingOrderId = null
-            submitAdapterState()
-            return
-        }
-
-        expandedOrderId = row.orderId
-
-        if (detailCache.containsKey(row.orderId)) {
-            loadingOrderId = null
-            submitAdapterState()
-        } else {
-            loadingOrderId = row.orderId
-            submitAdapterState()
-            loadOrderDetails(row.orderId)
-        }
-    }
-
-    private fun loadOrderDetails(orderId: Long) {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val order = db.orderDao().getById(orderId)
-            val customer = db.customerDao().getInboxTargetByOrderId(orderId)
-            val payment = db.paymentDao().getLatestForOrder(orderId)
-            val displayItems = db.orderItemDao().getDisplayItemsForOrder(orderId)
-            val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(orderId)
-
-            if (order == null || customer == null) {
-                withContext(Dispatchers.Main) {
-                    detailCache.remove(orderId)
-                    if (expandedOrderId == orderId) {
-                        loadingOrderId = null
-                        submitAdapterState()
-                    }
-                }
-                return@launch
-            }
-
-            val itemLines = displayItems.map { item ->
-                AdminOrderLineUi(
-                    productName = item.productName,
-                    quantity = item.quantity,
-                    unitPrice = item.unitPrice,
-                    selectedOptionLabel = item.selectedOptionLabel,
-                    selectedOptionSizeValue = item.selectedOptionSizeValue,
-                    selectedOptionSizeUnit = item.selectedOptionSizeUnit,
-                    selectedAddOnsSummary = item.selectedAddOnsSummary,
-                    estimatedCalories = item.estimatedCalories
-                )
-            }
-
-            val details = AdminOrderDetailsUi(
-                orderId = order.orderId,
-                customerId = customer.customerId,
-                customerName = "${customer.firstName} ${customer.lastName}".trim(),
-                customerEmail = customer.email,
-                promoEligible = customer.marketingInboxConsent,
-                paymentType = payment?.paymentType ?: "UNKNOWN",
-                totalAmount = order.totalAmount,
-                createdAt = order.createdAt,
-                status = order.status,
-                feedbackWritten = feedbackItems.any { it.feedbackId != null },
-                hasCraftedItems = itemLines.any { it.isCrafted },
-                hasRewardItems = itemLines.any { it.isReward },
-                items = itemLines
-            )
-
-            withContext(Dispatchers.Main) {
-                detailCache[orderId] = details
-                if (expandedOrderId == orderId) {
-                    loadingOrderId = null
-                    submitAdapterState()
-                }
-            }
-        }
-    }
-
-    private fun handleStatusAction(
-        row: AdminOrderRow,
-        targetStatus: String
-    ) {
-        if (row.status == targetStatus) return
-
-        val appContext = requireContext().applicationContext
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            db.orderDao().updateStatus(row.orderId, targetStatus)
-
-            val updatedOrder = db.orderDao().getById(row.orderId)
-
-            if (updatedOrder != null) {
-                CustomerNotificationManager.createCustomerOrderStatusNotification(
-                    context = appContext,
-                    db = db,
-                    customerId = updatedOrder.customerId,
-                    orderId = updatedOrder.orderId,
-                    orderCreatedAt = updatedOrder.createdAt,
-                    status = targetStatus
-                )
-
-                AdminNotificationManager.syncAdminOrderActionNotification(
-                    context = appContext,
-                    db = db,
-                    orderId = updatedOrder.orderId,
-                    orderCreatedAt = updatedOrder.createdAt,
-                    orderStatus = targetStatus,
-                    triggerPhoneNotificationForNewOnly = false
-                )
-            }
-
-            detailCache.remove(row.orderId)
-
-            withContext(Dispatchers.Main) {
-                if (expandedOrderId == row.orderId) {
-                    loadingOrderId = row.orderId
-                    submitAdapterState()
-                    loadOrderDetails(row.orderId)
-                }
-            }
-        }
-    }
-
-    private fun submitAdapterState() {
-        adapter.submitState(
-            items = currentRows,
-            expandedOrderId = expandedOrderId,
-            loadingOrderId = loadingOrderId,
-            detailByOrderId = detailCache
-        )
-
-        tvFeedSummary.text = if (currentRows.isEmpty()) {
-            "No orders match the current search or filters"
-        } else {
-            "Showing ${currentRows.size} order${if (currentRows.size == 1) "" else "s"}"
-        }
-
-        tvEmpty.visibility = if (currentRows.isEmpty()) View.VISIBLE else View.GONE
-    }
-}
-
-data class AdminOrderDetailsUi(
-    val orderId: Long,
-    val customerId: Long,
-    val customerName: String,
-    val customerEmail: String,
-    val promoEligible: Boolean,
-    val paymentType: String,
-    val totalAmount: Double,
-    val createdAt: Long,
-    val status: String,
-    val feedbackWritten: Boolean,
-    val hasCraftedItems: Boolean,
-    val hasRewardItems: Boolean,
-    val items: List<AdminOrderLineUi>
-)
-
-data class AdminOrderLineUi(
-    val productName: String,
-    val quantity: Int,
-    val unitPrice: Double,
-    val selectedOptionLabel: String?,
-    val selectedOptionSizeValue: Int?,
-    val selectedOptionSizeUnit: String?,
-    val selectedAddOnsSummary: String?,
-    val estimatedCalories: Int?
-) {
-    val isCrafted: Boolean
-        get() = !selectedAddOnsSummary.isNullOrBlank() ||
-                (!selectedOptionLabel.isNullOrBlank() &&
-                        selectedOptionSizeValue != null &&
-                        !selectedOptionSizeUnit.isNullOrBlank())
-
-    val isReward: Boolean
-        get() = unitPrice <= 0.0
 }

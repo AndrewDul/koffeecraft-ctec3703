@@ -49,15 +49,29 @@ object RememberedCartStore {
                 put("isReward", item.isReward)
                 put("rewardType", item.rewardType ?: JSONObject.NULL)
                 put("beansCostPerUnit", item.beansCostPerUnit)
-                put("selectedOptionId", item.selectedOptionId ?: JSONObject.NULL)
+
+                if (item.selectedOptionId == null) {
+                    put("selectedOptionId", JSONObject.NULL)
+                } else {
+                    put("selectedOptionId", item.selectedOptionId.toString())
+                }
+
                 put("selectedOptionLabel", item.selectedOptionLabel ?: JSONObject.NULL)
-                put("selectedOptionSizeValue", item.selectedOptionSizeValue ?: JSONObject.NULL)
+
+                if (item.selectedOptionSizeValue == null) {
+                    put("selectedOptionSizeValue", JSONObject.NULL)
+                } else {
+                    put("selectedOptionSizeValue", item.selectedOptionSizeValue)
+                }
+
                 put("selectedOptionSizeUnit", item.selectedOptionSizeUnit ?: JSONObject.NULL)
                 put("selectedAddOnsSummary", item.selectedAddOnsSummary ?: JSONObject.NULL)
                 put("estimatedCalories", item.estimatedCalories ?: JSONObject.NULL)
 
                 val addOnIdsJson = JSONArray()
-                item.selectedAddOnIds.forEach { addOnIdsJson.put(it) }
+                item.selectedAddOnIds.forEach { addOnId ->
+                    addOnIdsJson.put(addOnId.toString())
+                }
                 put("selectedAddOnIds", addOnIdsJson)
             }
 

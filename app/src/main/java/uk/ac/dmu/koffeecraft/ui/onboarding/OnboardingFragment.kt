@@ -3,21 +3,18 @@ package uk.ac.dmu.koffeecraft.ui.onboarding
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.entities.AppNotification
-import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
-import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
 
@@ -45,8 +42,7 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
         )
     )
 
-    private var currentIndex = 0
-    private var promoConsentChoice = false
+    private lateinit var viewModel: OnboardingViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -54,6 +50,11 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
         val customerId = requireArguments().getLong("customerId")
         val appContext = requireContext().applicationContext
         CartManager.attachContext(appContext)
+
+        viewModel = ViewModelProvider(
+            this,
+            OnboardingViewModel.Factory(appContainer.onboardingRepository)
+        )[OnboardingViewModel::class.java]
 
         val tvIcon = view.findViewById<TextView>(R.id.tvIntroIcon)
         val tvTitle = view.findViewById<TextView>(R.id.tvIntroTitle)
@@ -64,147 +65,76 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
         val dot3 = view.findViewById<View>(R.id.dot3)
         val switchPromoOnboarding = view.findViewById<SwitchMaterial>(R.id.switchPromoOnboarding)
 
-        val db = KoffeeCraftDatabase.getInstance(appContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val customer = db.customerDao().getById(customerId)
-            val initialConsent = customer?.marketingInboxConsent == true
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                promoConsentChoice = initialConsent
-                switchPromoOnboarding.isChecked = initialConsent
-                renderPage(
-                    tvIcon = tvIcon,
-                    tvTitle = tvTitle,
-                    tvDescription = tvDescription,
-                    btnNext = btnNext,
-                    dot1 = dot1,
-                    dot2 = dot2,
-                    dot3 = dot3,
-                    switchPromoOnboarding = switchPromoOnboarding
-                )
-            }
-        }
-
         switchPromoOnboarding.setOnCheckedChangeListener { _, isChecked ->
-            promoConsentChoice = isChecked
+            viewModel.setPromoConsentChoice(isChecked)
         }
 
         btnNext.setOnClickListener {
+            val currentIndex = viewModel.state.value.currentIndex
             if (currentIndex < pages.lastIndex) {
-                currentIndex++
-                renderPage(
-                    tvIcon = tvIcon,
-                    tvTitle = tvTitle,
-                    tvDescription = tvDescription,
-                    btnNext = btnNext,
-                    dot1 = dot1,
-                    dot2 = dot2,
-                    dot3 = dot3,
-                    switchPromoOnboarding = switchPromoOnboarding
-                )
+                viewModel.nextPage(pages.lastIndex)
             } else {
-                finishOnboarding(customerId)
+                viewModel.finishOnboarding(customerId)
             }
         }
-    }
 
-    private fun renderPage(
-        tvIcon: TextView,
-        tvTitle: TextView,
-        tvDescription: TextView,
-        btnNext: MaterialButton,
-        dot1: View,
-        dot2: View,
-        dot3: View,
-        switchPromoOnboarding: SwitchMaterial
-    ) {
-        val page = pages[currentIndex]
-        tvIcon.text = page.icon
-        tvTitle.text = page.title
-        tvDescription.text = page.description
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collectLatest { state ->
+                val page = pages[state.currentIndex]
 
-        dot1.setBackgroundResource(if (currentIndex == 0) R.drawable.bg_dot_active else R.drawable.bg_dot_inactive)
-        dot2.setBackgroundResource(if (currentIndex == 1) R.drawable.bg_dot_active else R.drawable.bg_dot_inactive)
-        dot3.setBackgroundResource(if (currentIndex == 2) R.drawable.bg_dot_active else R.drawable.bg_dot_inactive)
+                tvIcon.text = page.icon
+                tvTitle.text = page.title
+                tvDescription.text = page.description
 
-        btnNext.text = if (currentIndex == pages.lastIndex) "Finish" else "Next"
-
-        if (currentIndex == pages.lastIndex) {
-            switchPromoOnboarding.visibility = View.VISIBLE
-            switchPromoOnboarding.text = "I agree to receive promotional messages in my Inbox"
-            switchPromoOnboarding.isChecked = promoConsentChoice
-        } else {
-            switchPromoOnboarding.visibility = View.GONE
-        }
-    }
-
-    private fun finishOnboarding(customerId: Long) {
-        val appContext = requireContext().applicationContext
-        val db = KoffeeCraftDatabase.getInstance(appContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val customer = db.customerDao().getById(customerId)
-
-            if (customer != null) {
-                db.inboxMessageDao().insertAll(
-                    listOf(
-                        InboxMessage(
-                            recipientCustomerId = customerId,
-                            title = "Welcome to KoffeeCraft",
-                            body = "Welcome to KoffeeCraft. Your account is ready, your rewards journey has started, and your Inbox will keep your coffee moments close.",
-                            deliveryType = "WELCOME"
-                        )
-                    )
+                dot1.setBackgroundResource(
+                    if (state.currentIndex == 0) R.drawable.bg_dot_active else R.drawable.bg_dot_inactive
+                )
+                dot2.setBackgroundResource(
+                    if (state.currentIndex == 1) R.drawable.bg_dot_active else R.drawable.bg_dot_inactive
+                )
+                dot3.setBackgroundResource(
+                    if (state.currentIndex == 2) R.drawable.bg_dot_active else R.drawable.bg_dot_inactive
                 )
 
-                val finalConsent = customer.marketingInboxConsent || promoConsentChoice
+                btnNext.text = if (state.currentIndex == pages.lastIndex) "Finish" else "Next"
 
-                if (finalConsent) {
-                    db.customerDao().update(
-                        customer.copy(
-                            marketingInboxConsent = true,
-                            beansBalance = customer.beansBalance + 5
-                        )
-                    )
+                if (state.currentIndex == pages.lastIndex) {
+                    switchPromoOnboarding.visibility = View.VISIBLE
+                    switchPromoOnboarding.text = "I agree to receive promotional messages in my Inbox"
+                    if (switchPromoOnboarding.isChecked != state.promoConsentChoice) {
+                        switchPromoOnboarding.isChecked = state.promoConsentChoice
+                    }
+                } else {
+                    switchPromoOnboarding.visibility = View.GONE
+                }
 
-                    db.notificationDao().insert(
-                        AppNotification(
-                            recipientRole = "CUSTOMER",
-                            recipientCustomerId = customerId,
-                            title = "You received 5 beans",
-                            message = "Thanks for enabling promotional messages. Your first 5 beans have been added to your account.",
-                            notificationType = "WELCOME_BEANS",
-                            orderId = null,
-                            orderCreatedAt = null,
-                            orderStatus = null,
-                            isRead = false
+                btnNext.isEnabled = !state.isLoading
+                btnNext.alpha = if (state.isLoading) 0.7f else 1f
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.effects.collectLatest { effect ->
+                when (effect) {
+                    is OnboardingViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    OnboardingViewModel.UiEffect.NavigateToHome -> {
+                        findNavController().navigate(
+                            R.id.customerHomeFragment,
+                            null,
+                            androidx.navigation.navOptions {
+                                popUpTo(R.id.onboardingFragment) {
+                                    inclusive = true
+                                }
+                            }
                         )
-                    )
+                    }
                 }
             }
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                SessionManager.setCustomer(customerId)
-                RememberedSessionStore.saveCustomerSession(
-                    context = appContext,
-                    customerId = customerId,
-                    onboardingPending = false
-                )
-
-                findNavController().navigate(
-                    R.id.customerHomeFragment,
-                    null,
-                    androidx.navigation.navOptions {
-                        popUpTo(R.id.onboardingFragment) {
-                            inclusive = true
-                        }
-                    }
-                )
-            }
         }
+
+        viewModel.start(customerId)
     }
 }

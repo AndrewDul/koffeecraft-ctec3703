@@ -1,6 +1,6 @@
 package uk.ac.dmu.koffeecraft.ui.settings
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
@@ -17,22 +18,28 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.payment.PaymentCardValidator
+import uk.ac.dmu.koffeecraft.util.validation.SavedPaymentCardFormValidator
 
 class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payment_methods) {
 
+    private lateinit var vm: CustomerPaymentMethodsViewModel
     private lateinit var tvEmpty: TextView
     private lateinit var containerCards: LinearLayout
+    private var activeAddCardDialog: AlertDialog? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        vm = ViewModelProvider(
+            this,
+            CustomerPaymentMethodsViewModel.Factory(appContainer.customerPaymentMethodsRepository)
+        )[CustomerPaymentMethodsViewModel::class.java]
 
         tvEmpty = view.findViewById(R.id.tvPaymentCardsEmpty)
         containerCards = view.findViewById(R.id.containerPaymentCards)
@@ -46,26 +53,50 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
 
         if (customerId == null) {
             Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
+            btnAddCard.isEnabled = false
             return
         }
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
         btnAddCard.setOnClickListener {
-            showAddCardDialog(db, customerId)
+            showAddCardDialog(customerId)
+        }
+
+        vm.start(customerId)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state.collect { state ->
+                renderCards(
+                    customerId = customerId,
+                    cards = state.cards
+                )
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            db.customerPaymentCardDao().observeForCustomer(customerId).collect { cards ->
-                renderCards(cards, db, customerId)
+            vm.effects.collect { effect ->
+                when (effect) {
+                    is CustomerPaymentMethodsViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    CustomerPaymentMethodsViewModel.UiEffect.DismissAddCardDialog -> {
+                        activeAddCardDialog?.dismiss()
+                        activeAddCardDialog = null
+                    }
+                }
             }
         }
     }
 
+    override fun onDestroyView() {
+        activeAddCardDialog?.dismiss()
+        activeAddCardDialog = null
+        super.onDestroyView()
+    }
+
     private fun renderCards(
-        cards: List<CustomerPaymentCard>,
-        db: KoffeeCraftDatabase,
-        customerId: Long
+        customerId: Long,
+        cards: List<CustomerPaymentCard>
     ) {
         if (!isAdded) return
 
@@ -97,19 +128,10 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
             btnDefault.text = if (card.isDefault) "Default card" else "Set as default"
 
             btnDefault.setOnClickListener {
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.customerPaymentCardDao().clearDefaultForCustomer(customerId)
-                    db.customerPaymentCardDao().setDefault(card.cardId, customerId)
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        Toast.makeText(
-                            requireContext(),
-                            "\"${card.nickname}\" is now your default card.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+                vm.setDefaultCard(
+                    customerId = customerId,
+                    card = card
+                )
             }
 
             btnDelete.setOnClickListener {
@@ -118,26 +140,10 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
                     .setMessage("This will remove \"${card.nickname}\" from your saved payment methods.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Remove") { _, _ ->
-                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                            db.customerPaymentCardDao().deleteByIdAndCustomer(card.cardId, customerId)
-
-                            if (card.isDefault) {
-                                val replacement = db.customerPaymentCardDao().getMostRecentForCustomer(customerId)
-                                if (replacement != null) {
-                                    db.customerPaymentCardDao().clearDefaultForCustomer(customerId)
-                                    db.customerPaymentCardDao().setDefault(replacement.cardId, customerId)
-                                }
-                            }
-
-                            withContext(Dispatchers.Main) {
-                                if (!isAdded) return@withContext
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Saved card removed.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
+                        vm.deleteCard(
+                            customerId = customerId,
+                            card = card
+                        )
                     }
                     .show()
             }
@@ -146,10 +152,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
         }
     }
 
-    private fun showAddCardDialog(
-        db: KoffeeCraftDatabase,
-        customerId: Long
-    ) {
+    private fun showAddCardDialog(customerId: Long) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_customer_payment_card_form, null)
 
         val tvPreviewNickname = dialogView.findViewById<TextView>(R.id.tvPreviewCardNickname)
@@ -239,6 +242,8 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
             .setPositiveButton("Save card", null)
             .create()
 
+        activeAddCardDialog = dialog
+
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 tilNickname.error = null
@@ -253,88 +258,28 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
                 val expiryInput = etExpiry.text?.toString()?.trim().orEmpty()
                 val cvvInput = etCvv.text?.toString()?.trim().orEmpty()
 
-                val brand = PaymentCardValidator.detectBrand(numberInput)
-                val numberDigits = PaymentCardValidator.extractDigits(numberInput)
+                val validation = SavedPaymentCardFormValidator.validate(
+                    holder = holderInput,
+                    number = numberInput,
+                    expiry = expiryInput,
+                    cvv = cvvInput
+                )
 
-                var hasError = false
+                tilHolder.error = validation.holderError
+                tilNumber.error = validation.numberError
+                tilExpiry.error = validation.expiryError
+                tilCvv.error = validation.cvvError
 
-                if (!PaymentCardValidator.isValidCardholderName(holderInput)) {
-                    tilHolder.error = "Enter the cardholder first and last name as shown on the card"
-                    hasError = true
-                }
+                if (!validation.isValid) return@setOnClickListener
 
-                val numberError = PaymentCardValidator.explainInvalidCardNumber(numberInput)
-                if (numberError != null) {
-                    tilNumber.error = numberError
-                    hasError = true
-                }
-
-                val expiry = PaymentCardValidator.parseExpiry(expiryInput)
-                if (expiry == null || !PaymentCardValidator.isExpiryValid(expiry.first, expiry.second)) {
-                    tilExpiry.error = "Enter a valid future expiry date"
-                    hasError = true
-                }
-
-                if (!PaymentCardValidator.isValidCvv(cvvInput, brand)) {
-                    tilCvv.error = if (brand == PaymentCardValidator.CardBrand.AMEX) {
-                        "AmEx uses a 4-digit security code"
-                    } else {
-                        "Enter a valid 3-digit security code"
-                    }
-                    hasError = true
-                }
-
-                if (hasError) return@setOnClickListener
-
-                val safeExpiry = expiry
-                if (safeExpiry == null) {
-                    Toast.makeText(
-                        requireContext(),
-                        "The card expiry could not be read. Please check the expiry date and try again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@setOnClickListener
-                }
-
-                val last4 = numberDigits.takeLast(4)
-                val finalNickname = if (nicknameInput.isBlank()) {
-                    PaymentCardValidator.defaultNickname(brand, last4)
-                } else {
-                    nicknameInput
-                }
-
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val currentDefault = db.customerPaymentCardDao().getDefaultForCustomer(customerId)
-                    val shouldBeDefault = switchDefault.isChecked || currentDefault == null
-
-                    if (shouldBeDefault) {
-                        db.customerPaymentCardDao().clearDefaultForCustomer(customerId)
-                    }
-
-                    db.customerPaymentCardDao().insert(
-                        CustomerPaymentCard(
-                            customerId = customerId,
-                            nickname = finalNickname,
-                            cardholderName = holderInput,
-                            brand = brand.displayName,
-                            maskedCardNumber = PaymentCardValidator.buildMaskedNumber(numberInput),
-                            last4 = last4,
-                            expiryMonth = safeExpiry.first,
-                            expiryYear = safeExpiry.second,
-                            isDefault = shouldBeDefault
-                        )
-                    )
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        Toast.makeText(
-                            requireContext(),
-                            "Card saved for faster checkout.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        dialog.dismiss()
-                    }
-                }
+                vm.addCard(
+                    customerId = customerId,
+                    nickname = nicknameInput,
+                    cardholderName = holderInput,
+                    cardNumber = numberInput,
+                    expiryText = expiryInput,
+                    setAsDefault = switchDefault.isChecked
+                )
             }
         }
 

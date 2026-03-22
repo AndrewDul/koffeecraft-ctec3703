@@ -5,94 +5,89 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.repository.CustomerAccountCleanupRepository
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
 class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete_account) {
 
+    private lateinit var vm: CustomerDeleteAccountViewModel
     private lateinit var tilCurrentPassword: TextInputLayout
     private lateinit var etCurrentPassword: TextInputEditText
     private lateinit var tvError: TextView
+    private lateinit var btnDeleteAccount: MaterialButton
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        vm = ViewModelProvider(
+            this,
+            CustomerDeleteAccountViewModel.Factory(appContainer.customerSettingsRepository)
+        )[CustomerDeleteAccountViewModel::class.java]
+
         tilCurrentPassword = view.findViewById(R.id.tilCurrentPassword)
         etCurrentPassword = view.findViewById(R.id.etCurrentPassword)
         tvError = view.findViewById(R.id.tvError)
+        btnDeleteAccount = view.findViewById(R.id.btnDeleteAccount)
 
         view.findViewById<TextView>(R.id.btnBack).setOnClickListener {
             findNavController().navigateUp()
         }
 
-        view.findViewById<MaterialButton>(R.id.btnDeleteAccount).setOnClickListener {
-            deleteAccount()
-        }
-
         view.findViewById<MaterialButton>(R.id.btnBackToSettings).setOnClickListener {
             findNavController().navigateUp()
         }
-    }
 
-    private fun deleteAccount() {
-        val customerId = SessionManager.currentCustomerId ?: return
-        val appContext = requireContext().applicationContext
-        val db = KoffeeCraftDatabase.getInstance(appContext)
-        val cleanupRepository = CustomerAccountCleanupRepository(appContext)
-
-        tilCurrentPassword.error = null
-        tvError.visibility = View.GONE
-
-        val currentPassword = etCurrentPassword.text?.toString().orEmpty()
-
-        if (currentPassword.isBlank()) {
-            tilCurrentPassword.error = "Enter current password"
+        val customerId = SessionManager.currentCustomerId
+        if (customerId == null) {
+            tvError.text = "You are not logged in as a customer."
+            tvError.visibility = View.VISIBLE
+            btnDeleteAccount.isEnabled = false
             return
         }
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val customer = db.customerDao().getById(customerId)
-            if (customer == null) {
-                withContext(Dispatchers.Main) {
-                    tvError.text = "Customer account could not be found."
-                    tvError.visibility = View.VISIBLE
-                }
-                return@launch
+        btnDeleteAccount.setOnClickListener {
+            tilCurrentPassword.error = null
+            tvError.visibility = View.GONE
+
+            val currentPassword = etCurrentPassword.text?.toString().orEmpty()
+            if (currentPassword.isBlank()) {
+                tilCurrentPassword.error = "Enter current password"
+                return@setOnClickListener
             }
 
-            val passwordChars = currentPassword.toCharArray()
-            val valid = PasswordHasher.verify(
-                passwordChars,
-                customer.passwordSalt,
-                customer.passwordHash
+            vm.deleteAccount(
+                customerId = customerId,
+                currentPassword = currentPassword
             )
-            passwordChars.fill('\u0000')
+        }
 
-            if (!valid) {
-                withContext(Dispatchers.Main) {
-                    tilCurrentPassword.error = "Current password is incorrect"
-                }
-                return@launch
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state.collect { state ->
+                btnDeleteAccount.isEnabled = !state.isDeleting
+                btnDeleteAccount.alpha = if (state.isDeleting) 0.7f else 1f
+                btnDeleteAccount.text = if (state.isDeleting) "Deleting..." else "Delete account permanently"
             }
+        }
 
-            cleanupRepository.deleteCustomerCompletely(customerId)
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.effects.collect { effect ->
+                when (effect) {
+                    is CustomerDeleteAccountViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
 
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-
-                Toast.makeText(requireContext(), "Account deleted permanently.", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_global_logout)
+                    CustomerDeleteAccountViewModel.UiEffect.NavigateToLogout -> {
+                        findNavController().navigate(R.id.action_global_logout)
+                    }
+                }
             }
         }
     }

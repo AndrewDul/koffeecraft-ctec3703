@@ -18,12 +18,15 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import androidx.core.content.ContextCompat
+import uk.ac.dmu.koffeecraft.util.ui.ValidationUiStyler
+import uk.ac.dmu.koffeecraft.util.validation.DateOfBirthValidator
+import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
+import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
+
 class RegisterFragment : Fragment(R.layout.fragment_register) {
 
     private lateinit var vm: RegisterViewModel
@@ -33,9 +36,10 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         super.onViewCreated(view, savedInstanceState)
 
         val appContext = requireContext().applicationContext
-        val db = KoffeeCraftDatabase.getInstance(appContext)
-        val repo = AuthRepository(db)
-        vm = ViewModelProvider(this, RegisterViewModelFactory(repo))[RegisterViewModel::class.java]
+        vm = ViewModelProvider(
+            this,
+            RegisterViewModelFactory(appContainer.authRepository)
+        )[RegisterViewModel::class.java]
 
         CartManager.attachContext(appContext)
 
@@ -91,16 +95,28 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         etPassword.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 val password = s?.toString().orEmpty()
+                val rules = PasswordRulesValidator.describe(password)
 
-                updateRuleTile(tvRuleUpper, password.any { it.isUpperCase() })
-                updateRuleTile(tvRuleLower, password.any { it.isLowerCase() })
-                updateRuleTile(tvRuleLength, password.length >= 8)
-                updateRuleTile(tvRuleSpecial, password.any { !it.isLetterOrDigit() })
-                updateRuleTile(tvRuleNumber, password.any { it.isDigit() })
+                ValidationUiStyler.applyPasswordRuleStyle(tvRuleUpper, rules.hasUppercase)
+                ValidationUiStyler.applyPasswordRuleStyle(tvRuleLower, rules.hasLowercase)
+                ValidationUiStyler.applyPasswordRuleStyle(tvRuleLength, rules.hasMinLength)
+                ValidationUiStyler.applyPasswordRuleStyle(tvRuleSpecial, rules.hasSpecial)
+                ValidationUiStyler.applyPasswordRuleStyle(tvRuleNumber, rules.hasDigit)
             }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) = Unit
+
+            override fun onTextChanged(
+                s: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) = Unit
         })
 
         tvTermsLink.setOnClickListener {
@@ -155,14 +171,20 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
             if (dateOfBirth.isBlank()) {
                 tilDob.error = "Enter date of birth"
                 hasError = true
+            } else if (!DateOfBirthValidator.isValid(dateOfBirth)) {
+                tilDob.error = "Use format YYYY-MM-DD"
+                hasError = true
             }
 
             if (email.isBlank()) {
                 tilEmail.error = "Enter email"
                 hasError = true
+            } else if (!EmailValidator.isValid(email)) {
+                tilEmail.error = "Enter a valid email"
+                hasError = true
             }
 
-            if (!isPasswordValid(password)) {
+            if (!PasswordRulesValidator.isValid(password)) {
                 tilPassword.error = "Password does not meet all rules"
                 hasError = true
             }
@@ -220,27 +242,5 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                 }
             }
         }
-    }
-
-    private fun updateRuleTile(view: TextView, isValid: Boolean) {
-        if (isValid) {
-            view.setBackgroundResource(R.drawable.bg_rule_valid)
-            view.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.kc_success_text)
-            )
-        } else {
-            view.setBackgroundResource(R.drawable.bg_rule_invalid)
-            view.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.kc_danger_text)
-            )
-        }
-    }
-
-    private fun isPasswordValid(password: String): Boolean {
-        return password.any { it.isUpperCase() } &&
-                password.any { it.isLowerCase() } &&
-                password.length >= 8 &&
-                password.any { !it.isLetterOrDigit() } &&
-                password.any { it.isDigit() }
     }
 }

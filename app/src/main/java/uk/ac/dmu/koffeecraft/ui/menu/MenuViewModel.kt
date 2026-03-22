@@ -6,10 +6,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.dao.ProductDao
 import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.data.repository.MenuRepository
 
-class MenuViewModel(private val productDao: ProductDao) : ViewModel() {
+class MenuViewModel(
+    private val menuRepository: MenuRepository
+) : ViewModel() {
 
     data class UiState(
         val category: String = "COFFEE",
@@ -33,8 +35,8 @@ class MenuViewModel(private val productDao: ProductDao) : ViewModel() {
     private fun observeCategory(category: String) {
         categoryJob?.cancel()
         categoryJob = viewModelScope.launch {
-            productDao.observeByCategory(category).collect { list ->
-                _state.value = _state.value.copy(products = list)
+            menuRepository.observeProductsByCategory(category).collect { products ->
+                _state.value = _state.value.copy(products = products)
             }
         }
     }

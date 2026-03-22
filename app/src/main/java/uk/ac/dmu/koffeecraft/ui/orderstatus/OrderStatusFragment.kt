@@ -7,22 +7,20 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
 import uk.ac.dmu.koffeecraft.util.orders.OrderSimulationManager
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
+
+    private lateinit var vm: OrderStatusViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -56,9 +54,14 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         val simulate = requireArguments().getBoolean("simulate", false)
         val fromCheckout = requireArguments().getBoolean("fromCheckout", false)
 
-        tvOrderId.text = "Order #$orderId"
+        val db = appContainer.database
 
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+        vm = ViewModelProvider(
+            this,
+            OrderStatusViewModelFactory(appContainer.customerOrdersRepository)
+        )[OrderStatusViewModel::class.java]
+
+        tvOrderId.text = "Order #$orderId"
 
         btnBackToHome.setOnClickListener {
             findNavController().navigate(R.id.customerHomeFragment)
@@ -81,94 +84,63 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
             OrderSimulationManager.startIfNeeded(requireContext().applicationContext, orderId)
         }
 
+        vm.start(orderId = orderId, fromCheckout = fromCheckout)
+
+        var lastSyncedSignature: String? = null
+
         viewLifecycleOwner.lifecycleScope.launch {
-            db.orderDao().observeById(orderId).collect { order ->
-                if (order == null) return@collect
+            vm.state.collect { state ->
+                if (state.orderId == 0L) return@collect
 
-                val status = order.status
-                val formattedStatus = formatStatus(status)
+                tvOrderId.text = "Order #${state.orderId}"
 
-                val orderUiData = withContext(Dispatchers.IO) {
-                    val payment = db.paymentDao().getLatestForOrder(orderId)
-                    val displayItems = db.orderItemDao().getDisplayItemsForOrder(orderId)
-                    val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(orderId)
-                    val reviewedCount = feedbackItems.count { it.feedbackId != null }
+                tvStatusChip.text = state.statusLabel
+                tvStatus.text = state.statusLabel
+                bindStatusChip(tvStatusChip, state.statusRaw)
 
-                    OrderStatusUiData(
-                        paymentType = payment?.paymentType ?: "UNKNOWN",
-                        itemsOrdered = displayItems.sumOf { it.quantity },
-                        displayItems = displayItems,
-                        feedbackState = FeedbackEntryState(
-                            eligibleItemCount = feedbackItems.size,
-                            reviewedItemCount = reviewedCount
-                        )
-                    )
-                }
+                tvItemsOrderedValue.text = state.itemsOrderedLabel
+                tvTotalPaidValue.text = state.totalPaidLabel
+                tvPaymentTypeValue.text = state.paymentTypeLabel
+                tvEtaValue.text = state.etaLabel
+                tvStatusHelper.text = state.statusHelper
+                tvFeedbackHelper.text = state.feedbackHelper
 
-                tvStatusChip.text = formattedStatus
-                tvStatus.text = formattedStatus
-                bindStatusChip(tvStatusChip, status)
-
-                tvItemsOrderedValue.text = orderUiData.itemsOrdered.toString()
-                tvTotalPaidValue.text = formatCurrency(order.totalAmount)
-                tvPaymentTypeValue.text = formatPaymentType(orderUiData.paymentType)
-                tvEtaValue.text = buildEtaText(
-                    status = status,
-                    createdAt = order.createdAt
-                )
-
-                val heroState = buildHeroState(
-                    status = status,
-                    fromCheckout = fromCheckout
-                )
                 bindHero(
                     iconView = tvHeroIcon,
                     titleView = tvHeroTitle,
                     subtitleView = tvHeroSubtitle,
-                    heroState = heroState
+                    tone = state.heroTone,
+                    icon = state.heroIcon,
+                    title = state.heroTitle,
+                    subtitle = state.heroSubtitle
                 )
 
-                tvStatusHelper.text = buildStatusHelperText(
-                    status = status,
-                    itemsOrdered = orderUiData.itemsOrdered,
-                    etaText = tvEtaValue.text.toString()
-                )
-
-                bindJourney(
-                    status = status,
-                    tvStepPlaced = tvStepPlaced,
-                    tvStepPreparing = tvStepPreparing,
-                    tvStepReady = tvStepReady,
-                    tvStepCollected = tvStepCollected
-                )
-
-                if (!simulate) {
-                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        AdminNotificationManager.syncAdminOrderActionNotification(
-                            context = requireContext(),
-                            db = db,
-                            orderId = order.orderId,
-                            orderCreatedAt = order.createdAt,
-                            orderStatus = status
-                        )
-                    }
-                }
-
-                val feedbackEnabled = canOpenFeedback(status) &&
-                        orderUiData.feedbackState.eligibleItemCount > 0
+                setJourneyStep(tvStepPlaced, state.stepPlacedActive)
+                setJourneyStep(tvStepPreparing, state.stepPreparingActive)
+                setJourneyStep(tvStepReady, state.stepReadyActive)
+                setJourneyStep(tvStepCollected, state.stepCollectedActive)
 
                 btnFeedback.visibility = View.VISIBLE
-                btnFeedback.isEnabled = feedbackEnabled
-                btnFeedback.alpha = if (feedbackEnabled) 1f else 0.45f
-                btnFeedback.text = buildFeedbackButtonLabel(
-                    canOpen = canOpenFeedback(status),
-                    summary = orderUiData.feedbackState
-                )
+                btnFeedback.isEnabled = state.feedbackEnabled
+                btnFeedback.alpha = if (state.feedbackEnabled) 1f else 0.45f
+                btnFeedback.text = state.feedbackButtonLabel
 
-                tvFeedbackHelper.text = buildFeedbackHelperText(
-                    status = status,
-                    summary = orderUiData.feedbackState
-                )
+                if (!simulate) {
+                    val signature = "${state.orderId}:${state.statusRaw}:${state.createdAt}"
+                    if (signature != lastSyncedSignature) {
+                        lastSyncedSignature = signature
+
+                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                            AdminNotificationManager.syncAdminOrderActionNotification(
+                                context = requireContext(),
+                                db = db,
+                                orderId = state.orderId,
+                                orderCreatedAt = state.createdAt,
+                                orderStatus = state.statusRaw
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -177,107 +149,23 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         iconView: TextView,
         titleView: TextView,
         subtitleView: TextView,
-        heroState: HeroState
+        tone: HeroTone,
+        icon: String,
+        title: String,
+        subtitle: String
     ) {
-        iconView.text = heroState.icon
-        titleView.text = heroState.title
-        subtitleView.text = heroState.subtitle
+        iconView.text = icon
+        titleView.text = title
+        subtitleView.text = subtitle
 
         iconView.setTextColor(
-            when (heroState.tone) {
+            when (tone) {
                 HeroTone.SUCCESS -> color(R.color.kc_success_text)
                 HeroTone.WARM -> color(R.color.kc_warning_text)
                 HeroTone.NEUTRAL -> color(R.color.kc_info_text)
                 HeroTone.DANGER -> color(R.color.kc_danger_text)
             }
         )
-    }
-
-    private fun buildHeroState(
-        status: String,
-        fromCheckout: Boolean
-    ): HeroState {
-        return when (status.uppercase(Locale.UK)) {
-            "PLACED" -> HeroState(
-                icon = "✓",
-                title = if (fromCheckout) "Order confirmed" else "Order received",
-                subtitle = if (fromCheckout) {
-                    "Your payment was successful and your order is now waiting to be prepared."
-                } else {
-                    "Your order has been placed successfully and is waiting for preparation."
-                },
-                tone = HeroTone.SUCCESS
-            )
-
-            "PREPARING" -> HeroState(
-                icon = "☕",
-                title = "Order in progress",
-                subtitle = "Your drinks and treats are being prepared now.",
-                tone = HeroTone.WARM
-            )
-
-            "READY" -> HeroState(
-                icon = "★",
-                title = "Ready for collection",
-                subtitle = "Your order is ready. You can collect it now.",
-                tone = HeroTone.SUCCESS
-            )
-
-            "COLLECTED" -> HeroState(
-                icon = "✓",
-                title = "Order collected",
-                subtitle = "Your order has been collected successfully. Enjoy your KoffeeCraft moment.",
-                tone = HeroTone.SUCCESS
-            )
-
-            "COMPLETED" -> HeroState(
-                icon = "✓",
-                title = "Order completed",
-                subtitle = "This order has been completed successfully.",
-                tone = HeroTone.SUCCESS
-            )
-
-            "CANCELLED" -> HeroState(
-                icon = "!",
-                title = "Order cancelled",
-                subtitle = "This order was cancelled and is no longer being processed.",
-                tone = HeroTone.DANGER
-            )
-
-            else -> HeroState(
-                icon = "•",
-                title = "Order update",
-                subtitle = "Your order details are available below.",
-                tone = HeroTone.NEUTRAL
-            )
-        }
-    }
-
-    private fun bindJourney(
-        status: String,
-        tvStepPlaced: TextView,
-        tvStepPreparing: TextView,
-        tvStepReady: TextView,
-        tvStepCollected: TextView
-    ) {
-        val normalized = status.uppercase(Locale.UK)
-
-        val placedActive = normalized in setOf("PLACED", "PREPARING", "READY", "COLLECTED", "COMPLETED")
-        val preparingActive = normalized in setOf("PREPARING", "READY", "COLLECTED", "COMPLETED")
-        val readyActive = normalized in setOf("READY", "COLLECTED", "COMPLETED")
-        val collectedActive = normalized in setOf("COLLECTED", "COMPLETED")
-
-        setJourneyStep(tvStepPlaced, placedActive)
-        setJourneyStep(tvStepPreparing, preparingActive)
-        setJourneyStep(tvStepReady, readyActive)
-        setJourneyStep(tvStepCollected, collectedActive)
-
-        if (normalized == "CANCELLED") {
-            setJourneyStep(tvStepPlaced, false)
-            setJourneyStep(tvStepPreparing, false)
-            setJourneyStep(tvStepReady, false)
-            setJourneyStep(tvStepCollected, false)
-        }
     }
 
     private fun setJourneyStep(view: TextView, isActive: Boolean) {
@@ -293,118 +181,10 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         view.alpha = if (isActive) 1f else 0.9f
     }
 
-    private fun buildStatusHelperText(
-        status: String,
-        itemsOrdered: Int,
-        etaText: String
-    ): String {
-        return when (status.uppercase(Locale.UK)) {
-            "PLACED" ->
-                "We received your order for $itemsOrdered item${if (itemsOrdered == 1) "" else "s"}. Estimated ready time: $etaText."
-
-            "PREPARING" ->
-                "Your order is now being prepared. Estimated ready time: $etaText."
-
-            "READY" ->
-                "Your order is ready for collection."
-
-            "COLLECTED" ->
-                "Your order has been collected. Thank you for ordering with KoffeeCraft."
-
-            "COMPLETED" ->
-                "Your order is complete. You can still review your purchased products below."
-
-            "CANCELLED" ->
-                "This order has been cancelled. If this looks unexpected, please contact KoffeeCraft support."
-
-            else ->
-                "Track the latest progress of your order below."
-        }
-    }
-
-    private fun buildEtaText(
-        status: String,
-        createdAt: Long
-    ): String {
-        return when (status.uppercase(Locale.UK)) {
-            "PLACED", "PREPARING" -> {
-                val formatter = SimpleDateFormat("HH:mm", Locale.UK)
-                formatter.format(Date(createdAt + (15 * 60 * 1000L)))
-            }
-
-            "READY" -> "Ready now"
-            "COLLECTED" -> "Collected"
-            "COMPLETED" -> "Completed"
-            "CANCELLED" -> "Unavailable"
-            else -> "Updating"
-        }
-    }
-
-    private fun formatPaymentType(paymentType: String): String {
-        return when (paymentType.uppercase(Locale.UK)) {
-            "CARD" -> "Card"
-            "CASH" -> "Cash"
-            else -> paymentType.lowercase(Locale.UK)
-                .replaceFirstChar { it.titlecase(Locale.UK) }
-        }
-    }
-
-    private fun formatCurrency(value: Double): String {
-        return String.format(Locale.UK, "£%.2f", value)
-    }
-
-    private fun canOpenFeedback(status: String): Boolean {
-        return when (status.uppercase(Locale.UK)) {
-            "COLLECTED", "COMPLETED" -> true
-            else -> false
-        }
-    }
-
-    private fun buildFeedbackButtonLabel(
-        canOpen: Boolean,
-        summary: FeedbackEntryState
-    ): String {
-        if (!canOpen) return "Leave feedback"
-
-        if (summary.eligibleItemCount == 0) {
-            return "Leave feedback"
-        }
-
-        return when {
-            summary.reviewedItemCount <= 0 -> "Leave feedback"
-            summary.reviewedItemCount < summary.eligibleItemCount -> "Continue feedback"
-            else -> "Edit feedback"
-        }
-    }
-
-    private fun buildFeedbackHelperText(
-        status: String,
-        summary: FeedbackEntryState
-    ): String {
-        if (!canOpenFeedback(status)) {
-            return "Feedback becomes available after collection."
-        }
-
-        if (summary.eligibleItemCount == 0) {
-            return "No paid products from this order are available for feedback."
-        }
-
-        return when {
-            summary.reviewedItemCount <= 0 ->
-                "You can now rate your order and leave product feedback."
-
-            summary.reviewedItemCount < summary.eligibleItemCount ->
-                "You can continue rating the remaining products from this order."
-
-            else ->
-                "You have already reviewed all paid products from this order. You can still edit them anytime."
-        }
-    }
-
     private fun bindStatusChip(view: TextView, status: String) {
         val background = view.background.mutate() as GradientDrawable
 
-        val (backgroundColorRes, textColorRes) = when (status.uppercase(Locale.UK)) {
+        val (backgroundColorRes, textColorRes) = when (status.uppercase()) {
             "READY" -> R.color.kc_validation_valid_bg to R.color.kc_success_text
             "PREPARING" -> R.color.kc_surface_warning to R.color.kc_warning_text
             "PLACED" -> R.color.kc_surface_info to R.color.kc_info_text
@@ -418,42 +198,7 @@ class OrderStatusFragment : Fragment(R.layout.fragment_order_status) {
         view.setTextColor(color(textColorRes))
     }
 
-    private fun formatStatus(status: String): String {
-        return status
-            .lowercase(Locale.UK)
-            .split("_")
-            .joinToString(" ") { word ->
-                word.replaceFirstChar { firstChar -> firstChar.titlecase(Locale.UK) }
-            }
-    }
-
     private fun color(colorResId: Int): Int {
         return ContextCompat.getColor(requireContext(), colorResId)
     }
-}
-
-private data class FeedbackEntryState(
-    val eligibleItemCount: Int,
-    val reviewedItemCount: Int
-)
-
-private data class OrderStatusUiData(
-    val paymentType: String,
-    val itemsOrdered: Int,
-    val displayItems: List<OrderDisplayItem>,
-    val feedbackState: FeedbackEntryState
-)
-
-private data class HeroState(
-    val icon: String,
-    val title: String,
-    val subtitle: String,
-    val tone: HeroTone
-)
-
-private enum class HeroTone {
-    SUCCESS,
-    WARM,
-    NEUTRAL,
-    DANGER
 }

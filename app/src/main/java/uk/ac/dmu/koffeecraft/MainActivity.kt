@@ -26,7 +26,7 @@ import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
-
+import android.widget.ImageView
 class MainActivity : AppCompatActivity() {
 
     private val requestNotificationsPermission =
@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        NotificationHelper.ensureChannels(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(

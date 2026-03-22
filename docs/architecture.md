@@ -2929,3 +2929,65 @@ At this point, the following flows are already improved:
 The remaining admin menu areas such as size options, extras, allergens, and product detail loading still remain inside the fragment for now and are planned for the next refactor stages.
 
 
+#### Architecture cleanup update
+
+In this stage of the project I focused on cleaning the structure of the codebase and making the architecture more consistent across the application. My main goal was to reduce direct database access inside UI classes, split large files into smaller parts, and make the project easier to maintain, explain, and extend.
+
+At the beginning, several fragments were doing too much work at once. In many places the fragment was handling UI, database access, validation, filtering, and business rules in the same file. This made the code harder to read and harder to describe clearly in the report. To improve this, I reorganised the project so that each layer has a clearer responsibility.
+
+I used a structure where:
+- Fragment handles UI and user interaction
+- ViewModel handles screen state and user actions
+- Repository handles data access and business logic
+- AppContainer creates shared dependencies in one place
+
+I added and expanded AppContainer so dependencies are created centrally instead of being built repeatedly inside fragments. This made the code more consistent and reduced duplication.
+
+I moved more database-related logic out of fragments and into repositories. I refactored several important parts of the application in this way, including:
+- Customer Settings
+- Admin Manage Customer Accounts
+- Admin Campaign Studio
+- Admin Orders
+- Admin Home
+- Rewards
+- Onboarding
+- Customer Notifications
+- Customer Inbox
+
+In these areas I removed direct Room database usage from the UI layer and replaced it with Repository and ViewModel based flow. This improved separation of concerns and made the screens easier to understand.
+
+One of the biggest cleanup tasks was AdminMenuFragment. This file had become too large and mixed many responsibilities together. Instead of keeping all product management logic in one fragment, I split it into smaller controller classes:
+- AdminMenuDetailsController
+- AdminMenuOptionsController
+- AdminMenuExtrasController
+- AdminMenuAllergensController
+
+This made the menu feature much easier to follow. The fragment now acts more like a coordinator for the UI, while detailed logic is handled in focused classes.
+
+I also cleaned the database layer. KoffeeCraftDatabase had become too large because it contained database setup, migrations, and seeding logic in one place. I split this into:
+- KoffeeCraftDatabase
+- DatabaseMigrations
+- DatabaseSeeder
+
+This gave the database layer a cleaner structure and made it easier to maintain and debug.
+
+I also reorganised file placement in the project so that files now better match their actual role. Some files already had the correct package name but were physically stored in the wrong folder. I moved those files into the correct UI or data folders to make the project structure cleaner and easier to navigate.
+
+Examples of this cleanup include:
+- moving AdminMenu UI state and ViewModel files into the admin menu UI package
+- moving Customer Orders state and ViewModel files into the correct customer orders package
+- aligning file location with real package responsibility instead of leaving files in unrelated folders
+
+I also fixed smaller structural problems during cleanup, for example persistence-related issues in the remembered cart logic, so the project would stay stable while I was reorganising the architecture.
+
+Overall, this cleanup improved:
+- separation of concerns
+- readability
+- maintainability
+- consistency
+- project navigation
+- report clarity
+
+The application behaviour stayed the same, but the internal structure is now cleaner, more modular, and more suitable for the assessment requirements. The code is easier to explain because responsibilities are more clearly separated and large files have been reduced or split into more focused parts.
+
+

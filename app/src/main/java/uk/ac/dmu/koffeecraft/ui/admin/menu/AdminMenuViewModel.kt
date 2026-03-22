@@ -1,7 +1,6 @@
 package uk.ac.dmu.koffeecraft.ui.admin.menu
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -11,15 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.repository.AdminMenuRepository
 
-class AdminMenuViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = AdminMenuRepository(
-        productDao = KoffeeCraftDatabase.getInstance(application).productDao()
-    )
+class AdminMenuViewModel(
+    private val repository: AdminMenuRepository
+) : ViewModel() {
 
     private val validator = AdminMenuProductValidator()
 

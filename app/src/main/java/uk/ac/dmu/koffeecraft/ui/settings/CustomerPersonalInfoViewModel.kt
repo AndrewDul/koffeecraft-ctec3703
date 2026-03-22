@@ -1,0 +1,102 @@
+package uk.ac.dmu.koffeecraft.ui.settings
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import uk.ac.dmu.koffeecraft.data.repository.CustomerSettingsRepository
+import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
+
+class CustomerPersonalInfoViewModel(
+    private val customerSettingsRepository: CustomerSettingsRepository
+) : ViewModel() {
+
+    data class UiState(
+        val firstName: String = "",
+        val lastName: String = "",
+        val email: String = "",
+        val dateOfBirth: String = "",
+        val isSaving: Boolean = false
+    )
+
+    sealed interface UiEffect {
+        data class ShowMessage(val message: String) : UiEffect
+    }
+
+    private val _state = MutableStateFlow(UiState())
+    val state: StateFlow<UiState> = _state
+
+    private val _effects = Channel<UiEffect>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
+
+    private var startedCustomerId: Long? = null
+
+    fun start(customerId: Long) {
+        if (startedCustomerId == customerId) return
+        startedCustomerId = customerId
+
+        viewModelScope.launch {
+            val customer = customerSettingsRepository.getCustomer(customerId)
+            if (customer == null) {
+                _effects.send(UiEffect.ShowMessage("Customer account could not be found."))
+                return@launch
+            }
+
+            _state.value = _state.value.copy(
+                firstName = customer.firstName,
+                lastName = customer.lastName,
+                email = customer.email,
+                dateOfBirth = customer.dateOfBirth.orEmpty()
+            )
+        }
+    }
+
+    fun save(
+        customerId: Long,
+        firstName: String,
+        lastName: String,
+        email: String
+    ) {
+        _state.value = _state.value.copy(isSaving = true)
+
+        viewModelScope.launch {
+            when (val result = customerSettingsRepository.updatePersonalInfo(
+                customerId = customerId,
+                firstName = firstName,
+                lastName = lastName,
+                email = email
+            )) {
+                is SettingsActionResult.Success -> {
+                    _state.value = _state.value.copy(
+                        firstName = firstName.trim(),
+                        lastName = lastName.trim(),
+                        email = email.trim().lowercase(),
+                        isSaving = false
+                    )
+                    _effects.send(UiEffect.ShowMessage(result.message))
+                }
+
+                is SettingsActionResult.Error -> {
+                    _state.value = _state.value.copy(isSaving = false)
+                    _effects.send(UiEffect.ShowMessage(result.message))
+                }
+            }
+        }
+    }
+
+    class Factory(
+        private val customerSettingsRepository: CustomerSettingsRepository
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(CustomerPersonalInfoViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return CustomerPersonalInfoViewModel(customerSettingsRepository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
+}

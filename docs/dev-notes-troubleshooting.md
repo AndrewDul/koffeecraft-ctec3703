@@ -1494,3 +1494,23 @@ These fixes were important because they removed real risks in the project:
 - fragile product deletion behaviour that could break historical order data
 
 Together, they improved both the reliability of the project and the architectural quality of the codebase.
+
+
+## 62)RememberedCartStore build failure after project cleanup
+
+#### Problem
+After the cleanup and file reorganisation, the project failed to compile in RememberedCartStore.kt. Kotlin reported unresolved reference errors for put(...) in the JSON save logic.
+
+#### Cause:
+The problem came from a few JSON put calls that mixed nullable numeric values with JSONObject.NULL and JSONArray.put(Long). In this form the compiler did not resolve the expected overloads correctly.
+
+#### Fix:
+I replaced the problematic compact expressions with explicit conditional logic.
+- For selectedOptionId I now check null first and save either JSONObject.NULL or the value as text.
+- For selectedOptionSizeValue I now check null first and save either JSONObject.NULL or the integer value directly.
+- For selectedAddOnIds I now write each value into the JSON array as text.
+
+#### Result:
+The build error was removed and cart persistence still keeps all required values. The load logic still works correctly because optLong can read the stored numeric text values.
+
+

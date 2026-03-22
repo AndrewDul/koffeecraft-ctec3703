@@ -13,41 +13,24 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
 import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-import uk.ac.dmu.koffeecraft.data.repository.CustomerAccountCleanupRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import java.util.Date
 import java.util.Locale
 
 class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_manage_customer_accounts) {
 
-    private enum class AccountType {
-        CUSTOMERS,
-        ADMINS
-    }
-
-    private enum class CustomerSearchMode {
-        ORDER_ID,
-        CUSTOMER_ID
-    }
-
-    private enum class AdminSearchMode {
-        ADMIN_ID,
-        EMAIL,
-        USERNAME
-    }
+    private lateinit var vm: AdminManageCustomerAccountsViewModel
 
     private lateinit var toggleAccountType: MaterialButtonToggleGroup
     private lateinit var spinnerSearchMode: Spinner
@@ -72,15 +55,17 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
     private lateinit var btnSecondaryAction: MaterialButton
     private lateinit var btnDangerAction: MaterialButton
 
-    private var currentAccountType = AccountType.CUSTOMERS
-    private var currentCustomerSearchMode = CustomerSearchMode.ORDER_ID
-    private var currentAdminSearchMode = AdminSearchMode.ADMIN_ID
-
-    private var selectedCustomer: CustomerAccountTarget? = null
-    private var selectedAdmin: AdminAccountTarget? = null
+    private var latestState = AdminManageAccountsUiState()
+    private var spinnerBindingInProgress = false
+    private var lastSpinnerAccountType: ManagedAccountType? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        vm = ViewModelProvider(
+            this,
+            AdminManageCustomerAccountsViewModel.Factory(appContainer.adminAccountsRepository)
+        )[AdminManageCustomerAccountsViewModel::class.java]
 
         toggleAccountType = view.findViewById(R.id.toggleAccountType)
         spinnerSearchMode = view.findViewById(R.id.spinnerSearchMode)
@@ -111,30 +96,56 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
 
         setupAccountTypeToggle()
         setupSearchModeSpinner()
-        renderModeUi()
 
         btnFindAccount.setOnClickListener {
-            findAccount()
+            vm.searchAccount(etSearchValue.text.toString())
         }
 
         btnPrimaryAction.setOnClickListener {
-            when (currentAccountType) {
-                AccountType.CUSTOMERS -> selectedCustomer?.let { updateCustomerStatus(it.customerId, true) }
-                AccountType.ADMINS -> selectedAdmin?.let { updateAdminStatus(it.adminId, true) }
+            when (latestState.accountType) {
+                ManagedAccountType.CUSTOMERS -> vm.updateSelectedCustomerStatus(true)
+                ManagedAccountType.ADMINS -> vm.updateSelectedAdminStatus(
+                    isActive = true,
+                    currentAdminId = SessionManager.currentAdminId
+                )
             }
         }
 
         btnSecondaryAction.setOnClickListener {
-            when (currentAccountType) {
-                AccountType.CUSTOMERS -> selectedCustomer?.let { updateCustomerStatus(it.customerId, false) }
-                AccountType.ADMINS -> selectedAdmin?.let { updateAdminStatus(it.adminId, false) }
+            when (latestState.accountType) {
+                ManagedAccountType.CUSTOMERS -> showCustomerStatusDialog(false)
+                ManagedAccountType.ADMINS -> showAdminStatusDialog(false)
             }
         }
 
         btnDangerAction.setOnClickListener {
-            when (currentAccountType) {
-                AccountType.CUSTOMERS -> selectedCustomer?.let { confirmDelete(it.customerId) }
-                AccountType.ADMINS -> selectedAdmin?.let { showResetPasswordDialog(it) }
+            when (latestState.accountType) {
+                ManagedAccountType.CUSTOMERS -> {
+                    val customer = latestState.selectedCustomer ?: return@setOnClickListener
+                    confirmDelete(customer.customerId)
+                }
+
+                ManagedAccountType.ADMINS -> {
+                    val admin = latestState.selectedAdmin ?: return@setOnClickListener
+                    showResetPasswordDialog(admin)
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state.collect { state ->
+                latestState = state
+                renderState(state)
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.effects.collect { effect ->
+                when (effect) {
+                    is AdminManageCustomerAccountsViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }
@@ -143,68 +154,128 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         toggleAccountType.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
 
-            currentAccountType = if (checkedId == R.id.btnCustomerMode) {
-                AccountType.CUSTOMERS
+            val selectedType = if (checkedId == R.id.btnCustomerMode) {
+                ManagedAccountType.CUSTOMERS
             } else {
-                AccountType.ADMINS
+                ManagedAccountType.ADMINS
             }
 
-            clearResult()
-            setupSearchModeSpinner()
-            renderModeUi()
+            vm.setAccountType(selectedType)
         }
 
         toggleAccountType.check(R.id.btnCustomerMode)
     }
 
     private fun setupSearchModeSpinner() {
-        val options = when (currentAccountType) {
-            AccountType.CUSTOMERS -> listOf("Find by Order ID", "Find by Customer ID")
-            AccountType.ADMINS -> listOf("Find by Admin ID", "Find by Email", "Find by Username")
-        }
-
-        spinnerSearchMode.adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            options
-        ).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-
         spinnerSearchMode.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                when (currentAccountType) {
-                    AccountType.CUSTOMERS -> {
-                        currentCustomerSearchMode = if (position == 0) {
-                            CustomerSearchMode.ORDER_ID
-                        } else {
-                            CustomerSearchMode.CUSTOMER_ID
-                        }
+            override fun onItemSelected(
+                parent: android.widget.AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                if (spinnerBindingInProgress) return
+
+                when (latestState.accountType) {
+                    ManagedAccountType.CUSTOMERS -> {
+                        vm.setCustomerSearchMode(
+                            if (position == 0) {
+                                CustomerSearchMode.ORDER_ID
+                            } else {
+                                CustomerSearchMode.CUSTOMER_ID
+                            }
+                        )
                     }
 
-                    AccountType.ADMINS -> {
-                        currentAdminSearchMode = when (position) {
-                            0 -> AdminSearchMode.ADMIN_ID
-                            1 -> AdminSearchMode.EMAIL
-                            else -> AdminSearchMode.USERNAME
-                        }
+                    ManagedAccountType.ADMINS -> {
+                        vm.setAdminSearchMode(
+                            when (position) {
+                                0 -> AdminSearchMode.ADMIN_ID
+                                1 -> AdminSearchMode.EMAIL
+                                else -> AdminSearchMode.USERNAME
+                            }
+                        )
                     }
                 }
-
-                updateSearchFieldForMode()
-                clearResult()
             }
 
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
         }
-
-        spinnerSearchMode.setSelection(0)
-        updateSearchFieldForMode()
     }
 
-    private fun renderModeUi() {
-        when (currentAccountType) {
-            AccountType.CUSTOMERS -> {
+    private fun renderState(state: AdminManageAccountsUiState) {
+        bindToggle(state.accountType)
+        bindSpinner(state)
+        renderModeUi(state.accountType)
+        renderSearchFieldForMode(state)
+        renderSearchError(state.searchError)
+
+        when {
+            state.selectedCustomer != null -> renderCustomerResult(state.selectedCustomer, state.isWorking)
+            state.selectedAdmin != null -> renderAdminResult(state.selectedAdmin, state.isWorking)
+            else -> clearResultUi()
+        }
+
+        btnFindAccount.isEnabled = !state.isWorking
+        btnFindAccount.alpha = if (state.isWorking) 0.7f else 1f
+    }
+
+    private fun bindToggle(accountType: ManagedAccountType) {
+        val targetId = if (accountType == ManagedAccountType.CUSTOMERS) {
+            R.id.btnCustomerMode
+        } else {
+            R.id.btnAdminMode
+        }
+
+        if (toggleAccountType.checkedButtonId != targetId) {
+            toggleAccountType.check(targetId)
+        }
+    }
+
+    private fun bindSpinner(state: AdminManageAccountsUiState) {
+        if (lastSpinnerAccountType != state.accountType) {
+            lastSpinnerAccountType = state.accountType
+
+            val options = when (state.accountType) {
+                ManagedAccountType.CUSTOMERS -> listOf("Find by Order ID", "Find by Customer ID")
+                ManagedAccountType.ADMINS -> listOf("Find by Admin ID", "Find by Email", "Find by Username")
+            }
+
+            spinnerBindingInProgress = true
+            spinnerSearchMode.adapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                options
+            ).apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+            spinnerBindingInProgress = false
+        }
+
+        val desiredPosition = when (state.accountType) {
+            ManagedAccountType.CUSTOMERS -> {
+                if (state.customerSearchMode == CustomerSearchMode.ORDER_ID) 0 else 1
+            }
+
+            ManagedAccountType.ADMINS -> {
+                when (state.adminSearchMode) {
+                    AdminSearchMode.ADMIN_ID -> 0
+                    AdminSearchMode.EMAIL -> 1
+                    AdminSearchMode.USERNAME -> 2
+                }
+            }
+        }
+
+        if (spinnerSearchMode.selectedItemPosition != desiredPosition) {
+            spinnerBindingInProgress = true
+            spinnerSearchMode.setSelection(desiredPosition, false)
+            spinnerBindingInProgress = false
+        }
+    }
+
+    private fun renderModeUi(accountType: ManagedAccountType) {
+        when (accountType) {
+            ManagedAccountType.CUSTOMERS -> {
                 tvSearchDescription.text = "Find a customer by Order ID or Customer ID and manage customer access safely."
                 tvWarningTitle.text = "Customer account warning"
                 tvWarningBody.text = "Customer account changes affect sign-in immediately. Permanent deletion removes account-related customer data and cannot be undone."
@@ -216,7 +287,7 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                 btnDangerAction.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_danger))
             }
 
-            AccountType.ADMINS -> {
+            ManagedAccountType.ADMINS -> {
                 tvSearchDescription.text = "Find an admin by Admin ID, email, or username and manage secure internal access."
                 tvWarningTitle.text = "Admin account warning"
                 tvWarningBody.text = "At least one active admin must remain. The currently signed-in admin account cannot be deactivated from this screen."
@@ -230,19 +301,19 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         }
     }
 
-    private fun updateSearchFieldForMode() {
-        when (currentAccountType) {
-            AccountType.CUSTOMERS -> {
+    private fun renderSearchFieldForMode(state: AdminManageAccountsUiState) {
+        when (state.accountType) {
+            ManagedAccountType.CUSTOMERS -> {
                 etSearchValue.inputType = InputType.TYPE_CLASS_NUMBER
-                etSearchValue.hint = if (currentCustomerSearchMode == CustomerSearchMode.ORDER_ID) {
+                etSearchValue.hint = if (state.customerSearchMode == CustomerSearchMode.ORDER_ID) {
                     "Enter order ID"
                 } else {
                     "Enter customer ID"
                 }
             }
 
-            AccountType.ADMINS -> {
-                when (currentAdminSearchMode) {
+            ManagedAccountType.ADMINS -> {
+                when (state.adminSearchMode) {
                     AdminSearchMode.ADMIN_ID -> {
                         etSearchValue.inputType = InputType.TYPE_CLASS_NUMBER
                         etSearchValue.hint = "Enter admin ID"
@@ -262,81 +333,15 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         }
     }
 
-    private fun findAccount() {
-        val rawValue = etSearchValue.text.toString().trim()
-        if (rawValue.isBlank()) {
-            Toast.makeText(requireContext(), "Enter a search value first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            when (currentAccountType) {
-                AccountType.CUSTOMERS -> {
-                    val value = rawValue.toLongOrNull()
-                    if (value == null) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(requireContext(), "Enter a valid numeric value.", Toast.LENGTH_SHORT).show()
-                        }
-                        return@launch
-                    }
-
-                    val result = when (currentCustomerSearchMode) {
-                        CustomerSearchMode.ORDER_ID -> db.customerDao().getAccountTargetByOrderId(value)
-                        CustomerSearchMode.CUSTOMER_ID -> db.customerDao().getAccountTargetByCustomerId(value)
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        if (result == null) {
-                            clearResult()
-                            tvSearchError.text = "No matching customer found."
-                            tvSearchError.visibility = View.VISIBLE
-                        } else {
-                            selectedCustomer = result
-                            selectedAdmin = null
-                            renderCustomerResult(result)
-                        }
-                    }
-                }
-
-                AccountType.ADMINS -> {
-                    val result = when (currentAdminSearchMode) {
-                        AdminSearchMode.ADMIN_ID -> {
-                            val value = rawValue.toLongOrNull()
-                            if (value == null) {
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(requireContext(), "Enter a valid numeric admin ID.", Toast.LENGTH_SHORT).show()
-                                }
-                                return@launch
-                            }
-                            db.adminDao().getAccountTargetByAdminId(value)
-                        }
-
-                        AdminSearchMode.EMAIL -> db.adminDao().getAccountTargetByEmail(rawValue.lowercase(Locale.UK))
-                        AdminSearchMode.USERNAME -> db.adminDao().getAccountTargetByUsername(rawValue.lowercase(Locale.UK))
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        if (result == null) {
-                            clearResult()
-                            tvSearchError.text = "No matching admin found."
-                            tvSearchError.visibility = View.VISIBLE
-                        } else {
-                            selectedAdmin = result
-                            selectedCustomer = null
-                            renderAdminResult(result)
-                        }
-                    }
-                }
-            }
-        }
+    private fun renderSearchError(searchError: String?) {
+        tvSearchError.text = searchError.orEmpty()
+        tvSearchError.visibility = if (searchError.isNullOrBlank()) View.GONE else View.VISIBLE
     }
 
-    private fun renderCustomerResult(result: CustomerAccountTarget) {
-        tvSearchError.visibility = View.GONE
+    private fun renderCustomerResult(
+        result: CustomerAccountTarget,
+        isWorking: Boolean
+    ) {
         cardResult.visibility = View.VISIBLE
         cardWarning.visibility = View.VISIBLE
         cardActions.visibility = View.VISIBLE
@@ -346,16 +351,20 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         tvAccountStatus.text = if (result.isActive) "Status: Active" else "Status: Inactive"
         tvAccountMeta.text = "Customer #${result.customerId} • ${result.email}\nCreated ${formatDate(result.createdAt)}"
 
-        btnPrimaryAction.isEnabled = !result.isActive
-        btnPrimaryAction.alpha = if (result.isActive) 0.55f else 1f
-        btnSecondaryAction.isEnabled = result.isActive
-        btnSecondaryAction.alpha = if (result.isActive) 1f else 0.55f
-        btnDangerAction.isEnabled = true
-        btnDangerAction.alpha = 1f
+        btnPrimaryAction.isEnabled = !result.isActive && !isWorking
+        btnPrimaryAction.alpha = if (!result.isActive && !isWorking) 1f else 0.55f
+
+        btnSecondaryAction.isEnabled = result.isActive && !isWorking
+        btnSecondaryAction.alpha = if (result.isActive && !isWorking) 1f else 0.55f
+
+        btnDangerAction.isEnabled = !isWorking
+        btnDangerAction.alpha = if (!isWorking) 1f else 0.55f
     }
 
-    private fun renderAdminResult(result: AdminAccountTarget) {
-        tvSearchError.visibility = View.GONE
+    private fun renderAdminResult(
+        result: AdminAccountTarget,
+        isWorking: Boolean
+    ) {
         cardResult.visibility = View.VISIBLE
         cardWarning.visibility = View.VISIBLE
         cardActions.visibility = View.VISIBLE
@@ -365,96 +374,45 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         tvAccountStatus.text = if (result.isActive) "Status: Active" else "Status: Inactive"
         tvAccountMeta.text = "Admin #${result.adminId} • @${result.username}\n${result.email}\n${result.phone}\nCreated ${formatDate(result.createdAt)}"
 
-        btnPrimaryAction.isEnabled = !result.isActive
-        btnPrimaryAction.alpha = if (result.isActive) 0.55f else 1f
+        btnPrimaryAction.isEnabled = !result.isActive && !isWorking
+        btnPrimaryAction.alpha = if (!result.isActive && !isWorking) 1f else 0.55f
 
-        val canAttemptDeactivate = result.isActive
-        btnSecondaryAction.isEnabled = canAttemptDeactivate
-        btnSecondaryAction.alpha = if (canAttemptDeactivate) 1f else 0.55f
+        btnSecondaryAction.isEnabled = result.isActive && !isWorking
+        btnSecondaryAction.alpha = if (result.isActive && !isWorking) 1f else 0.55f
 
-        btnDangerAction.isEnabled = true
-        btnDangerAction.alpha = 1f
+        btnDangerAction.isEnabled = !isWorking
+        btnDangerAction.alpha = if (!isWorking) 1f else 0.55f
     }
 
-    private fun updateCustomerStatus(customerId: Long, isActive: Boolean) {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+    private fun showCustomerStatusDialog(isActive: Boolean) {
+        val customer = latestState.selectedCustomer ?: return
         val actionLabel = if (isActive) "activate" else "deactivate"
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Confirm action")
-            .setMessage("Are you sure you want to $actionLabel Customer #$customerId?")
+            .setMessage("Are you sure you want to $actionLabel Customer #${customer.customerId}?")
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Confirm") { _, _ ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.customerDao().updateActiveStatus(customerId, isActive)
-                    val refreshed = db.customerDao().getAccountTargetByCustomerId(customerId)
-
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        if (refreshed != null) {
-                            selectedCustomer = refreshed
-                            renderCustomerResult(refreshed)
-                        }
-                        Toast.makeText(requireContext(), "Customer #$customerId updated successfully.", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                vm.updateSelectedCustomerStatus(isActive)
             }
             .show()
     }
 
-    private fun updateAdminStatus(adminId: Long, isActive: Boolean) {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+    private fun showAdminStatusDialog(isActive: Boolean) {
+        val admin = latestState.selectedAdmin ?: return
+        val actionLabel = if (isActive) "activate" else "deactivate"
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            if (!isActive) {
-                if (SessionManager.currentAdminId == adminId) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            requireContext(),
-                            "You cannot deactivate the currently signed-in admin account.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    return@launch
-                }
-
-                val activeCount = db.adminDao().countActiveAdmins()
-                if (activeCount <= 1) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            requireContext(),
-                            "At least one active admin account must remain.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    return@launch
-                }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Confirm action")
+            .setMessage("Are you sure you want to $actionLabel Admin #${admin.adminId}?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Confirm") { _, _ ->
+                vm.updateSelectedAdminStatus(
+                    isActive = isActive,
+                    currentAdminId = SessionManager.currentAdminId
+                )
             }
-
-            withContext(Dispatchers.Main) {
-                val actionLabel = if (isActive) "activate" else "deactivate"
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Confirm action")
-                    .setMessage("Are you sure you want to $actionLabel Admin #$adminId?")
-                    .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Confirm") { _, _ ->
-                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                            db.adminDao().updateActiveStatus(adminId, isActive)
-                            val refreshed = db.adminDao().getAccountTargetByAdminId(adminId)
-
-                            withContext(Dispatchers.Main) {
-                                if (!isAdded) return@withContext
-                                if (refreshed != null) {
-                                    selectedAdmin = refreshed
-                                    renderAdminResult(refreshed)
-                                }
-                                Toast.makeText(requireContext(), "Admin #$adminId updated successfully.", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                    .show()
-            }
-        }
+            .show()
     }
 
     private fun confirmDelete(customerId: Long) {
@@ -490,24 +448,9 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                     return@setPositiveButton
                 }
 
-                deleteCustomerPermanently(customerId)
+                vm.deleteSelectedCustomer()
             }
             .show()
-    }
-
-    private fun deleteCustomerPermanently(customerId: Long) {
-        val appContext = requireContext().applicationContext
-        val cleanupRepository = CustomerAccountCleanupRepository(appContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            cleanupRepository.deleteCustomerCompletely(customerId)
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                clearResult()
-                Toast.makeText(requireContext(), "Customer #$customerId was deleted permanently.", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun showResetPasswordDialog(target: AdminAccountTarget) {
@@ -538,56 +481,22 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
             .create()
 
         dialog.setOnShowListener {
-            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val newPassword = etNewPassword.text.toString()
-                val confirmPassword = etConfirmPassword.text.toString()
-
-                when {
-                    !isPasswordValid(newPassword) -> {
-                        Toast.makeText(requireContext(), "The new password does not meet all password rules.", Toast.LENGTH_SHORT).show()
-                    }
-
-                    confirmPassword != newPassword -> {
-                        Toast.makeText(requireContext(), "The password confirmation does not match.", Toast.LENGTH_SHORT).show()
-                    }
-
-                    else -> {
-                        resetAdminPassword(target.adminId, newPassword)
-                        dialog.dismiss()
-                    }
-                }
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                vm.resetSelectedAdminPassword(
+                    newPassword = etNewPassword.text.toString(),
+                    confirmPassword = etConfirmPassword.text.toString()
+                )
+                dialog.dismiss()
             }
         }
 
         dialog.show()
     }
 
-    private fun resetAdminPassword(adminId: Long, newPassword: String) {
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val newSalt = PasswordHasher.generateSaltBase64()
-            val passwordChars = newPassword.toCharArray()
-            val newHash = PasswordHasher.hashPasswordBase64(passwordChars, newSalt)
-            passwordChars.fill('\u0000')
-
-            db.adminDao().updatePassword(adminId, newHash, newSalt)
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                Toast.makeText(requireContext(), "Admin password updated successfully.", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun clearResult() {
-        selectedCustomer = null
-        selectedAdmin = null
+    private fun clearResultUi() {
         cardResult.visibility = View.GONE
         cardWarning.visibility = View.GONE
         cardActions.visibility = View.GONE
-        tvSearchError.visibility = View.GONE
-        tvSearchError.text = ""
         tvAccountResult.text = ""
         tvAccountStatus.text = ""
         tvAccountMeta.text = ""
@@ -595,14 +504,6 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
 
     private fun formatDate(timestamp: Long): String {
         return DateFormat.format("dd MMM yyyy", Date(timestamp)).toString()
-    }
-
-    private fun isPasswordValid(password: String): Boolean {
-        return password.any { it.isUpperCase() } &&
-                password.any { it.isLowerCase() } &&
-                password.any { it.isDigit() } &&
-                password.any { !it.isLetterOrDigit() } &&
-                password.length >= 8
     }
 
     private fun color(colorResId: Int): Int {

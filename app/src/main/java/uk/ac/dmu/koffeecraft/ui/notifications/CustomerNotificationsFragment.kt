@@ -8,20 +8,20 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifications) {
 
+    private lateinit var viewModel: CustomerNotificationsViewModel
     private lateinit var adapter: CustomerNotificationsAdapter
     private lateinit var tvEmpty: TextView
 
@@ -30,10 +30,13 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
 
         val customerId = SessionManager.currentCustomerId ?: return
 
+        viewModel = ViewModelProvider(
+            this,
+            CustomerNotificationsViewModel.Factory(appContainer.customerNotificationsRepository)
+        )[CustomerNotificationsViewModel::class.java]
+
         val rv = view.findViewById<RecyclerView>(R.id.rvCustomerNotifications)
         tvEmpty = view.findViewById(R.id.tvEmpty)
-
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
 
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.setHasFixedSize(false)
@@ -43,39 +46,27 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
             items = emptyList(),
             detailsByOrderId = emptyMap(),
             onDelete = { item ->
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.notificationDao().deleteById(item.notificationId)
-                }
+                viewModel.deleteNotification(item.notificationId)
             },
             onOpen = { item ->
-                if (!item.isRead) {
-                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        db.notificationDao().markAsRead(item.notificationId)
-                    }
-                }
+                viewModel.openNotification(item)
             }
         )
         rv.adapter = adapter
 
-        attachSwipeToDelete(rv, db)
+        attachSwipeToDelete(rv)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            db.notificationDao().observeCustomerNotifications(customerId).collect { items ->
-                val detailsByOrderId: Map<Long, List<OrderDisplayItem>> = withContext(Dispatchers.IO) {
-                    items.mapNotNull { it.orderId }
-                        .distinct()
-                        .associateWith { orderId ->
-                            db.orderItemDao().getDisplayItemsForOrder(orderId)
-                        }
-                }
-
-                adapter.submitData(items, detailsByOrderId)
-                tvEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+            viewModel.state.collectLatest { state ->
+                adapter.submitData(state.items, state.detailsByOrderId)
+                tvEmpty.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
             }
         }
+
+        viewModel.start(customerId)
     }
 
-    private fun attachSwipeToDelete(rv: RecyclerView, db: KoffeeCraftDatabase) {
+    private fun attachSwipeToDelete(rv: RecyclerView) {
         val callback = object : ItemTouchHelper.SimpleCallback(
             0,
             ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
@@ -91,9 +82,7 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
                 if (position == RecyclerView.NO_POSITION) return
 
                 val item = adapter.getItemAt(position)
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    db.notificationDao().deleteById(item.notificationId)
-                }
+                viewModel.deleteNotification(item.notificationId)
             }
 
             override fun onChildDraw(

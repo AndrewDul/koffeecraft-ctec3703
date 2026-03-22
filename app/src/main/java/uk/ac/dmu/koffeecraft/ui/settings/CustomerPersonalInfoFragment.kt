@@ -5,19 +5,21 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.util.validation.CustomerPersonalInfoValidator
 
 class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_personal_info) {
+
+    private lateinit var vm: CustomerPersonalInfoViewModel
 
     private lateinit var tilFirstName: TextInputLayout
     private lateinit var tilLastName: TextInputLayout
@@ -27,9 +29,15 @@ class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_persona
     private lateinit var etEmail: TextInputEditText
     private lateinit var etDob: TextInputEditText
     private lateinit var tvError: TextView
+    private lateinit var btnSaveChanges: MaterialButton
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        vm = ViewModelProvider(
+            this,
+            CustomerPersonalInfoViewModel.Factory(appContainer.customerSettingsRepository)
+        )[CustomerPersonalInfoViewModel::class.java]
 
         tilFirstName = view.findViewById(R.id.tilFirstName)
         tilLastName = view.findViewById(R.id.tilLastName)
@@ -39,101 +47,82 @@ class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_persona
         etEmail = view.findViewById(R.id.etEmail)
         etDob = view.findViewById(R.id.etDob)
         tvError = view.findViewById(R.id.tvError)
+        btnSaveChanges = view.findViewById(R.id.btnSaveChanges)
 
         view.findViewById<TextView>(R.id.btnBack).setOnClickListener {
             findNavController().navigateUp()
         }
 
-        view.findViewById<MaterialButton>(R.id.btnSaveChanges).setOnClickListener {
-            saveChanges()
+        val customerId = SessionManager.currentCustomerId
+        if (customerId == null) {
+            tvError.text = "You are not logged in as a customer."
+            tvError.visibility = View.VISIBLE
+            btnSaveChanges.isEnabled = false
+            return
         }
 
-        loadCustomer()
-    }
+        btnSaveChanges.setOnClickListener {
+            tilFirstName.error = null
+            tilLastName.error = null
+            tilEmail.error = null
+            tvError.visibility = View.GONE
 
-    private fun loadCustomer() {
-        val customerId = SessionManager.currentCustomerId ?: return
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
+            val firstName = etFirstName.text?.toString().orEmpty()
+            val lastName = etLastName.text?.toString().orEmpty()
+            val email = etEmail.text?.toString().orEmpty()
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val customer = db.customerDao().getById(customerId)
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded || customer == null) return@withContext
-
-                etFirstName.setText(customer.firstName)
-                etLastName.setText(customer.lastName)
-                etEmail.setText(customer.email)
-                etDob.setText(customer.dateOfBirth.orEmpty())
-            }
-        }
-    }
-
-    private fun saveChanges() {
-        val customerId = SessionManager.currentCustomerId ?: return
-        val db = KoffeeCraftDatabase.getInstance(requireContext().applicationContext)
-
-        tilFirstName.error = null
-        tilLastName.error = null
-        tilEmail.error = null
-        tvError.visibility = View.GONE
-
-        val firstName = etFirstName.text?.toString()?.trim().orEmpty()
-        val lastName = etLastName.text?.toString()?.trim().orEmpty()
-        val email = etEmail.text?.toString()?.trim().orEmpty().lowercase()
-
-        var hasError = false
-
-        if (firstName.isBlank()) {
-            tilFirstName.error = "Enter first name"
-            hasError = true
-        }
-
-        if (lastName.isBlank()) {
-            tilLastName.error = "Enter last name"
-            hasError = true
-        }
-
-        if (email.isBlank()) {
-            tilEmail.error = "Enter email"
-            hasError = true
-        } else if (!email.contains("@") || !email.contains(".")) {
-            tilEmail.error = "Enter a valid email"
-            hasError = true
-        }
-
-        if (hasError) return
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val customer = db.customerDao().getById(customerId)
-            if (customer == null) {
-                withContext(Dispatchers.Main) {
-                    tvError.text = "Customer account could not be found."
-                    tvError.visibility = View.VISIBLE
-                }
-                return@launch
-            }
-
-            val existing = db.customerDao().findByEmail(email)
-            if (existing != null && existing.customerId != customerId) {
-                withContext(Dispatchers.Main) {
-                    tilEmail.error = "This email is already registered"
-                }
-                return@launch
-            }
-
-            db.customerDao().update(
-                customer.copy(
-                    firstName = firstName,
-                    lastName = lastName,
-                    email = email
-                )
+            val validation = CustomerPersonalInfoValidator.validate(
+                firstName = firstName,
+                lastName = lastName,
+                email = email
             )
 
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                Toast.makeText(requireContext(), "Personal info updated.", Toast.LENGTH_SHORT).show()
+            tilFirstName.error = validation.firstNameError
+            tilLastName.error = validation.lastNameError
+            tilEmail.error = validation.emailError
+
+            if (!validation.isValid) return@setOnClickListener
+
+            vm.save(
+                customerId = customerId,
+                firstName = firstName,
+                lastName = lastName,
+                email = email
+            )
+        }
+
+        vm.start(customerId)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.state.collect { state ->
+                setTextIfDifferent(etFirstName, state.firstName)
+                setTextIfDifferent(etLastName, state.lastName)
+                setTextIfDifferent(etEmail, state.email)
+                setTextIfDifferent(etDob, state.dateOfBirth)
+
+                btnSaveChanges.isEnabled = !state.isSaving
+                btnSaveChanges.alpha = if (state.isSaving) 0.7f else 1f
+                btnSaveChanges.text = if (state.isSaving) "Saving..." else "Save changes"
             }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.effects.collect { effect ->
+                when (effect) {
+                    is CustomerPersonalInfoViewModel.UiEffect.ShowMessage -> {
+                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setTextIfDifferent(
+        editText: TextInputEditText,
+        value: String
+    ) {
+        if (editText.text?.toString() != value) {
+            editText.setText(value)
         }
     }
 }
