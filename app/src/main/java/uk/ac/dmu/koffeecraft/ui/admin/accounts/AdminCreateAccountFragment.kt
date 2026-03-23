@@ -7,19 +7,18 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.entities.Admin
-import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import uk.ac.dmu.koffeecraft.util.ui.ValidationUiStyler
 import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
 import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
@@ -27,6 +26,8 @@ import uk.ac.dmu.koffeecraft.util.validation.PhoneValidator
 import uk.ac.dmu.koffeecraft.util.validation.UsernameValidator
 
 class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_account) {
+
+    private lateinit var vm: AdminCreateAccountViewModel
 
     private lateinit var tilFullName: TextInputLayout
     private lateinit var tilEmail: TextInputLayout
@@ -53,8 +54,15 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
     private lateinit var tvRuleSpecial: TextView
     private lateinit var tvRuleNumber: TextView
 
+    private var isSubmitting = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        vm = ViewModelProvider(
+            this,
+            AdminCreateAccountViewModel.Factory(appContainer.adminAccountsRepository)
+        )[AdminCreateAccountViewModel::class.java]
 
         tilFullName = view.findViewById(R.id.tilFullName)
         tilEmail = view.findViewById(R.id.tilEmail)
@@ -93,7 +101,10 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
         val simpleWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+
             override fun afterTextChanged(s: Editable?) {
+                clearInlineErrors()
+                vm.clearDuplicateErrors()
                 updatePasswordRules(etPassword.text?.toString().orEmpty())
                 updateCreateButtonState()
             }
@@ -107,14 +118,54 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
         etConfirmPassword.addTextChangedListener(simpleWatcher)
 
         btnCreateAdmin.setOnClickListener {
-            createAdminAccount()
+            submitCreateAdmin()
         }
+
+        collectViewModel()
 
         updatePasswordRules("")
         updateCreateButtonState()
     }
 
-    private fun createAdminAccount() {
+    private fun collectViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    vm.state.collect { state ->
+                        renderState(state)
+                    }
+                }
+
+                launch {
+                    vm.effects.collect { effect ->
+                        when (effect) {
+                            AdminCreateAccountViewModel.UiEffect.ClearForm -> clearForm()
+                            is AdminCreateAccountViewModel.UiEffect.ShowMessage -> {
+                                Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun renderState(state: AdminCreateAccountViewModel.UiState) {
+        isSubmitting = state.isSubmitting
+
+        if (state.emailAlreadyUsed) {
+            tilEmail.error = "This email is already used by another admin"
+        }
+
+        if (state.usernameAlreadyUsed) {
+            tilUsername.error = "This username is already used by another admin"
+        }
+
+        updateCreateButtonState()
+        btnCreateAdmin.text = if (state.isSubmitting) "Creating..." else "Create admin account"
+    }
+
+    private fun submitCreateAdmin() {
         clearErrors()
 
         val fullName = etFullName.text?.toString()?.trim().orEmpty()
@@ -157,51 +208,19 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
             hasError = true
         }
 
-        if (hasError) return
-
-        val db = appContainer.database
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val existingEmail = db.adminDao().findByEmail(email)
-            val existingUsername = db.adminDao().findByUsername(username)
-
-            if (existingEmail != null || existingUsername != null) {
-                withContext(Dispatchers.Main) {
-                    if (!isAdded) return@withContext
-
-                    if (existingEmail != null) {
-                        tilEmail.error = "This email is already used by another admin"
-                    }
-                    if (existingUsername != null) {
-                        tilUsername.error = "This username is already used by another admin"
-                    }
-                }
-                return@launch
-            }
-
-            val salt = PasswordHasher.generateSaltBase64()
-            val passwordChars = password.toCharArray()
-            val hash = PasswordHasher.hashPasswordBase64(passwordChars, salt)
-            passwordChars.fill('\u0000')
-
-            db.adminDao().insert(
-                Admin(
-                    fullName = fullName,
-                    email = email,
-                    phone = phone,
-                    username = username,
-                    passwordHash = hash,
-                    passwordSalt = salt,
-                    isActive = isActive
-                )
-            )
-
-            withContext(Dispatchers.Main) {
-                if (!isAdded) return@withContext
-                clearForm()
-                Toast.makeText(requireContext(), "Admin account created successfully.", Toast.LENGTH_SHORT).show()
-            }
+        if (hasError) {
+            updateCreateButtonState()
+            return
         }
+
+        vm.submitCreateAdmin(
+            fullName = fullName,
+            email = email,
+            phone = phone,
+            username = username,
+            password = password,
+            isActive = isActive
+        )
     }
 
     private fun clearErrors() {
@@ -214,6 +233,15 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
         tvError.visibility = View.GONE
     }
 
+    private fun clearInlineErrors() {
+        tilFullName.error = null
+        tilEmail.error = null
+        tilPhone.error = null
+        tilUsername.error = null
+        tilPassword.error = null
+        tilConfirmPassword.error = null
+    }
+
     private fun clearForm() {
         etFullName.setText("")
         etEmail.setText("")
@@ -223,6 +251,7 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
         etConfirmPassword.setText("")
         switchIsActive.isChecked = true
         tvAccountStatusValue.text = "Active on creation"
+        clearErrors()
         updatePasswordRules("")
         updateCreateButtonState()
     }
@@ -235,15 +264,16 @@ class AdminCreateAccountFragment : Fragment(R.layout.fragment_admin_create_accou
         val password = etPassword.text?.toString().orEmpty()
         val confirmPassword = etConfirmPassword.text?.toString().orEmpty()
 
-        val isValid = fullName.length >= 3 &&
+        val isFormValid = fullName.length >= 3 &&
                 EmailValidator.isValid(email) &&
                 PhoneValidator.isValid(phone) &&
                 UsernameValidator.isValid(username) &&
                 PasswordRulesValidator.isValid(password) &&
                 confirmPassword == password
 
-        btnCreateAdmin.isEnabled = isValid
-        btnCreateAdmin.alpha = if (isValid) 1f else 0.55f
+        val isEnabled = isFormValid && !isSubmitting
+        btnCreateAdmin.isEnabled = isEnabled
+        btnCreateAdmin.alpha = if (isEnabled) 1f else 0.55f
     }
 
     private fun updatePasswordRules(password: String) {

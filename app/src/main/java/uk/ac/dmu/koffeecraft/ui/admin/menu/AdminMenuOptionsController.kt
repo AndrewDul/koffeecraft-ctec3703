@@ -1,29 +1,34 @@
 package uk.ac.dmu.koffeecraft.ui.admin.menu
 
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-import uk.ac.dmu.koffeecraft.data.repository.AdminMenuRepository
 
 class AdminMenuOptionsController(
     private val fragment: Fragment,
-    private val repository: AdminMenuRepository
+    private val viewModel: AdminMenuViewModel
 ) {
+
+    private var isObserving = false
+    private var activeProduct: Product? = null
+
+    private var tvSizesEmpty: TextView? = null
+    private var containerSizeOptions: LinearLayout? = null
 
     fun showManageSizesDialog(
         product: Product,
@@ -34,8 +39,13 @@ class AdminMenuOptionsController(
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvManageSizesTitle)
         val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvManageSizesSubtitle)
         val btnAddSizeOption = dialogView.findViewById<MaterialButton>(R.id.btnAddSizeOption)
-        val tvSizesEmpty = dialogView.findViewById<TextView>(R.id.tvSizesEmpty)
-        val containerSizeOptions = dialogView.findViewById<LinearLayout>(R.id.containerSizeOptions)
+        val localTvSizesEmpty = dialogView.findViewById<TextView>(R.id.tvSizesEmpty)
+        val localContainerSizeOptions =
+            dialogView.findViewById<LinearLayout>(R.id.containerSizeOptions)
+
+        activeProduct = product
+        tvSizesEmpty = localTvSizesEmpty
+        containerSizeOptions = localContainerSizeOptions
 
         tvTitle.text = "Manage sizes for ${product.name}"
         tvSubtitle.text = if (product.isCoffee) {
@@ -44,20 +54,8 @@ class AdminMenuOptionsController(
             "Review, edit, and add portion options for this product."
         }
 
-        fun refreshSizesContent() {
-            populateManageSizesDialog(
-                product = product,
-                container = containerSizeOptions,
-                tvEmpty = tvSizesEmpty,
-                onSaved = onSaved
-            )
-        }
-
         btnAddSizeOption.setOnClickListener {
-            showOptionFormDialog(product, null) {
-                refreshSizesContent()
-                onSaved()
-            }
+            showOptionFormDialog(product, null, onSaved)
         }
 
         val dialog = MaterialAlertDialogBuilder(fragment.requireContext())
@@ -66,94 +64,117 @@ class AdminMenuOptionsController(
             .create()
 
         dialog.setOnShowListener {
-            refreshSizesContent()
+            localTvSizesEmpty.visibility = View.GONE
+            localTvSizesEmpty.text = "Loading..."
+            viewModel.loadProductOptions(product)
         }
 
+        dialog.setOnDismissListener {
+            clearDialogRefs()
+        }
+
+        ensureObserver(onSaved)
         dialog.show()
     }
 
-    private fun populateManageSizesDialog(
+    private fun ensureObserver(onSaved: () -> Unit) {
+        if (isObserving) return
+        isObserving = true
+
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.productOptionsState.collect { state ->
+                    val currentProduct = activeProduct ?: return@collect
+                    if (state.productId != currentProduct.productId) return@collect
+
+                    renderOptions(
+                        product = currentProduct,
+                        options = state.options,
+                        isLoading = state.isLoading,
+                        onSaved = onSaved
+                    )
+                }
+            }
+        }
+    }
+
+    private fun renderOptions(
         product: Product,
-        container: LinearLayout,
-        tvEmpty: TextView,
+        options: List<ProductOption>,
+        isLoading: Boolean,
         onSaved: () -> Unit
     ) {
-        fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val options = repository.productOptionDao().getForProduct(product.productId)
+        val container = containerSizeOptions ?: return
+        val emptyView = tvSizesEmpty ?: return
 
-            withContext(Dispatchers.Main) {
-                if (!fragment.isAdded) return@withContext
+        container.removeAllViews()
 
-                container.removeAllViews()
-                tvEmpty.visibility = if (options.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        if (isLoading) {
+            emptyView.visibility = View.VISIBLE
+            emptyView.text = "Loading..."
+            return
+        }
 
-                options.forEach { option ->
-                    val itemView = LayoutInflater.from(fragment.requireContext())
-                        .inflate(R.layout.item_admin_size_option, container, false)
+        if (options.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            emptyView.text = "No size options added yet."
+            return
+        }
 
-                    val tvSizeName = itemView.findViewById<TextView>(R.id.tvSizeName)
-                    val tvSizeMeta = itemView.findViewById<TextView>(R.id.tvSizeMeta)
-                    val tvSizeState = itemView.findViewById<TextView>(R.id.tvSizeState)
-                    val btnEditSize = itemView.findViewById<MaterialButton>(R.id.btnEditSize)
-                    val btnDeleteSize = itemView.findViewById<MaterialButton>(R.id.btnDeleteSize)
+        emptyView.visibility = View.GONE
 
-                    tvSizeName.text = option.displayLabel
-                    tvSizeMeta.text = buildString {
-                        append(option.sizeValue)
-                        append(" ")
-                        append(option.sizeUnit.lowercase())
-                        append(" • ")
-                        append(
-                            if (option.extraPrice > 0.0) {
-                                "+£%.2f".format(option.extraPrice)
-                            } else {
-                                "Included"
-                            }
-                        )
-                        append(" • ")
-                        append(option.estimatedCalories)
-                        append(" kcal")
-                    }
+        options.forEach { option ->
+            val itemView = LayoutInflater.from(fragment.requireContext())
+                .inflate(R.layout.item_admin_size_option, container, false)
 
-                    tvSizeState.text = if (option.isDefault) {
-                        "Default option"
+            val tvSizeName = itemView.findViewById<TextView>(R.id.tvSizeName)
+            val tvSizeMeta = itemView.findViewById<TextView>(R.id.tvSizeMeta)
+            val tvSizeState = itemView.findViewById<TextView>(R.id.tvSizeState)
+            val btnEditSize = itemView.findViewById<MaterialButton>(R.id.btnEditSize)
+            val btnDeleteSize = itemView.findViewById<MaterialButton>(R.id.btnDeleteSize)
+
+            tvSizeName.text = option.displayLabel
+            tvSizeMeta.text = buildString {
+                append(option.sizeValue)
+                append(" ")
+                append(option.sizeUnit.lowercase())
+                append(" • ")
+                append(
+                    if (option.extraPrice > 0.0) {
+                        "+£%.2f".format(option.extraPrice)
                     } else {
-                        "Optional size"
+                        "Included"
                     }
+                )
+                append(" • ")
+                append(option.estimatedCalories)
+                append(" kcal")
+            }
 
-                    btnEditSize.setOnClickListener {
-                        showOptionFormDialog(product, option) {
-                            populateManageSizesDialog(product, container, tvEmpty, onSaved)
+            tvSizeState.text = if (option.isDefault) {
+                "Default option"
+            } else {
+                "Optional size"
+            }
+
+            btnEditSize.setOnClickListener {
+                showOptionFormDialog(product, option, onSaved)
+            }
+
+            btnDeleteSize.setOnClickListener {
+                MaterialAlertDialogBuilder(fragment.requireContext())
+                    .setTitle("Delete size option?")
+                    .setMessage("This will remove \"${option.displayLabel}\" from ${product.name}.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Delete") { _, _ ->
+                        viewModel.deleteProductOption(product, option) {
                             onSaved()
                         }
                     }
-
-                    btnDeleteSize.setOnClickListener {
-                        MaterialAlertDialogBuilder(fragment.requireContext())
-                            .setTitle("Delete size option?")
-                            .setMessage("This will remove \"${option.displayLabel}\" from ${product.name}.")
-                            .setNegativeButton("Cancel", null)
-                            .setPositiveButton("Delete") { _, _ ->
-                                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                    repository.productOptionDao().deleteById(option.optionId)
-                                    withContext(Dispatchers.Main) {
-                                        if (!fragment.isAdded) return@withContext
-                                        Toast.makeText(
-                                            fragment.requireContext(),
-                                            "Size option deleted.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        populateManageSizesDialog(product, container, tvEmpty, onSaved)
-                                        onSaved()
-                                    }
-                                }
-                            }
-                            .show()
-                    }
-
-                    container.addView(itemView)
-                }
+                    .show()
             }
+
+            container.addView(itemView)
         }
     }
 
@@ -235,49 +256,18 @@ class AdminMenuOptionsController(
                 val validatedExtraPrice = extraPrice ?: return@setOnClickListener
                 val validatedCalories = calories ?: return@setOnClickListener
 
-                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    if (isDefault) {
-                        repository.productOptionDao().clearDefaultForProduct(product.productId)
-                    }
-
-                    val optionName = existing?.optionName ?: toOptionKey(displayLabel)
-
-                    if (existing == null) {
-                        repository.productOptionDao().insert(
-                            ProductOption(
-                                productId = product.productId,
-                                optionName = optionName,
-                                displayLabel = displayLabel,
-                                sizeValue = validatedSize,
-                                sizeUnit = unit,
-                                extraPrice = validatedExtraPrice,
-                                estimatedCalories = validatedCalories,
-                                isDefault = isDefault
-                            )
-                        )
-                    } else {
-                        repository.productOptionDao().update(
-                            existing.copy(
-                                displayLabel = displayLabel,
-                                sizeValue = validatedSize,
-                                sizeUnit = unit,
-                                extraPrice = validatedExtraPrice,
-                                estimatedCalories = validatedCalories,
-                                isDefault = isDefault
-                            )
-                        )
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (!fragment.isAdded) return@withContext
-                        Toast.makeText(
-                            fragment.requireContext(),
-                            if (existing == null) "Size option added." else "Size option updated.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        dialog.dismiss()
-                        onSaved()
-                    }
+                viewModel.saveProductOption(
+                    product = product,
+                    existing = existing,
+                    displayLabel = displayLabel,
+                    sizeValue = validatedSize,
+                    sizeUnit = unit,
+                    extraPrice = validatedExtraPrice,
+                    estimatedCalories = validatedCalories,
+                    isDefault = isDefault
+                ) {
+                    dialog.dismiss()
+                    onSaved()
                 }
             }
         }
@@ -285,11 +275,9 @@ class AdminMenuOptionsController(
         dialog.show()
     }
 
-    private fun toOptionKey(displayLabel: String): String {
-        return displayLabel
-            .trim()
-            .lowercase()
-            .replace(Regex("[^a-z0-9]+"), "_")
-            .trim('_')
+    private fun clearDialogRefs() {
+        activeProduct = null
+        tvSizesEmpty = null
+        containerSizeOptions = null
     }
 }

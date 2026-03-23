@@ -70,6 +70,14 @@ class MainActivityViewModel(
         }
     }
 
+    fun bindActiveCustomerBadges() {
+        bindCustomerBadges(repository.currentCustomerId())
+    }
+
+    fun currentCustomerId(): Long? = repository.currentCustomerId()
+
+    fun isAdminSession(): Boolean = repository.isAdminSession()
+
     fun bindCustomerBadges(customerId: Long?) {
         if (customerId == null) {
             observedCustomerId = null

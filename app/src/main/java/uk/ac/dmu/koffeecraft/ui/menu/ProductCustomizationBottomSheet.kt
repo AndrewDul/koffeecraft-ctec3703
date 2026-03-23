@@ -52,7 +52,10 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
 
         viewModel = ViewModelProvider(
             this,
-            ProductCustomizationViewModel.Factory(appContainer.productCustomizationRepository)
+            ProductCustomizationViewModel.Factory(
+                appContainer.productCustomizationRepository,
+                appContainer.sessionRepository
+            )
         )[ProductCustomizationViewModel::class.java]
 
         tvTitle = view.findViewById(R.id.tvSheetTitle)

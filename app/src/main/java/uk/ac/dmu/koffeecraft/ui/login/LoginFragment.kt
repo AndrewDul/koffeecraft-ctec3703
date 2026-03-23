@@ -13,17 +13,11 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.AdminActivity
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
-import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
@@ -42,12 +36,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         val appContext = requireContext().applicationContext
         val container = appContext.appContainer
-        val repo = container.authRepository
-        val cartPersistenceRepository = container.cartPersistenceRepository
 
-        vm = ViewModelProvider(this, LoginViewModelFactory(repo))[LoginViewModel::class.java]
-
-        CartManager.attachContext(appContext)
+        vm = ViewModelProvider(
+            this,
+            LoginViewModelFactory(container.authSessionRepository)
+        )[LoginViewModel::class.java]
 
         tvGoToRegister.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_register)
@@ -88,14 +81,10 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         tvError = tvError
                     )
 
-                    val success = state.loginSuccess ?: return@collectLatest
+                    when (val success = state.loginSuccess) {
+                        null -> Unit
 
-                    when (success.role) {
-                        AuthRepository.UserRole.ADMIN -> {
-                            SessionManager.setAdmin(success.userId)
-                            RememberedSessionStore.saveAdminSession(appContext, success.userId)
-                            CartManager.clearInMemoryOnly()
-
+                        is LoginViewModel.LoginSuccess.Admin -> {
                             vm.consumeLoginSuccess()
 
                             val intent = Intent(requireContext(), AdminActivity::class.java)
@@ -103,26 +92,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                             requireActivity().finish()
                         }
 
-                        AuthRepository.UserRole.CUSTOMER -> {
-                            SessionManager.setCustomer(success.userId)
-                            RememberedSessionStore.saveCustomerSession(
-                                context = appContext,
-                                customerId = success.userId,
-                                onboardingPending = false
-                            )
-
+                        is LoginViewModel.LoginSuccess.Customer -> {
                             vm.consumeLoginSuccess()
-
-                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                val restoredItems =
-                                    cartPersistenceRepository.restoreCartForCustomer(success.userId)
-
-                                withContext(Dispatchers.Main) {
-                                    if (!isAdded) return@withContext
-                                    CartManager.replaceAll(restoredItems, persist = false)
-                                    findNavController().navigate(R.id.action_login_to_menu)
-                                }
-                            }
+                            findNavController().navigate(R.id.action_login_to_menu)
                         }
                     }
                 }

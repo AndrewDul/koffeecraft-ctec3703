@@ -57,19 +57,19 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
         optionsController = AdminMenuOptionsController(
             fragment = this,
-            repository = repository
+            viewModel = viewModel
         )
         extrasController = AdminMenuExtrasController(
             fragment = this,
-            repository = repository
+            viewModel = viewModel
         )
         allergensController = AdminMenuAllergensController(
             fragment = this,
-            repository = repository
+            viewModel = viewModel
         )
         detailsController = AdminMenuDetailsController(
             fragment = this,
-            repository = repository,
+            viewModel = viewModel,
             onManageSizes = { product, onSaved ->
                 optionsController.showManageSizesDialog(product, onSaved)
             },
@@ -136,40 +136,6 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.events.collectLatest { event ->
-                when (event) {
-                    is AdminMenuUiEvent.Message -> {
-                        Toast.makeText(requireContext(), event.text, Toast.LENGTH_SHORT).show()
-                    }
-
-                    is AdminMenuUiEvent.ProductValidationFailed -> {
-                        productDialogTilName?.error = event.result.nameError
-                        productDialogTilDescription?.error = event.result.descriptionError
-                        productDialogTilPrice?.error = event.result.priceError
-
-                        event.result.generalMessage?.let { message ->
-                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
-                    is AdminMenuUiEvent.ProductSaved -> {
-                        Toast.makeText(
-                            requireContext(),
-                            if (event.created) "Product added" else "Product updated",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        productDialog?.dismiss()
-                        clearProductDialogRefs()
-
-                        if (event.created && (event.product.isCoffee || event.product.isCake)) {
-                            detailsController.show(event.product)
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private fun showProductDialog(existing: Product?) {

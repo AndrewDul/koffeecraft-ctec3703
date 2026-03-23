@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
+import uk.ac.dmu.koffeecraft.data.repository.AuthSessionRegisterResult
+import uk.ac.dmu.koffeecraft.data.repository.AuthSessionRepository
 
-class RegisterViewModel(private val repo: AuthRepository) : ViewModel() {
+class RegisterViewModel(
+    private val repo: AuthSessionRepository
+) : ViewModel() {
 
     data class UiState(
         val isLoading: Boolean = false,
@@ -33,26 +36,29 @@ class RegisterViewModel(private val repo: AuthRepository) : ViewModel() {
         _state.value = UiState(isLoading = true)
 
         viewModelScope.launch {
-            val result = repo.registerCustomer(
-                firstName = firstName,
-                lastName = lastName,
-                country = country,
-                dateOfBirth = dateOfBirth,
-                email = email,
-                password = password.toCharArray(),
-                marketingInboxConsent = marketingInboxConsent,
-                termsAccepted = termsAccepted,
-                privacyAccepted = privacyAccepted
-            )
+            when (
+                val result = repo.registerCustomer(
+                    firstName = firstName,
+                    lastName = lastName,
+                    country = country,
+                    dateOfBirth = dateOfBirth,
+                    email = email,
+                    password = password.toCharArray(),
+                    marketingInboxConsent = marketingInboxConsent,
+                    termsAccepted = termsAccepted,
+                    privacyAccepted = privacyAccepted
+                )
+            ) {
+                is AuthSessionRegisterResult.Error -> {
+                    _state.value = UiState(error = result.message)
+                }
 
-            _state.value = when (result) {
-                is AuthRepository.RegisterResult.Success -> {
-                    UiState(
+                is AuthSessionRegisterResult.Success -> {
+                    _state.value = UiState(
                         success = true,
                         registeredCustomerId = result.customerId
                     )
                 }
-                is AuthRepository.RegisterResult.Error -> UiState(error = result.message)
             }
         }
     }

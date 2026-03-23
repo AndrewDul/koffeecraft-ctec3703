@@ -8,16 +8,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
+import uk.ac.dmu.koffeecraft.data.repository.CartRepository
 import uk.ac.dmu.koffeecraft.data.repository.CheckoutRepository
 import uk.ac.dmu.koffeecraft.util.validation.CheckoutCardFormValidator
 import uk.ac.dmu.koffeecraft.util.validation.CheckoutCardValidationResult
 
 class CheckoutViewModel(
-    private val checkoutRepository: CheckoutRepository
+    private val checkoutRepository: CheckoutRepository,
+    private val cartRepository: CartRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(CheckoutUiState())
+    private val _state = MutableStateFlow(
+        CheckoutUiState().copy(
+            total = cartRepository.getCurrentCart().total,
+            beansToSpend = cartRepository.getCurrentCart().beansToSpend,
+            isCartEmpty = cartRepository.getCurrentCart().items.isEmpty()
+        )
+    )
     val state: StateFlow<CheckoutUiState> = _state
 
     private val _effects = Channel<CheckoutUiEffect>(Channel.BUFFERED)
@@ -26,13 +33,24 @@ class CheckoutViewModel(
     private var savedCardsJob: Job? = null
     private var startedCustomerId: Long? = null
 
+    init {
+        viewModelScope.launch {
+            cartRepository.observeCart().collect { snapshot ->
+                _state.value = _state.value.copy(
+                    total = snapshot.total,
+                    beansToSpend = snapshot.beansToSpend,
+                    isCartEmpty = snapshot.items.isEmpty()
+                )
+            }
+        }
+    }
+
     fun start(customerId: Long) {
         if (startedCustomerId == customerId && savedCardsJob != null) {
             return
         }
 
         startedCustomerId = customerId
-        refreshCartSummary()
 
         savedCardsJob?.cancel()
         savedCardsJob = viewModelScope.launch {
@@ -84,17 +102,14 @@ class CheckoutViewModel(
         cvv: String,
         saveNewCardForFuture: Boolean
     ) {
-        val items = CartManager.getItems()
-        if (items.isEmpty()) {
+        val cartSnapshot = cartRepository.getCurrentCart()
+        if (cartSnapshot.items.isEmpty()) {
             viewModelScope.launch {
                 _effects.send(CheckoutUiEffect.ShowMessage("Cart is empty."))
             }
             return
         }
 
-        val total = CartManager.total()
-        val beansToSpend = CartManager.beansToSpend()
-        val beansToEarn = CartManager.purchasedProductCountForBeans()
         val currentState = _state.value
 
         if (currentState.paymentType == "CARD") {
@@ -126,11 +141,11 @@ class CheckoutViewModel(
         viewModelScope.launch {
             val result = checkoutRepository.submitOrder(
                 customerId = customerId,
-                items = items,
+                items = cartSnapshot.items,
                 paymentType = _state.value.paymentType,
-                totalAmount = total,
-                beansToSpend = beansToSpend,
-                beansToEarn = beansToEarn,
+                totalAmount = cartSnapshot.total,
+                beansToSpend = cartSnapshot.beansToSpend,
+                beansToEarn = cartSnapshot.purchasedProductCountForBeans,
                 saveNewCardForFuture = saveNewCardForFuture,
                 cardNickname = cardNickname,
                 cardholderName = cardholderName,
@@ -151,12 +166,10 @@ class CheckoutViewModel(
                         else -> "Card payment successful."
                     }
 
-                    CartManager.clear()
+                    cartRepository.clear()
 
                     _state.value = _state.value.copy(
                         isSubmitting = false,
-                        total = 0.0,
-                        beansToSpend = 0,
                         cardValidation = CheckoutCardValidationResult()
                     )
 
@@ -169,12 +182,5 @@ class CheckoutViewModel(
                 }
             }
         }
-    }
-
-    private fun refreshCartSummary() {
-        _state.value = _state.value.copy(
-            total = CartManager.total(),
-            beansToSpend = CartManager.beansToSpend()
-        )
     }
 }

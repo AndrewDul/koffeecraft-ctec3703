@@ -15,7 +15,7 @@ import uk.ac.dmu.koffeecraft.data.entities.ProductOption
 import uk.ac.dmu.koffeecraft.data.repository.ProductCustomizationActionResult
 import uk.ac.dmu.koffeecraft.data.repository.ProductCustomizationData
 import uk.ac.dmu.koffeecraft.data.repository.ProductCustomizationRepository
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import java.util.Locale
 
 data class ProductCustomizationOptionUi(
@@ -45,7 +45,8 @@ data class ProductCustomizationUiState(
 )
 
 class ProductCustomizationViewModel(
-    private val repository: ProductCustomizationRepository
+    private val repository: ProductCustomizationRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -113,7 +114,7 @@ class ProductCustomizationViewModel(
     }
 
     fun savePreset() {
-        val customerId = SessionManager.currentCustomerId
+        val customerId = sessionRepository.currentCustomerId
         val safeProduct = product
         val safeOption = selectedOption
 
@@ -279,16 +280,17 @@ class ProductCustomizationViewModel(
         val sizeChanged = selectedOptionId != null && selectedOptionId != defaultOptionId
         val hasAddOns = selectedAddOnIds.isNotEmpty()
 
-        return SessionManager.currentCustomerId != null && (sizeChanged || hasAddOns)
+        return sessionRepository.currentCustomerId != null && (sizeChanged || hasAddOns)
     }
 
     class Factory(
-        private val repository: ProductCustomizationRepository
+        private val repository: ProductCustomizationRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ProductCustomizationViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return ProductCustomizationViewModel(repository) as T
+                return ProductCustomizationViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

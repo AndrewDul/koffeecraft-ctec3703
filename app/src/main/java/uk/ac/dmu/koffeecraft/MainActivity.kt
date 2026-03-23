@@ -12,17 +12,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class MainActivity : AppCompatActivity() {
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.bootstrapRememberedSession()
         } else {
             handleDeepLinkIntent(intent)
-            viewModel.bindCustomerBadges(SessionManager.currentCustomerId)
+            viewModel.bindActiveCustomerBadges()
         }
     }
 
@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.bindCustomerBadges(SessionManager.currentCustomerId)
+        viewModel.bindActiveCustomerBadges()
     }
 
     private fun bindViews() {
@@ -170,53 +170,86 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (showShell) {
-                viewModel.bindCustomerBadges(SessionManager.currentCustomerId)
+                viewModel.bindActiveCustomerBadges()
             }
         }
     }
 
     private fun observeState() {
         lifecycleScope.launch {
-            viewModel.state.collectLatest { state ->
-                tvCartBadge.visibility = if (state.showCartBadge) View.VISIBLE else View.GONE
-                tvInboxBadge.visibility = if (state.showInboxBadge) View.VISIBLE else View.GONE
-                tvNotificationBadge.visibility =
-                    if (state.showNotificationBadge) View.VISIBLE else View.GONE
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.state.collect { state ->
+                        tvCartBadge.visibility = if (state.showCartBadge) View.VISIBLE else View.GONE
+                        tvInboxBadge.visibility = if (state.showInboxBadge) View.VISIBLE else View.GONE
+                        tvNotificationBadge.visibility =
+                            if (state.showNotificationBadge) View.VISIBLE else View.GONE
 
-                tvCartBadge.text = state.cartBadgeText
-                tvInboxBadge.text = state.inboxBadgeText
-                tvNotificationBadge.text = state.notificationBadgeText
-            }
-        }
-
-        lifecycleScope.launch {
-            viewModel.effects.collectLatest { effect ->
-                when (effect) {
-                    MainActivityViewModel.UiEffect.LaunchAdminActivity -> {
-                        startActivity(Intent(this@MainActivity, AdminActivity::class.java))
-                        finish()
+                        tvCartBadge.text = state.cartBadgeText
+                        tvInboxBadge.text = state.inboxBadgeText
+                        tvNotificationBadge.text = state.notificationBadgeText
                     }
+                }
 
-                    is MainActivityViewModel.UiEffect.LaunchCustomerSession -> {
-                        viewModel.bindCustomerBadges(effect.customerId)
+                launch {
+                    viewModel.effects.collect { effect ->
+                        when (effect) {
+                            MainActivityViewModel.UiEffect.LaunchAdminActivity -> {
+                                startActivity(Intent(this@MainActivity, AdminActivity::class.java))
+                                finish()
+                            }
 
-                        if (effect.onboardingPending) {
-                            navController.navigate(
-                                R.id.onboardingFragment,
-                                bundleOf("customerId" to effect.customerId),
-                                navOptions {
-                                    launchSingleTop = true
-                                    popUpTo(R.id.welcomeFragment) {
-                                        inclusive = true
+                            is MainActivityViewModel.UiEffect.LaunchCustomerSession -> {
+                                viewModel.bindCustomerBadges(effect.customerId)
+
+                                if (effect.onboardingPending) {
+                                    navController.navigate(
+                                        R.id.onboardingFragment,
+                                        bundleOf("customerId" to effect.customerId),
+                                        navOptions {
+                                            launchSingleTop = true
+                                            popUpTo(R.id.welcomeFragment) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    )
+                                } else {
+                                    val handled = handleDeepLinkIntent(intent, consumeIntent = false)
+                                    if (!handled) {
+                                        navController.navigate(
+                                            R.id.customerHomeFragment,
+                                            null,
+                                            navOptions {
+                                                launchSingleTop = true
+                                                popUpTo(R.id.welcomeFragment) {
+                                                    inclusive = true
+                                                }
+                                            }
+                                        )
                                     }
                                 }
-                            )
-                        } else {
-                            val handled = handleDeepLinkIntent(intent, consumeIntent = false)
-                            if (!handled) {
+                            }
+
+                            is MainActivityViewModel.UiEffect.NavigateOrderStatus -> {
                                 navController.navigate(
-                                    R.id.customerHomeFragment,
-                                    null,
+                                    R.id.orderStatusFragment,
+                                    bundleOf(
+                                        "orderId" to effect.orderId,
+                                        "simulate" to false
+                                    ),
+                                    navOptions {
+                                        launchSingleTop = true
+                                        popUpTo(R.id.welcomeFragment) {
+                                            inclusive = true
+                                        }
+                                    }
+                                )
+                            }
+
+                            is MainActivityViewModel.UiEffect.NavigateCustomerInbox -> {
+                                navController.navigate(
+                                    R.id.customerInboxFragment,
+                                    bundleOf("launchInboxMessageId" to effect.inboxMessageId),
                                     navOptions {
                                         launchSingleTop = true
                                         popUpTo(R.id.welcomeFragment) {
@@ -226,35 +259,6 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
                         }
-                    }
-
-                    is MainActivityViewModel.UiEffect.NavigateOrderStatus -> {
-                        navController.navigate(
-                            R.id.orderStatusFragment,
-                            bundleOf(
-                                "orderId" to effect.orderId,
-                                "simulate" to false
-                            ),
-                            navOptions {
-                                launchSingleTop = true
-                                popUpTo(R.id.welcomeFragment) {
-                                    inclusive = true
-                                }
-                            }
-                        )
-                    }
-
-                    is MainActivityViewModel.UiEffect.NavigateCustomerInbox -> {
-                        navController.navigate(
-                            R.id.customerInboxFragment,
-                            bundleOf("launchInboxMessageId" to effect.inboxMessageId),
-                            navOptions {
-                                launchSingleTop = true
-                                popUpTo(R.id.welcomeFragment) {
-                                    inclusive = true
-                                }
-                            }
-                        )
                     }
                 }
             }
@@ -266,9 +270,9 @@ class MainActivity : AppCompatActivity() {
         consumeIntent: Boolean = true
     ): Boolean {
         if (sourceIntent == null) return false
-        if (SessionManager.isAdmin) return false
+        if (viewModel.isAdminSession()) return false
 
-        val customerId = SessionManager.currentCustomerId ?: return false
+        val customerId = viewModel.currentCustomerId() ?: return false
         val target =
             sourceIntent.getStringExtra(NotificationHelper.EXTRA_LAUNCH_TARGET) ?: return false
 
@@ -333,8 +337,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearBottomSelection(bottomNav: BottomNavigationView) {
         bottomNav.menu.setGroupCheckable(0, false, true)
-        for (index in 0 until bottomNav.menu.size()) {
-            bottomNav.menu.getItem(index).isChecked = false
+        for (i in 0 until bottomNav.menu.size()) {
+            bottomNav.menu.getItem(i).isChecked = false
         }
         bottomNav.menu.setGroupCheckable(0, true, true)
     }

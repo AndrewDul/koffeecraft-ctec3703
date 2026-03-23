@@ -30,9 +30,9 @@ import uk.ac.dmu.koffeecraft.data.repository.FeedbackRepository
 import uk.ac.dmu.koffeecraft.data.repository.MainActivityRepository
 import uk.ac.dmu.koffeecraft.data.repository.AdminActivityRepository
 import uk.ac.dmu.koffeecraft.data.repository.CartPersistenceRepository
-
-
-
+import uk.ac.dmu.koffeecraft.data.repository.CartRepository
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
+import uk.ac.dmu.koffeecraft.data.repository.AuthSessionRepository
 class AppContainer(context: Context) {
 
     private val appContext = context.applicationContext
@@ -159,7 +159,8 @@ class AppContainer(context: Context) {
         MainActivityRepository(
             context = appContext,
             db = database,
-            cartPersistenceRepository = cartPersistenceRepository
+            cartPersistenceRepository = cartPersistenceRepository,
+            sessionRepository = sessionRepository
         )
     }
     val adminActivityRepository: AdminActivityRepository by lazy {
@@ -169,6 +170,20 @@ class AppContainer(context: Context) {
         CartPersistenceRepository(
             context = appContext,
             db = database
+        )
+    }
+    val cartRepository: CartRepository by lazy {
+        CartRepository()
+    }
+    val sessionRepository: SessionRepository by lazy {
+        SessionRepository()
+    }
+    val authSessionRepository: AuthSessionRepository by lazy {
+        AuthSessionRepository(
+            context = appContext,
+            authRepository = authRepository,
+            cartPersistenceRepository = cartPersistenceRepository,
+            sessionRepository = sessionRepository
         )
     }
 }

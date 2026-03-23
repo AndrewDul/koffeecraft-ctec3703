@@ -25,10 +25,21 @@ data class CartItem(
     val estimatedCalories: Int? = null
 )
 
+data class CartSnapshot(
+    val items: List<CartItem> = emptyList(),
+    val itemCount: Int = 0,
+    val total: Double = 0.0,
+    val beansToSpend: Int = 0,
+    val purchasedProductCountForBeans: Int = 0
+)
+
 object CartManager {
 
     private val items = linkedMapOf<String, CartItem>()
     private lateinit var appContext: Context
+
+    private val _snapshot = MutableStateFlow(CartSnapshot())
+    val snapshot: StateFlow<CartSnapshot> = _snapshot
 
     private val _itemCount = MutableStateFlow(0)
     val itemCount: StateFlow<Int> = _itemCount
@@ -47,16 +58,29 @@ object CartManager {
             .forEach { it.quantity = 1 }
     }
 
-    private fun refreshItemCount(persist: Boolean = true) {
+    private fun refreshCartState(persist: Boolean = true) {
         normalizeRewardQuantities()
-        _itemCount.value = items.values.sumOf { it.quantity }
+
+        val currentItems = items.values.toList()
+        val nextSnapshot = CartSnapshot(
+            items = currentItems,
+            itemCount = currentItems.sumOf { it.quantity },
+            total = currentItems.sumOf { it.unitPrice * it.quantity },
+            beansToSpend = currentItems.sumOf { it.beansCostPerUnit * it.quantity },
+            purchasedProductCountForBeans = currentItems
+                .filter { !it.isReward }
+                .sumOf { it.quantity }
+        )
+
+        _snapshot.value = nextSnapshot
+        _itemCount.value = nextSnapshot.itemCount
 
         if (persist) {
-            persistCurrentCartForSession()
+            persistCurrentCartForSession(currentItems)
         }
     }
 
-    private fun persistCurrentCartForSession() {
+    private fun persistCurrentCartForSession(currentItems: List<CartItem>) {
         if (!::appContext.isInitialized) return
         if (SessionManager.isAdmin) return
 
@@ -64,7 +88,7 @@ object CartManager {
         RememberedCartStore.saveCartForCustomer(
             context = appContext,
             customerId = customerId,
-            items = items.values.toList()
+            items = currentItems
         )
     }
 
@@ -76,7 +100,7 @@ object CartManager {
         newItems.forEach { item ->
             items[item.lineKey] = item
         }
-        refreshItemCount(persist = persist)
+        refreshCartState(persist = persist)
     }
 
     fun add(product: Product) {
@@ -94,7 +118,7 @@ object CartManager {
             existing.quantity += 1
         }
 
-        refreshItemCount()
+        refreshCartState()
     }
 
     fun add(product: Product, quantity: Int) {
@@ -103,7 +127,7 @@ object CartManager {
 
     fun addExisting(item: CartItem) {
         if (item.isReward) {
-            refreshItemCount(persist = false)
+            refreshCartState(persist = false)
             return
         }
 
@@ -114,7 +138,7 @@ object CartManager {
             existing.quantity += 1
         }
 
-        refreshItemCount()
+        refreshCartState()
     }
 
     fun addReward(
@@ -128,7 +152,7 @@ object CartManager {
         val existing = items[key]
 
         if (existing != null) {
-            refreshItemCount(persist = false)
+            refreshCartState(persist = false)
             return false
         }
 
@@ -152,7 +176,7 @@ object CartManager {
             beansCostPerUnit = beansCostPerUnit
         )
 
-        refreshItemCount()
+        refreshCartState()
         return true
     }
 
@@ -180,7 +204,7 @@ object CartManager {
 
         val existing = items[key]
         if (existing != null) {
-            refreshItemCount(persist = false)
+            refreshCartState(persist = false)
             return false
         }
 
@@ -214,7 +238,7 @@ object CartManager {
             estimatedCalories = finalCalories
         )
 
-        refreshItemCount()
+        refreshCartState()
         return true
     }
 
@@ -260,7 +284,7 @@ object CartManager {
             existing.quantity += 1
         }
 
-        refreshItemCount()
+        refreshCartState()
     }
 
     fun removeOne(lineKey: String) {
@@ -272,17 +296,17 @@ object CartManager {
             existing.quantity -= 1
         }
 
-        refreshItemCount()
+        refreshCartState()
     }
 
     fun clear() {
         items.clear()
-        refreshItemCount()
+        refreshCartState()
     }
 
     fun clearInMemoryOnly() {
         items.clear()
-        refreshItemCount(persist = false)
+        refreshCartState(persist = false)
     }
 
     fun clearPersistedCartForCustomer(
@@ -292,29 +316,16 @@ object CartManager {
         RememberedCartStore.clearCartForCustomer(context.applicationContext, customerId)
     }
 
-    fun getItems(): List<CartItem> {
-        normalizeRewardQuantities()
-        refreshItemCount(persist = false)
-        return items.values.toList()
+    fun currentSnapshot(): CartSnapshot {
+        refreshCartState(persist = false)
+        return _snapshot.value
     }
 
-    fun total(): Double {
-        normalizeRewardQuantities()
-        refreshItemCount(persist = false)
-        return items.values.sumOf { it.unitPrice * it.quantity }
-    }
+    fun getItems(): List<CartItem> = currentSnapshot().items
 
-    fun beansToSpend(): Int {
-        normalizeRewardQuantities()
-        refreshItemCount(persist = false)
-        return items.values.sumOf { it.beansCostPerUnit * it.quantity }
-    }
+    fun total(): Double = currentSnapshot().total
 
-    fun purchasedProductCountForBeans(): Int {
-        normalizeRewardQuantities()
-        refreshItemCount(persist = false)
-        return items.values
-            .filter { !it.isReward }
-            .sumOf { it.quantity }
-    }
+    fun beansToSpend(): Int = currentSnapshot().beansToSpend
+
+    fun purchasedProductCountForBeans(): Int = currentSnapshot().purchasedProductCountForBeans
 }

@@ -3019,4 +3019,275 @@ Overall, this update improved:
 The application behaviour stayed the same, but the internal structure is now cleaner, more modular, and closer to a top-level clean architecture suitable for the assessment.
 
 
+## Architecture Cleanup and Refactoring Summary
+
+During the final cleanup phase of the KoffeeCraft project, I refactored multiple features to make the application architecture more consistent, easier to maintain, and easier to explain during the report and live demo.
+
+The main goal of this cleanup was to strengthen the separation between **UI Logic**, **Input Logic**, and **Business Logic**. I did this to make the project follow a more consistent **MVVM + Repository** structure across both the Customer and Admin parts of the application.
+
+---
+
+## Architectural Direction
+
+The project now follows a clearer layered structure:
+
+- **Fragment / Activity**
+  - responsible for rendering the UI
+  - handling view binding
+  - forwarding user actions to the ViewModel
+  - collecting `state` and `effects`
+
+- **ViewModel**
+  - responsible for screen state
+  - input handling
+  - UI decision making
+  - coordination between UI and repository layer
+
+- **Repository**
+  - responsible for business operations and data access orchestration
+  - acts as the main abstraction over Room DAOs, managers, and feature data flows
+
+- **Room Database / DAO / Local storage**
+  - responsible for persistence only
+
+This cleanup reduced the number of places where Fragments directly accessed database objects, managers, or mixed UI code with business logic.
+
+---
+
+## Key Refactoring Changes
+
+### 1. Admin account creation flow
+The admin account creation feature was refactored so that the Fragment no longer talks directly to the database layer.
+
+**Before**
+- `AdminCreateAccountFragment` performed account creation logic directly
+- UI handled data-layer concerns such as duplicate checking and account persistence
+
+**After**
+- `AdminCreateAccountFragment` only validates input and forwards actions
+- `AdminCreateAccountViewModel` manages submission state and UI effects
+- `AdminAccountsRepository` performs the actual account creation logic
+
+**Why this was changed**
+This improves separation of concerns and makes the feature easier to test, maintain, and justify architecturally.
+
+---
+
+### 2. Cart flow cleanup
+The cart flow was refactored to remove direct cart state manipulation from the Fragment.
+
+**Before**
+- `CartFragment` directly used `CartManager`
+- the UI layer was responsible for cart state operations
+
+**After**
+- `CartRepository` was introduced as a cart abstraction
+- `CartViewModel` became the owner of cart screen state
+- `CartFragment` now only renders state and forwards user actions
+
+**Why this was changed**
+This creates a more consistent MVVM flow and reduces coupling between UI and internal cart implementation.
+
+---
+
+### 3. Checkout flow cleanup
+The checkout flow was updated to use the same cart abstraction as the cart screen.
+
+**Before**
+- checkout logic still used `CartManager` directly
+- screen state was less consistent with the rest of the architecture
+
+**After**
+- `CheckoutViewModel` uses `CartRepository`
+- checkout state is exposed through `CheckoutUiState`
+- `CheckoutFragment` collects state and effects using lifecycle-aware collection
+
+**Why this was changed**
+This makes the cart and checkout flow architecturally consistent and easier to explain as one connected feature.
+
+---
+
+### 4. Lifecycle-aware state and effect collection
+Several screens were updated to use a consistent collection pattern with `repeatOnLifecycle`.
+
+**Updated areas included**
+- Checkout
+- Admin account management
+- Customer payment methods
+- Main activity shell
+- Admin activity shell
+- Admin menu
+- Admin campaign studio
+
+**Why this was changed**
+This improves UI consistency, avoids unnecessary collection when the screen is not visible, and aligns the codebase with better Android lifecycle practices.
+
+---
+
+### 5. Admin account management cleanup
+The admin account management feature was improved so that the currently signed-in admin context is handled inside the ViewModel rather than being passed repeatedly from the Fragment.
+
+**Why this was changed**
+This reduces UI responsibility and keeps decision-making logic inside the presentation layer where it belongs.
+
+---
+
+### 6. Customer payment methods cleanup
+The payment methods feature was cleaned so that UI collection is lifecycle-aware and the screen behaves more consistently with the rest of the architecture.
+
+**Why this was changed**
+This was part of the final consistency pass to ensure that similar features follow the same architectural pattern.
+
+---
+
+### 7. MainActivity and AdminActivity cleanup
+The main customer shell and admin shell were updated to use a more consistent pattern for badge state observation and navigation-related UI state.
+
+**Why this was changed**
+These classes act as important application shells, so keeping them clean and predictable improves maintainability and strengthens the overall architecture story in the report and demo.
+
+---
+
+### 8. Admin menu cleanup
+The admin menu feature was one of the larger remaining architectural inconsistencies.
+
+**Before**
+- UI-side controllers were using repository access in a DAO-style way
+- the repository exposed low-level style access patterns instead of clear feature operations
+- product details, size options, extras, and allergens were partly coordinated too close to the UI layer
+
+**After**
+- `AdminMenuRepository` was kept as the feature data layer
+- `AdminMenuViewModel` became the main coordinator for:
+  - product detail loading
+  - product option loading and updates
+  - extra loading and updates
+  - allergen library loading
+  - product allergen selection
+  - add-on allergen selection
+- dedicated UI state models were introduced for admin menu dialogs and subflows
+- admin menu controllers became more UI-focused and no longer handled repository-style data work directly
+
+**Why this was changed**
+This makes the feature easier to maintain and easier to explain as a proper ViewModel + Repository design instead of a thin UI wrapper over data access calls.
+
+---
+
+### 9. Admin campaign studio cleanup
+The campaign studio screen was refactored so that form state and preview generation are now driven by the ViewModel.
+
+**Before**
+- the Fragment stored too much campaign builder state locally
+
+**After**
+- `AdminCampaignStudioViewModel` owns:
+  - selected audience
+  - selected campaign type
+  - text input state
+  - beans input state
+  - preview state
+  - sending state
+
+**Why this was changed**
+This makes the screen a much stronger MVVM implementation and keeps the Fragment focused on rendering and user interaction binding.
+
+---
+
+### 10. Session flow cleanup
+A large part of the cleanup focused on reducing direct session handling in UI and presentation code.
+
+**Before**
+- some screens and flows accessed `SessionManager` directly
+- login and register screens were responsible for setting session state
+- remembered session logic and cart restore logic were too close to the UI layer
+
+**After**
+- `SessionRepository` was introduced as a session abstraction
+- session-aware flows now depend on `SessionRepository` instead of using `SessionManager` directly
+- session bootstrap in `MainActivity` was pushed into repository and ViewModel flow
+- session-aware ViewModels were updated to receive session information through dependencies instead of a global singleton
+
+**Why this was changed**
+This improves separation of concerns and reduces global state leakage into UI and presentation logic.
+
+---
+
+### 11. Login and register flow cleanup
+The authentication entry flow was refactored so that Fragments no longer manage session setup directly.
+
+**Before**
+- `LoginFragment` and `RegisterFragment` were too involved in session setup
+- UI code touched remembered session logic and cart restore logic
+- authentication success handling mixed screen navigation with session infrastructure responsibilities
+
+**After**
+- `AuthSessionRepository` was introduced to coordinate:
+  - authentication result handling
+  - session setup
+  - remembered session persistence
+  - cart restore when needed
+- `LoginViewModel` and `RegisterViewModel` became cleaner entry points for auth flow
+- `LoginFragment` and `RegisterFragment` were reduced to UI validation, event forwarding, and navigation handling
+
+**Why this was changed**
+This made the authentication flow much easier to explain and aligned it better with MVVM and repository responsibilities.
+
+---
+
+### 12. Menu flow cleanup
+The customer menu feature was improved so that session access no longer comes directly from a global singleton inside key ViewModels.
+
+**Before**
+- `MenuViewModel` used `SessionManager` directly
+- `ProductCustomizationViewModel` used `SessionManager` directly for session-aware actions such as preset saving
+
+**After**
+- both ViewModels now receive `SessionRepository`
+- customer session checks are done through an injected dependency
+- menu and product customization flows are more consistent with the rest of the architecture
+
+**Why this was changed**
+This reduces coupling to global state and makes the menu flow easier to defend as a clean MVVM-based design.
+
+---
+
+## Architectural Benefits After Cleanup
+
+After this refactoring pass, the project now has the following architectural strengths:
+
+- clearer separation between UI and business logic
+- better consistency across Customer and Admin features
+- lower coupling between Fragments and the data layer
+- lower coupling between ViewModels and global session state
+- more reusable and explainable repository layer
+- better lifecycle handling for state collection
+- improved maintainability for future changes
+- easier report writing because the architecture is now more coherent
+- easier live demo defence because responsibilities are more clearly divided
+
+---
+
+## Design Rationale
+
+These changes were made to improve the quality of the codebase rather than to introduce new end-user features.
+
+The intention was to make the project:
+
+- easier to reason about
+- easier to extend
+- safer to modify
+- more aligned with standard Android architectural practices
+- easier to defend in academic documentation and presentation
+
+In particular, I wanted the final architecture to make it easy to explain how the project separates:
+
+- **UI Logic**
+- **Input Logic**
+- **Business Logic**
+
+This was important because these layers are explicitly relevant to how the system architecture is described in the coursework documentation.
+
+---
+
+
 

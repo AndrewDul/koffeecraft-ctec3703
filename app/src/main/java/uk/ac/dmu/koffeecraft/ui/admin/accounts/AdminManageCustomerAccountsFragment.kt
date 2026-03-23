@@ -13,8 +13,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
@@ -26,7 +28,6 @@ import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
 import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
 import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import java.util.Date
-import java.util.Locale
 
 class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_manage_customer_accounts) {
 
@@ -64,9 +65,20 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
 
         vm = ViewModelProvider(
             this,
-            AdminManageCustomerAccountsViewModel.Factory(appContainer.adminAccountsRepository)
+            AdminManageCustomerAccountsViewModel.Factory(
+                adminAccountsRepository = appContainer.adminAccountsRepository,
+                currentAdminId = SessionManager.currentAdminId
+            )
         )[AdminManageCustomerAccountsViewModel::class.java]
 
+        bindViews(view)
+        bindStaticActions(view)
+        setupAccountTypeToggle()
+        setupSearchModeSpinner()
+        collectViewModel()
+    }
+
+    private fun bindViews(view: View) {
         toggleAccountType = view.findViewById(R.id.toggleAccountType)
         spinnerSearchMode = view.findViewById(R.id.spinnerSearchMode)
         etSearchValue = view.findViewById(R.id.etSearchValue)
@@ -89,13 +101,12 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         btnPrimaryAction = view.findViewById(R.id.btnPrimaryAction)
         btnSecondaryAction = view.findViewById(R.id.btnSecondaryAction)
         btnDangerAction = view.findViewById(R.id.btnDangerAction)
+    }
 
+    private fun bindStaticActions(view: View) {
         view.findViewById<TextView>(R.id.btnBack).setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-
-        setupAccountTypeToggle()
-        setupSearchModeSpinner()
 
         btnFindAccount.setOnClickListener {
             vm.searchAccount(etSearchValue.text.toString())
@@ -104,10 +115,7 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         btnPrimaryAction.setOnClickListener {
             when (latestState.accountType) {
                 ManagedAccountType.CUSTOMERS -> vm.updateSelectedCustomerStatus(true)
-                ManagedAccountType.ADMINS -> vm.updateSelectedAdminStatus(
-                    isActive = true,
-                    currentAdminId = SessionManager.currentAdminId
-                )
+                ManagedAccountType.ADMINS -> vm.updateSelectedAdminStatus(true)
             }
         }
 
@@ -131,19 +139,25 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                 }
             }
         }
+    }
 
+    private fun collectViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.state.collect { state ->
-                latestState = state
-                renderState(state)
-            }
-        }
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    vm.state.collect { state ->
+                        latestState = state
+                        renderState(state)
+                    }
+                }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.effects.collect { effect ->
-                when (effect) {
-                    is AdminManageCustomerAccountsViewModel.UiEffect.ShowMessage -> {
-                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                launch {
+                    vm.effects.collect { effect ->
+                        when (effect) {
+                            is AdminManageCustomerAccountsViewModel.UiEffect.ShowMessage -> {
+                                Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 }
             }
@@ -320,7 +334,8 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
                     }
 
                     AdminSearchMode.EMAIL -> {
-                        etSearchValue.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                        etSearchValue.inputType =
+                            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
                         etSearchValue.hint = "Enter admin email"
                     }
 
@@ -349,7 +364,8 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         tvResultLabel.text = "Selected customer"
         tvAccountResult.text = "${result.firstName} ${result.lastName}"
         tvAccountStatus.text = if (result.isActive) "Status: Active" else "Status: Inactive"
-        tvAccountMeta.text = "Customer #${result.customerId} • ${result.email}\nCreated ${formatDate(result.createdAt)}"
+        tvAccountMeta.text =
+            "Customer #${result.customerId} • ${result.email}\nCreated ${formatDate(result.createdAt)}"
 
         btnPrimaryAction.isEnabled = !result.isActive && !isWorking
         btnPrimaryAction.alpha = if (!result.isActive && !isWorking) 1f else 0.55f
@@ -372,7 +388,8 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
         tvResultLabel.text = "Selected admin"
         tvAccountResult.text = result.fullName
         tvAccountStatus.text = if (result.isActive) "Status: Active" else "Status: Inactive"
-        tvAccountMeta.text = "Admin #${result.adminId} • @${result.username}\n${result.email}\n${result.phone}\nCreated ${formatDate(result.createdAt)}"
+        tvAccountMeta.text =
+            "Admin #${result.adminId} • @${result.username}\n${result.email}\n${result.phone}\nCreated ${formatDate(result.createdAt)}"
 
         btnPrimaryAction.isEnabled = !result.isActive && !isWorking
         btnPrimaryAction.alpha = if (!result.isActive && !isWorking) 1f else 0.55f
@@ -407,10 +424,7 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
             .setMessage("Are you sure you want to $actionLabel Admin #${admin.adminId}?")
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Confirm") { _, _ ->
-                vm.updateSelectedAdminStatus(
-                    isActive = isActive,
-                    currentAdminId = SessionManager.currentAdminId
-                )
+                vm.updateSelectedAdminStatus(isActive)
             }
             .show()
     }

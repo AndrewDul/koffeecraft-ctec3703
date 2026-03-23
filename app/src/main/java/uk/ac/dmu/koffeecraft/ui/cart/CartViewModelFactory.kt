@@ -1,19 +1,17 @@
-package uk.ac.dmu.koffeecraft.ui.checkout
+package uk.ac.dmu.koffeecraft.ui.cart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import uk.ac.dmu.koffeecraft.data.repository.CartRepository
-import uk.ac.dmu.koffeecraft.data.repository.CheckoutRepository
 
-class CheckoutViewModelFactory(
-    private val checkoutRepository: CheckoutRepository,
+class CartViewModelFactory(
     private val cartRepository: CartRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CheckoutViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return CheckoutViewModel(checkoutRepository, cartRepository) as T
+            return CartViewModel(cartRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

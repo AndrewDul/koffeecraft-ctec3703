@@ -4,9 +4,21 @@ import android.content.Context
 import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
 import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.entities.Admin
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
 import java.util.Locale
+
+sealed interface AdminCreateAccountResult {
+    data object Success : AdminCreateAccountResult
+
+    data class DuplicateFields(
+        val emailTaken: Boolean,
+        val usernameTaken: Boolean
+    ) : AdminCreateAccountResult
+
+    data class Error(val message: String) : AdminCreateAccountResult
+}
 
 class AdminAccountsRepository(
     context: Context,
@@ -34,6 +46,53 @@ class AdminAccountsRepository(
 
     suspend fun findAdminByUsername(username: String): AdminAccountTarget? {
         return db.adminDao().getAccountTargetByUsername(username.trim().lowercase(Locale.UK))
+    }
+
+    suspend fun createAdminAccount(
+        fullName: String,
+        email: String,
+        phone: String,
+        username: String,
+        password: String,
+        isActive: Boolean
+    ): AdminCreateAccountResult {
+        return try {
+            val normalizedEmail = email.trim().lowercase(Locale.UK)
+            val normalizedUsername = username.trim().lowercase(Locale.UK)
+
+            val existingEmail = db.adminDao().findByEmail(normalizedEmail)
+            val existingUsername = db.adminDao().findByUsername(normalizedUsername)
+
+            if (existingEmail != null || existingUsername != null) {
+                AdminCreateAccountResult.DuplicateFields(
+                    emailTaken = existingEmail != null,
+                    usernameTaken = existingUsername != null
+                )
+            } else {
+                val salt = PasswordHasher.generateSaltBase64()
+                val passwordChars = password.toCharArray()
+                val hash = PasswordHasher.hashPasswordBase64(passwordChars, salt)
+                passwordChars.fill('\u0000')
+
+                db.adminDao().insert(
+                    Admin(
+                        fullName = fullName.trim(),
+                        email = normalizedEmail,
+                        phone = phone.trim(),
+                        username = normalizedUsername,
+                        passwordHash = hash,
+                        passwordSalt = salt,
+                        isActive = isActive
+                    )
+                )
+
+                AdminCreateAccountResult.Success
+            }
+        } catch (_: Exception) {
+            AdminCreateAccountResult.Error(
+                "Admin account could not be created. Please try again."
+            )
+        }
     }
 
     suspend fun updateCustomerStatus(

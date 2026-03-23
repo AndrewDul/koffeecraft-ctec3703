@@ -40,7 +40,8 @@ data class AdminManageAccountsUiState(
 )
 
 class AdminManageCustomerAccountsViewModel(
-    private val adminAccountsRepository: AdminAccountsRepository
+    private val adminAccountsRepository: AdminAccountsRepository,
+    private val currentAdminId: Long?
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -97,7 +98,9 @@ class AdminManageCustomerAccountsViewModel(
             return
         }
 
-        _state.value = _state.value.copy(
+        val currentState = _state.value
+
+        _state.value = currentState.copy(
             isWorking = true,
             searchError = null,
             selectedCustomer = null,
@@ -105,9 +108,9 @@ class AdminManageCustomerAccountsViewModel(
         )
 
         viewModelScope.launch {
-            when (_state.value.accountType) {
-                ManagedAccountType.CUSTOMERS -> searchCustomer(input)
-                ManagedAccountType.ADMINS -> searchAdmin(input)
+            when (currentState.accountType) {
+                ManagedAccountType.CUSTOMERS -> searchCustomer(input, currentState.customerSearchMode)
+                ManagedAccountType.ADMINS -> searchAdmin(input, currentState.adminSearchMode)
             }
         }
     }
@@ -118,10 +121,12 @@ class AdminManageCustomerAccountsViewModel(
         _state.value = _state.value.copy(isWorking = true)
 
         viewModelScope.launch {
-            when (val result = adminAccountsRepository.updateCustomerStatus(
-                customerId = selectedCustomer.customerId,
-                isActive = isActive
-            )) {
+            when (
+                val result = adminAccountsRepository.updateCustomerStatus(
+                    customerId = selectedCustomer.customerId,
+                    isActive = isActive
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     val refreshed = adminAccountsRepository.findCustomerByCustomerId(selectedCustomer.customerId)
                     _state.value = _state.value.copy(
@@ -141,20 +146,19 @@ class AdminManageCustomerAccountsViewModel(
         }
     }
 
-    fun updateSelectedAdminStatus(
-        isActive: Boolean,
-        currentAdminId: Long?
-    ) {
+    fun updateSelectedAdminStatus(isActive: Boolean) {
         val selectedAdmin = _state.value.selectedAdmin ?: return
 
         _state.value = _state.value.copy(isWorking = true)
 
         viewModelScope.launch {
-            when (val result = adminAccountsRepository.updateAdminStatus(
-                adminId = selectedAdmin.adminId,
-                isActive = isActive,
-                currentAdminId = currentAdminId
-            )) {
+            when (
+                val result = adminAccountsRepository.updateAdminStatus(
+                    adminId = selectedAdmin.adminId,
+                    isActive = isActive,
+                    currentAdminId = currentAdminId
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     val refreshed = adminAccountsRepository.findAdminByAdminId(selectedAdmin.adminId)
                     _state.value = _state.value.copy(
@@ -180,9 +184,11 @@ class AdminManageCustomerAccountsViewModel(
         _state.value = _state.value.copy(isWorking = true)
 
         viewModelScope.launch {
-            when (val result = adminAccountsRepository.deleteCustomerPermanently(
-                selectedCustomer.customerId
-            )) {
+            when (
+                val result = adminAccountsRepository.deleteCustomerPermanently(
+                    selectedCustomer.customerId
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _state.value = _state.value.copy(
                         selectedCustomer = null,
@@ -210,11 +216,13 @@ class AdminManageCustomerAccountsViewModel(
         _state.value = _state.value.copy(isWorking = true)
 
         viewModelScope.launch {
-            when (val result = adminAccountsRepository.resetAdminPassword(
-                adminId = selectedAdmin.adminId,
-                newPassword = newPassword,
-                confirmPassword = confirmPassword
-            )) {
+            when (
+                val result = adminAccountsRepository.resetAdminPassword(
+                    adminId = selectedAdmin.adminId,
+                    newPassword = newPassword,
+                    confirmPassword = confirmPassword
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _state.value = _state.value.copy(isWorking = false)
                     _effects.send(UiEffect.ShowMessage(result.message))
@@ -228,8 +236,11 @@ class AdminManageCustomerAccountsViewModel(
         }
     }
 
-    private suspend fun searchCustomer(input: String) {
-        val result = when (_state.value.customerSearchMode) {
+    private suspend fun searchCustomer(
+        input: String,
+        searchMode: CustomerSearchMode
+    ) {
+        val result = when (searchMode) {
             CustomerSearchMode.ORDER_ID -> {
                 val numeric = input.toLongOrNull()
                 if (numeric == null) {
@@ -263,8 +274,11 @@ class AdminManageCustomerAccountsViewModel(
         )
     }
 
-    private suspend fun searchAdmin(input: String) {
-        val result = when (_state.value.adminSearchMode) {
+    private suspend fun searchAdmin(
+        input: String,
+        searchMode: AdminSearchMode
+    ) {
+        val result = when (searchMode) {
             AdminSearchMode.ADMIN_ID -> {
                 val numeric = input.toLongOrNull()
                 if (numeric == null) {
@@ -290,12 +304,16 @@ class AdminManageCustomerAccountsViewModel(
     }
 
     class Factory(
-        private val adminAccountsRepository: AdminAccountsRepository
+        private val adminAccountsRepository: AdminAccountsRepository,
+        private val currentAdminId: Long?
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AdminManageCustomerAccountsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return AdminManageCustomerAccountsViewModel(adminAccountsRepository) as T
+                return AdminManageCustomerAccountsViewModel(
+                    adminAccountsRepository = adminAccountsRepository,
+                    currentAdminId = currentAdminId
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

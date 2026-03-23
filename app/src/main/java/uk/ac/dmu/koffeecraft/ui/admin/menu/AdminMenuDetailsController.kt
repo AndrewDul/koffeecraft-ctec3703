@@ -1,39 +1,53 @@
 package uk.ac.dmu.koffeecraft.ui.admin.menu
 
-import android.view.View
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.entities.Product
-import uk.ac.dmu.koffeecraft.data.repository.AdminMenuRepository
 
 class AdminMenuDetailsController(
     private val fragment: Fragment,
-    private val repository: AdminMenuRepository,
+    private val viewModel: AdminMenuViewModel,
     private val onManageSizes: (Product, () -> Unit) -> Unit,
     private val onManageExtras: (Product, () -> Unit) -> Unit,
     private val onManageAllergens: (Product, () -> Unit) -> Unit
 ) {
 
+    private var isObserving = false
+    private var activeProductId: Long? = null
+
+    private var detailsDialog: AlertDialog? = null
+    private var tvOptions: TextView? = null
+    private var tvAddOns: TextView? = null
+    private var tvAllergens: TextView? = null
+
     fun show(product: Product) {
+        detailsDialog?.dismiss()
+
         val dialogView = fragment.layoutInflater
             .inflate(R.layout.dialog_admin_product_details, null)
 
         val tvProductName = dialogView.findViewById<TextView>(R.id.tvProductName)
         val tvProductMeta = dialogView.findViewById<TextView>(R.id.tvProductMeta)
         val tvDescription = dialogView.findViewById<TextView>(R.id.tvDescription)
-        val tvOptions = dialogView.findViewById<TextView>(R.id.tvOptions)
-        val tvAddOns = dialogView.findViewById<TextView>(R.id.tvAddOns)
-        val tvAllergens = dialogView.findViewById<TextView>(R.id.tvAllergens)
+        val localTvOptions = dialogView.findViewById<TextView>(R.id.tvOptions)
+        val localTvAddOns = dialogView.findViewById<TextView>(R.id.tvAddOns)
+        val localTvAllergens = dialogView.findViewById<TextView>(R.id.tvAllergens)
         val btnManageSizes = dialogView.findViewById<MaterialButton>(R.id.btnManageSizes)
         val btnManageExtras = dialogView.findViewById<MaterialButton>(R.id.btnManageExtras)
         val btnManageAllergens = dialogView.findViewById<MaterialButton>(R.id.btnManageAllergens)
+
+        tvOptions = localTvOptions
+        tvAddOns = localTvAddOns
+        tvAllergens = localTvAllergens
+        activeProductId = product.productId
 
         tvProductName.text = product.name
         tvProductMeta.text = buildString {
@@ -66,116 +80,71 @@ class AdminMenuDetailsController(
             btnManageExtras.alpha = 1f
         }
 
-        val dialog = MaterialAlertDialogBuilder(fragment.requireContext())
-            .setTitle("Product details")
-            .setView(dialogView)
-            .setPositiveButton("Close", null)
-            .create()
+        bindLoadingState()
 
         btnManageSizes.setOnClickListener {
             if (!supportsCustomisation) return@setOnClickListener
             onManageSizes(product) {
-                loadProductDetails(product, tvOptions, tvAddOns, tvAllergens)
+                viewModel.loadProductDetails(product)
             }
         }
 
         btnManageExtras.setOnClickListener {
             if (!supportsCustomisation) return@setOnClickListener
             onManageExtras(product) {
-                loadProductDetails(product, tvOptions, tvAddOns, tvAllergens)
+                viewModel.loadProductDetails(product)
             }
         }
 
         btnManageAllergens.setOnClickListener {
             onManageAllergens(product) {
-                loadProductDetails(product, tvOptions, tvAddOns, tvAllergens)
+                viewModel.loadProductDetails(product)
             }
         }
 
-        dialog.show()
-        loadProductDetails(product, tvOptions, tvAddOns, tvAllergens)
+        detailsDialog = MaterialAlertDialogBuilder(fragment.requireContext())
+            .setTitle("Product details")
+            .setView(dialogView)
+            .setPositiveButton("Close", null)
+            .create()
+
+        detailsDialog?.setOnDismissListener {
+            clearDialogRefs()
+        }
+
+        ensureObserver()
+        detailsDialog?.show()
+        viewModel.loadProductDetails(product)
     }
 
-    private fun loadProductDetails(
-        product: Product,
-        tvOptions: TextView,
-        tvAddOns: TextView,
-        tvAllergens: TextView
-    ) {
-        fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val allergens = repository
-                .allergenDao()
-                .getForProduct(product.productId)
+    private fun ensureObserver() {
+        if (isObserving) return
+        isObserving = true
 
-            val optionsText: String
-            val addOnsText: String
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.productDetailsState.collect { state ->
+                    if (state.productId != activeProductId) return@collect
 
-            if (product.isMerch) {
-                optionsText = "Not applicable for merch products."
-                addOnsText = "Not applicable for merch products."
-            } else {
-                val options = repository
-                    .productOptionDao()
-                    .getForProduct(product.productId)
-
-                val assignedAddOns = repository
-                    .addOnDao()
-                    .getAssignedForProduct(product.productId)
-
-                optionsText = if (options.isEmpty()) {
-                    "No size / portion options configured yet."
-                } else {
-                    options.joinToString("\n\n") { option ->
-                        buildString {
-                            append("• ")
-                            append(option.displayLabel)
-                            append(" — ")
-                            append(option.sizeValue)
-                            append(option.sizeUnit.lowercase())
-                            append("\n")
-                            append("  Extra price: £%.2f".format(option.extraPrice))
-                            append(" • ")
-                            append(option.estimatedCalories)
-                            append(" kcal")
-                            if (option.isDefault) {
-                                append(" • Default")
-                            }
-                        }
-                    }
+                    tvOptions?.text = state.optionsText
+                    tvAddOns?.text = state.addOnsText
+                    tvAllergens?.text = state.allergensText
                 }
-
-                addOnsText = if (assignedAddOns.isEmpty()) {
-                    "No extras assigned yet."
-                } else {
-                    assignedAddOns.joinToString("\n\n") { addOn ->
-                        buildString {
-                            append("• ")
-                            append(addOn.name)
-                            append("\n")
-                            append("  £%.2f".format(addOn.price))
-                            append(" • ")
-                            append(addOn.estimatedCalories)
-                            append(" kcal")
-                            if (!addOn.isActive) {
-                                append(" • Disabled")
-                            }
-                        }
-                    }
-                }
-            }
-
-            val allergensText = if (allergens.isEmpty()) {
-                "No allergens listed."
-            } else {
-                allergens.joinToString(", ") { it.name }
-            }
-
-            withContext(Dispatchers.Main) {
-                if (!fragment.isAdded) return@withContext
-                tvOptions.text = optionsText
-                tvAddOns.text = addOnsText
-                tvAllergens.text = allergensText
             }
         }
+    }
+
+    private fun bindLoadingState() {
+        tvOptions?.text = "Loading..."
+        tvAddOns?.text = "Loading..."
+        tvAllergens?.text = "Loading..."
+    }
+
+    private fun clearDialogRefs() {
+        detailsDialog = null
+        activeProductId = null
+        tvOptions = null
+        tvAddOns = null
+        tvAllergens = null
     }
 }

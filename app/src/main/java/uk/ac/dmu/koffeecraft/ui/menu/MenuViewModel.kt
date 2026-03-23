@@ -10,10 +10,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.repository.MenuRepository
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class MenuViewModel(
-    private val menuRepository: MenuRepository
+    private val menuRepository: MenuRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     data class UiState(
@@ -62,7 +63,7 @@ class MenuViewModel(
     }
 
     fun onFavouriteToggle(product: Product, shouldFavourite: Boolean) {
-        val customerId = SessionManager.currentCustomerId
+        val customerId = sessionRepository.currentCustomerId
         if (customerId == null) {
             sendMessage("Please sign in first.")
             return
@@ -104,7 +105,7 @@ class MenuViewModel(
     }
 
     fun onSavePreset(product: Product) {
-        val customerId = SessionManager.currentCustomerId
+        val customerId = sessionRepository.currentCustomerId
         if (customerId == null) {
             sendMessage("Please sign in first.")
             return
@@ -166,7 +167,7 @@ class MenuViewModel(
     private fun observeFavourites() {
         favouritesJob?.cancel()
 
-        val customerId = SessionManager.currentCustomerId
+        val customerId = sessionRepository.currentCustomerId
         if (customerId == null) {
             _state.value = _state.value.copy(favouriteIds = emptySet())
             return
@@ -226,7 +227,7 @@ class MenuViewModel(
         state: ProductCardUiState
     ): Boolean {
         if (!product.isActive) return false
-        if (SessionManager.currentCustomerId == null) return false
+        if (sessionRepository.currentCustomerId == null) return false
 
         val defaultOptionId =
             state.options.firstOrNull { it.isDefault }?.optionId ?: state.options.firstOrNull()?.optionId

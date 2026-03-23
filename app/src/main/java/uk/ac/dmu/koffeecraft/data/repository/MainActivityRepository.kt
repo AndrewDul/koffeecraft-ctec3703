@@ -7,7 +7,7 @@ import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 data class MainActivityBadgeData(
@@ -29,7 +29,8 @@ sealed interface MainBootstrapResult {
 class MainActivityRepository(
     context: Context,
     private val db: KoffeeCraftDatabase,
-    private val cartPersistenceRepository: CartPersistenceRepository
+    private val cartPersistenceRepository: CartPersistenceRepository,
+    private val sessionRepository: SessionRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -43,12 +44,12 @@ class MainActivityRepository(
                 val admin = db.adminDao().getById(rememberedSession.userId)
 
                 if (admin == null || !admin.isActive) {
-                    SessionManager.clear()
+                    sessionRepository.clear()
                     RememberedSessionStore.clear(appContext)
                     CartManager.clearInMemoryOnly()
                     MainBootstrapResult.None
                 } else {
-                    SessionManager.setAdmin(admin.adminId)
+                    sessionRepository.setAdmin(admin.adminId)
                     CartManager.clearInMemoryOnly()
                     MainBootstrapResult.LaunchAdmin
                 }
@@ -58,12 +59,12 @@ class MainActivityRepository(
                 val customer = db.customerDao().getById(rememberedSession.userId)
 
                 if (customer == null || !customer.isActive) {
-                    SessionManager.clear()
+                    sessionRepository.clear()
                     RememberedSessionStore.clear(appContext)
                     CartManager.clearInMemoryOnly()
                     MainBootstrapResult.None
                 } else {
-                    SessionManager.setCustomer(customer.customerId)
+                    sessionRepository.setCustomer(customer.customerId)
 
                     val restoredItems =
                         cartPersistenceRepository.restoreCartForCustomer(customer.customerId)
@@ -77,6 +78,10 @@ class MainActivityRepository(
             }
         }
     }
+
+    fun currentCustomerId(): Long? = sessionRepository.currentCustomerId
+
+    fun isAdminSession(): Boolean = sessionRepository.isAdmin
 
     fun observeCustomerBadges(customerId: Long): Flow<MainActivityBadgeData> {
         return combine(

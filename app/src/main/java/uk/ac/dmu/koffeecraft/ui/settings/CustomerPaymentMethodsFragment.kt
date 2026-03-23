@@ -10,8 +10,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -32,6 +34,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
     private lateinit var tvEmpty: TextView
     private lateinit var containerCards: LinearLayout
     private var activeAddCardDialog: AlertDialog? = null
+    private var currentCustomerId: Long? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,8 +52,9 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
         }
 
         val btnAddCard = view.findViewById<MaterialButton>(R.id.btnAddPaymentCard)
-        val customerId = SessionManager.currentCustomerId
+        currentCustomerId = SessionManager.currentCustomerId
 
+        val customerId = currentCustomerId
         if (customerId == null) {
             Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
             btnAddCard.isEnabled = false
@@ -62,36 +66,44 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
         }
 
         vm.start(customerId)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.state.collect { state ->
-                renderCards(
-                    customerId = customerId,
-                    cards = state.cards
-                )
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.effects.collect { effect ->
-                when (effect) {
-                    is CustomerPaymentMethodsViewModel.UiEffect.ShowMessage -> {
-                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
-                    }
-
-                    CustomerPaymentMethodsViewModel.UiEffect.DismissAddCardDialog -> {
-                        activeAddCardDialog?.dismiss()
-                        activeAddCardDialog = null
-                    }
-                }
-            }
-        }
+        collectViewModel()
     }
 
     override fun onDestroyView() {
         activeAddCardDialog?.dismiss()
         activeAddCardDialog = null
         super.onDestroyView()
+    }
+
+    private fun collectViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    vm.state.collect { state ->
+                        val customerId = currentCustomerId ?: return@collect
+                        renderCards(
+                            customerId = customerId,
+                            cards = state.cards
+                        )
+                    }
+                }
+
+                launch {
+                    vm.effects.collect { effect ->
+                        when (effect) {
+                            is CustomerPaymentMethodsViewModel.UiEffect.ShowMessage -> {
+                                Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                            }
+
+                            CustomerPaymentMethodsViewModel.UiEffect.DismissAddCardDialog -> {
+                                activeAddCardDialog?.dismiss()
+                                activeAddCardDialog = null
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun renderCards(

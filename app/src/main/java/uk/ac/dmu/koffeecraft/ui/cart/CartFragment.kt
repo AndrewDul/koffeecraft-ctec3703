@@ -4,15 +4,22 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
+import uk.ac.dmu.koffeecraft.core.di.appContainer
+import java.util.Locale
 
 class CartFragment : Fragment(R.layout.fragment_cart) {
 
+    private lateinit var vm: CartViewModel
     private lateinit var adapter: CartAdapter
     private lateinit var tvTotalValue: TextView
     private lateinit var tvBeans: TextView
@@ -21,6 +28,11 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        vm = ViewModelProvider(
+            this,
+            CartViewModelFactory(appContainer.cartRepository)
+        )[CartViewModel::class.java]
 
         val rv = view.findViewById<RecyclerView>(R.id.rvCart)
         tvTotalValue = view.findViewById(R.id.tvTotalValue)
@@ -33,50 +45,52 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
         rv.setHasFixedSize(false)
 
         adapter = CartAdapter(
-            items = CartManager.getItems(),
-            onPlus = {
-                CartManager.addExisting(it)
-                refresh()
+            items = emptyList(),
+            onPlus = { item ->
+                vm.addOne(item)
             },
-            onMinus = {
-                CartManager.removeOne(it.lineKey)
-                refresh()
+            onMinus = { item ->
+                vm.removeOne(item.lineKey)
             }
         )
         rv.adapter = adapter
 
-        refresh()
-
         btnCheckout.setOnClickListener {
-            if (CartManager.getItems().isEmpty()) return@setOnClickListener
+            if (vm.state.value.isEmpty) return@setOnClickListener
             findNavController().navigate(R.id.action_cart_to_checkout)
         }
 
         btnBackToMenu.setOnClickListener {
             findNavController().navigateUp()
         }
+
+        collectState()
     }
 
-    private fun refresh() {
-        val items = CartManager.getItems()
-        adapter.submitList(items)
+    private fun collectState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.state.collect { state ->
+                    render(state)
+                }
+            }
+        }
+    }
 
-        val total = CartManager.total()
-        val beansToSpend = CartManager.beansToSpend()
+    private fun render(state: CartUiState) {
+        adapter.submitList(state.items)
+        tvTotalValue.text = String.format(Locale.UK, "£%.2f", state.total)
 
-        tvTotalValue.text = String.format("£%.2f", total)
-
-        if (beansToSpend > 0) {
+        if (state.beansToSpend > 0) {
             tvBeans.visibility = View.VISIBLE
-            tvBeans.text = "Beans to spend: $beansToSpend"
+            tvBeans.text = "Beans to spend: ${state.beansToSpend}"
         } else {
             tvBeans.visibility = View.GONE
         }
 
-        val isEmpty = items.isEmpty()
-        tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        tvEmpty.visibility = if (state.isEmpty) View.VISIBLE else View.GONE
 
-        btnCheckout.isEnabled = !isEmpty
-        btnCheckout.alpha = if (isEmpty) 0.55f else 1f
+        btnCheckout.isEnabled = !state.isEmpty
+        btnCheckout.alpha = if (state.isEmpty) 0.55f else 1f
     }
 }

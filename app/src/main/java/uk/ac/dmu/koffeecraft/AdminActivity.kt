@@ -5,13 +5,14 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.core.di.appContainer
 
@@ -97,9 +98,11 @@ class AdminActivity : AppCompatActivity() {
 
     private fun observeState() {
         lifecycleScope.launch {
-            viewModel.state.collectLatest { state ->
-                tvBadge.visibility = if (state.showNotificationBadge) View.VISIBLE else View.GONE
-                tvBadge.text = state.notificationBadgeText
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    tvBadge.visibility = if (state.showNotificationBadge) View.VISIBLE else View.GONE
+                    tvBadge.text = state.notificationBadgeText
+                }
             }
         }
     }

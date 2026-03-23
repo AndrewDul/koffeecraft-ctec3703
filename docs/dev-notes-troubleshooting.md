@@ -1546,3 +1546,32 @@ After these changes:
 - the order status screen no longer used deprecated lifecycle collection
 - the build became clean again and the refactor was properly completed
 
+## 64)Build Issue During Refactoring
+
+During this cleanup, I had one build issue after the refactoring pass.
+
+**Problem**
+- the project failed to compile after one of the architecture changes
+- the issue was caused by a missing `collectLatest` import in `AdminMenuFragment`
+
+**Fix**
+- I checked the affected file
+- I added the missing `kotlinx.coroutines.flow.collectLatest` import
+- after that, the build issue was resolved
+
+**Why this matters**
+This was a small issue, but it is worth documenting because it happened during the refactoring phase and shows that I verified the project after architectural changes and fixed the integration problem.
+
+---
+
+## Final Outcome
+
+The cleanup phase significantly improved the structure of the application without changing the overall feature set.
+
+As a result, KoffeeCraft now presents a more mature architecture that is:
+
+- more consistent
+- more modular
+- more maintainable
+- easier to document
+- easier to justify during assessment

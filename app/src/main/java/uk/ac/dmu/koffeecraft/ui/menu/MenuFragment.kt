@@ -27,10 +27,11 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
         super.onViewCreated(view, savedInstanceState)
 
         val menuRepository = appContainer.menuRepository
+        val sessionRepository = appContainer.sessionRepository
 
         vm = ViewModelProvider(
             this,
-            MenuViewModelFactory(menuRepository)
+            MenuViewModelFactory(menuRepository, sessionRepository)
         )[MenuViewModel::class.java]
 
         tvFilterCoffee = view.findViewById(R.id.tvFilterCoffee)

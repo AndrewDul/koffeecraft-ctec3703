@@ -5,14 +5,17 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.repository.AuthRepository
+import uk.ac.dmu.koffeecraft.data.repository.AuthSessionLoginResult
+import uk.ac.dmu.koffeecraft.data.repository.AuthSessionRepository
 
-class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
+class LoginViewModel(
+    private val repo: AuthSessionRepository
+) : ViewModel() {
 
-    data class LoginSuccess(
-        val userId: Long,
-        val role: AuthRepository.UserRole
-    )
+    sealed interface LoginSuccess {
+        data class Customer(val customerId: Long) : LoginSuccess
+        data class Admin(val adminId: Long) : LoginSuccess
+    }
 
     data class UiState(
         val isLoading: Boolean = false,
@@ -30,20 +33,24 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
         viewModelScope.launch {
             when (val result = repo.login(email, password.toCharArray())) {
-                is AuthRepository.LoginResult.Success -> {
-                    _state.value = UiState(
-                        isLoading = false,
-                        loginSuccess = LoginSuccess(
-                            userId = result.userId,
-                            role = result.role
-                        )
-                    )
-                }
-
-                is AuthRepository.LoginResult.Error -> {
+                is AuthSessionLoginResult.Error -> {
                     _state.value = UiState(
                         isLoading = false,
                         error = result.message
+                    )
+                }
+
+                is AuthSessionLoginResult.Admin -> {
+                    _state.value = UiState(
+                        isLoading = false,
+                        loginSuccess = LoginSuccess.Admin(result.adminId)
+                    )
+                }
+
+                is AuthSessionLoginResult.Customer -> {
+                    _state.value = UiState(
+                        isLoading = false,
+                        loginSuccess = LoginSuccess.Customer(result.customerId)
                     )
                 }
             }

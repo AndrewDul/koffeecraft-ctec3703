@@ -19,9 +19,7 @@ import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+
 import uk.ac.dmu.koffeecraft.util.ui.ValidationUiStyler
 import uk.ac.dmu.koffeecraft.util.validation.DateOfBirthValidator
 import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
@@ -38,10 +36,8 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         val appContext = requireContext().applicationContext
         vm = ViewModelProvider(
             this,
-            RegisterViewModelFactory(appContainer.authRepository)
+            RegisterViewModelFactory(appContext.appContainer.authSessionRepository)
         )[RegisterViewModel::class.java]
-
-        CartManager.attachContext(appContext)
 
         val tilFirst = view.findViewById<TextInputLayout>(R.id.tilFirstName)
         val tilLast = view.findViewById<TextInputLayout>(R.id.tilLastName)
@@ -227,13 +223,6 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
 
                 if (state.success && state.registeredCustomerId != null && !hasNavigatedAfterSuccess) {
                     hasNavigatedAfterSuccess = true
-                    SessionManager.setCustomer(state.registeredCustomerId)
-                    RememberedSessionStore.saveCustomerSession(
-                        context = appContext,
-                        customerId = state.registeredCustomerId,
-                        onboardingPending = true
-                    )
-                    CartManager.clearInMemoryOnly()
 
                     findNavController().navigate(
                         R.id.onboardingFragment,

@@ -11,8 +11,10 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -27,6 +29,7 @@ import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 import uk.ac.dmu.koffeecraft.util.payment.PaymentCardValidator
+import java.util.Locale
 
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
@@ -44,7 +47,10 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         vm = ViewModelProvider(
             this,
-            CheckoutViewModelFactory(appContainer.checkoutRepository)
+            CheckoutViewModelFactory(
+                checkoutRepository = appContainer.checkoutRepository,
+                cartRepository = appContainer.cartRepository
+            )
         )[CheckoutViewModel::class.java]
 
         val tvTotalValue = view.findViewById<TextView>(R.id.tvTotalValue)
@@ -187,85 +193,130 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         vm.start(customerId)
 
+        collectState(
+            tvTotalValue = tvTotalValue,
+            tvBeans = tvBeans,
+            tilHolder = tilHolder,
+            tilNumber = tilNumber,
+            tilExpiry = tilExpiry,
+            tilCvv = tilCvv,
+            containerSavedCards = containerSavedCards,
+            tvSavedCardsEmpty = tvSavedCardsEmpty,
+            tvPaymentCard = tvPaymentCard,
+            tvPaymentApplePay = tvPaymentApplePay,
+            tvPaymentCash = tvPaymentCash,
+            cardSection = cardSection,
+            applePaySection = applePaySection,
+            cashSection = cashSection,
+            btnPay = btnPay
+        )
+
+        collectEffects()
+    }
+
+    private fun collectState(
+        tvTotalValue: TextView,
+        tvBeans: TextView,
+        tilHolder: TextInputLayout,
+        tilNumber: TextInputLayout,
+        tilExpiry: TextInputLayout,
+        tilCvv: TextInputLayout,
+        containerSavedCards: LinearLayout,
+        tvSavedCardsEmpty: TextView,
+        tvPaymentCard: TextView,
+        tvPaymentApplePay: TextView,
+        tvPaymentCash: TextView,
+        cardSection: View,
+        applePaySection: View,
+        cashSection: View,
+        btnPay: MaterialButton
+    ) {
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.state.collect { state ->
-                tvTotalValue.text = String.format("£%.2f", state.total)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.state.collect { state ->
+                    tvTotalValue.text = String.format(Locale.UK, "£%.2f", state.total)
 
-                if (state.beansToSpend > 0) {
-                    tvBeans.visibility = View.VISIBLE
-                    tvBeans.text = "Beans to spend: ${state.beansToSpend}"
-                } else {
-                    tvBeans.visibility = View.GONE
-                }
-
-                applyValidationErrors(
-                    validation = state.cardValidation,
-                    tilHolder = tilHolder,
-                    tilNumber = tilNumber,
-                    tilExpiry = tilExpiry,
-                    tilCvv = tilCvv
-                )
-
-                renderSavedCards(
-                    savedCards = state.savedCards,
-                    selectedSavedCardId = state.selectedSavedCardId,
-                    containerSavedCards = containerSavedCards,
-                    tvSavedCardsEmpty = tvSavedCardsEmpty,
-                    onCardSelected = { cardId ->
-                        vm.selectSavedCard(cardId)
+                    if (state.beansToSpend > 0) {
+                        tvBeans.visibility = View.VISIBLE
+                        tvBeans.text = "Beans to spend: ${state.beansToSpend}"
+                    } else {
+                        tvBeans.visibility = View.GONE
                     }
-                )
 
-                updatePaymentSelectionUi(
-                    selectedPaymentType = state.paymentType,
-                    tvPaymentCard = tvPaymentCard,
-                    tvPaymentApplePay = tvPaymentApplePay,
-                    tvPaymentCash = tvPaymentCash,
-                    cardSection = cardSection,
-                    applePaySection = applePaySection,
-                    cashSection = cashSection
-                )
+                    applyValidationErrors(
+                        validation = state.cardValidation,
+                        tilHolder = tilHolder,
+                        tilNumber = tilNumber,
+                        tilExpiry = tilExpiry,
+                        tilCvv = tilCvv
+                    )
 
-                btnPay.isEnabled = !state.isSubmitting
-                btnPay.alpha = if (state.isSubmitting) 0.7f else 1f
-                btnPay.text = if (state.isSubmitting) "Processing..." else "Pay now"
+                    renderSavedCards(
+                        savedCards = state.savedCards,
+                        selectedSavedCardId = state.selectedSavedCardId,
+                        containerSavedCards = containerSavedCards,
+                        tvSavedCardsEmpty = tvSavedCardsEmpty,
+                        onCardSelected = { cardId ->
+                            vm.selectSavedCard(cardId)
+                        }
+                    )
+
+                    updatePaymentSelectionUi(
+                        selectedPaymentType = state.paymentType,
+                        tvPaymentCard = tvPaymentCard,
+                        tvPaymentApplePay = tvPaymentApplePay,
+                        tvPaymentCash = tvPaymentCash,
+                        cardSection = cardSection,
+                        applePaySection = applePaySection,
+                        cashSection = cashSection
+                    )
+
+                    val canPay = !state.isSubmitting && !state.isCartEmpty
+                    btnPay.isEnabled = canPay
+                    btnPay.alpha = if (canPay) 1f else 0.7f
+                    btnPay.text = if (state.isSubmitting) "Processing..." else "Pay now"
+                }
             }
         }
+    }
 
+    private fun collectEffects() {
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.effects.collect { effect ->
-                when (effect) {
-                    is CheckoutUiEffect.ShowMessage -> {
-                        Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
-                    }
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.effects.collect { effect ->
+                    when (effect) {
+                        is CheckoutUiEffect.ShowMessage -> {
+                            Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                        }
 
-                    is CheckoutUiEffect.CheckoutCompleted -> {
-                        if (!isAdded) return@collect
+                        is CheckoutUiEffect.CheckoutCompleted -> {
+                            if (!isAdded) return@collect
 
-                        Toast.makeText(
-                            requireContext(),
-                            effect.paymentMessage,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                            Toast.makeText(
+                                requireContext(),
+                                effect.paymentMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
 
-                        NotificationHelper.showCustomerOrderNotification(
-                            context = requireContext(),
-                            title = "Payment confirmed",
-                            message = "Your order #${effect.orderId} has been placed successfully.",
-                            notificationId = (effect.orderId % Int.MAX_VALUE).toInt(),
-                            orderId = effect.orderId
-                        )
-
-                        val simulate = SimulationSettings.isEnabled(requireContext())
-
-                        findNavController().navigate(
-                            R.id.action_checkout_to_status,
-                            bundleOf(
-                                "orderId" to effect.orderId,
-                                "simulate" to simulate,
-                                "fromCheckout" to true
+                            NotificationHelper.showCustomerOrderNotification(
+                                context = requireContext(),
+                                title = "Payment confirmed",
+                                message = "Your order #${effect.orderId} has been placed successfully.",
+                                notificationId = (effect.orderId % Int.MAX_VALUE).toInt(),
+                                orderId = effect.orderId
                             )
-                        )
+
+                            val simulate = SimulationSettings.isEnabled(requireContext())
+
+                            findNavController().navigate(
+                                R.id.action_checkout_to_status,
+                                bundleOf(
+                                    "orderId" to effect.orderId,
+                                    "simulate" to simulate,
+                                    "fromCheckout" to true
+                                )
+                            )
+                        }
                     }
                 }
             }

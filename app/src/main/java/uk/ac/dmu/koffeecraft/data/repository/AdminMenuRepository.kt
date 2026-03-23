@@ -1,5 +1,6 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
@@ -34,7 +35,7 @@ class AdminMenuRepository(
         price: Double,
         rewardEnabled: Boolean,
         isNew: Boolean
-    ): Product? {
+    ): Product? = db.withTransaction {
         val insertedId = db.productDao().insert(
             Product(
                 name = name,
@@ -48,7 +49,7 @@ class AdminMenuRepository(
             )
         )
 
-        return db.productDao().getById(insertedId)
+        db.productDao().getById(insertedId)
     }
 
     suspend fun updateProduct(
@@ -59,7 +60,7 @@ class AdminMenuRepository(
         price: Double,
         rewardEnabled: Boolean,
         isNew: Boolean
-    ): Product? {
+    ): Product? = db.withTransaction {
         val updated = existing.copy(
             name = name,
             productFamily = productFamily,
@@ -70,118 +71,185 @@ class AdminMenuRepository(
         )
 
         db.productDao().update(updated)
-        return db.productDao().getById(existing.productId)
+        db.productDao().getById(existing.productId)
     }
 
-    fun productOptionDao(): ProductOptionGateway = ProductOptionGateway(db)
-    fun addOnDao(): AddOnGateway = AddOnGateway(db)
-    fun allergenDao(): AllergenGateway = AllergenGateway(db)
-}
-
-class ProductOptionGateway(
-    private val db: KoffeeCraftDatabase
-) {
-    suspend fun getForProduct(productId: Long): List<ProductOption> {
+    suspend fun getOptionsForProduct(productId: Long): List<ProductOption> {
         return db.productOptionDao().getForProduct(productId)
     }
 
-    suspend fun deleteById(optionId: Long) {
+    suspend fun deleteOptionById(optionId: Long) {
         db.productOptionDao().deleteById(optionId)
     }
 
-    suspend fun clearDefaultForProduct(productId: Long) {
-        db.productOptionDao().clearDefaultForProduct(productId)
+    suspend fun saveProductOption(
+        productId: Long,
+        existing: ProductOption?,
+        optionName: String,
+        displayLabel: String,
+        sizeValue: Int,
+        sizeUnit: String,
+        extraPrice: Double,
+        estimatedCalories: Int,
+        isDefault: Boolean
+    ) {
+        db.withTransaction {
+            if (isDefault) {
+                db.productOptionDao().clearDefaultForProduct(productId)
+            }
+
+            if (existing == null) {
+                db.productOptionDao().insert(
+                    ProductOption(
+                        productId = productId,
+                        optionName = optionName,
+                        displayLabel = displayLabel,
+                        sizeValue = sizeValue,
+                        sizeUnit = sizeUnit,
+                        extraPrice = extraPrice,
+                        estimatedCalories = estimatedCalories,
+                        isDefault = isDefault
+                    )
+                )
+            } else {
+                db.productOptionDao().update(
+                    existing.copy(
+                        displayLabel = displayLabel,
+                        sizeValue = sizeValue,
+                        sizeUnit = sizeUnit,
+                        extraPrice = extraPrice,
+                        estimatedCalories = estimatedCalories,
+                        isDefault = isDefault
+                    )
+                )
+            }
+        }
     }
 
-    suspend fun insert(option: ProductOption): Long {
-        return db.productOptionDao().insert(option)
-    }
-
-    suspend fun update(option: ProductOption) {
-        db.productOptionDao().update(option)
-    }
-}
-
-class AddOnGateway(
-    private val db: KoffeeCraftDatabase
-) {
-    suspend fun getAllByCategory(category: String): List<AddOn> {
+    suspend fun getAllAddOnsByCategory(category: String): List<AddOn> {
         return db.addOnDao().getAllByCategory(category)
     }
 
-    suspend fun getAssignedForProduct(productId: Long): List<AddOn> {
+    suspend fun getAssignedAddOnsForProduct(productId: Long): List<AddOn> {
         return db.addOnDao().getAssignedForProduct(productId)
     }
 
-    suspend fun deleteProductRef(productId: Long, addOnId: Long) {
+    suspend fun removeAddOnFromProduct(productId: Long, addOnId: Long) {
         db.addOnDao().deleteProductRef(productId, addOnId)
     }
 
-    suspend fun setActive(addOnId: Long, isActive: Boolean) {
+    suspend fun assignAddOnToProduct(productId: Long, addOnId: Long) {
+        db.addOnDao().insertProductRefs(
+            listOf(
+                ProductAddOnCrossRef(
+                    productId = productId,
+                    addOnId = addOnId
+                )
+            )
+        )
+    }
+
+    suspend fun setAddOnActive(addOnId: Long, isActive: Boolean) {
         db.addOnDao().setActive(addOnId, isActive)
     }
 
-    suspend fun insertProductRefs(refs: List<ProductAddOnCrossRef>) {
-        db.addOnDao().insertProductRefs(refs)
+    suspend fun saveAddOn(
+        existing: AddOn?,
+        name: String,
+        category: String,
+        price: Double,
+        estimatedCalories: Int,
+        isActive: Boolean
+    ) {
+        if (existing == null) {
+            db.addOnDao().insert(
+                AddOn(
+                    name = name,
+                    category = category,
+                    price = price,
+                    estimatedCalories = estimatedCalories,
+                    isActive = isActive
+                )
+            )
+        } else {
+            db.addOnDao().update(
+                existing.copy(
+                    name = name,
+                    price = price,
+                    estimatedCalories = estimatedCalories,
+                    isActive = isActive
+                )
+            )
+        }
     }
 
-    suspend fun deleteRefsForAddOn(addOnId: Long) {
-        db.addOnDao().deleteRefsForAddOn(addOnId)
+    suspend fun deleteAddOnPermanently(addOnId: Long) {
+        db.withTransaction {
+            db.addOnDao().deleteRefsForAddOn(addOnId)
+            db.allergenDao().deleteAddOnRefs(addOnId)
+            db.addOnDao().deleteById(addOnId)
+        }
     }
 
-    suspend fun deleteById(addOnId: Long) {
-        db.addOnDao().deleteById(addOnId)
-    }
-
-    suspend fun insert(addOn: AddOn): Long {
-        return db.addOnDao().insert(addOn)
-    }
-
-    suspend fun update(addOn: AddOn) {
-        db.addOnDao().update(addOn)
-    }
-}
-
-class AllergenGateway(
-    private val db: KoffeeCraftDatabase
-) {
-    suspend fun getForProduct(productId: Long): List<Allergen> {
-        return db.allergenDao().getForProduct(productId)
-    }
-
-    suspend fun getAll(): List<Allergen> {
+    suspend fun getAllAllergens(): List<Allergen> {
         return db.allergenDao().getAll()
     }
 
-    suspend fun insert(allergen: Allergen): Long {
-        return db.allergenDao().insert(allergen)
+    suspend fun createAllergen(name: String): Long {
+        return db.allergenDao().insert(Allergen(name = name))
     }
 
-    suspend fun getProductAllergenIds(productId: Long): List<Long> {
-        return db.allergenDao().getProductAllergenIds(productId)
+    suspend fun getAllergensForProduct(productId: Long): List<Allergen> {
+        return db.allergenDao().getForProduct(productId)
     }
 
-    suspend fun deleteProductRefs(productId: Long) {
-        db.allergenDao().deleteProductRefs(productId)
+    suspend fun getSelectedProductAllergenIds(productId: Long): Set<Long> {
+        return db.allergenDao().getProductAllergenIds(productId).toSet()
     }
 
-    suspend fun insertProductRefs(refs: List<ProductAllergenCrossRef>) {
-        db.allergenDao().insertProductRefs(refs)
+    suspend fun replaceProductAllergenSelection(
+        productId: Long,
+        allergenIds: Set<Long>
+    ) {
+        val refs = allergenIds.map { allergenId ->
+            ProductAllergenCrossRef(
+                productId = productId,
+                allergenId = allergenId
+            )
+        }
+
+        db.withTransaction {
+            db.allergenDao().deleteProductRefs(productId)
+            if (refs.isNotEmpty()) {
+                db.allergenDao().insertProductRefs(refs)
+            }
+        }
     }
 
-    suspend fun getForAddOn(addOnId: Long): List<Allergen> {
+    suspend fun getAllergensForAddOn(addOnId: Long): List<Allergen> {
         return db.allergenDao().getForAddOn(addOnId)
     }
 
-    suspend fun getAddOnAllergenIds(addOnId: Long): List<Long> {
-        return db.allergenDao().getAddOnAllergenIds(addOnId)
+    suspend fun getSelectedAddOnAllergenIds(addOnId: Long): Set<Long> {
+        return db.allergenDao().getAddOnAllergenIds(addOnId).toSet()
     }
 
-    suspend fun deleteAddOnRefs(addOnId: Long) {
-        db.allergenDao().deleteAddOnRefs(addOnId)
-    }
+    suspend fun replaceAddOnAllergenSelection(
+        addOnId: Long,
+        allergenIds: Set<Long>
+    ) {
+        val refs = allergenIds.map { allergenId ->
+            AddOnAllergenCrossRef(
+                addOnId = addOnId,
+                allergenId = allergenId
+            )
+        }
 
-    suspend fun insertAddOnRefs(refs: List<AddOnAllergenCrossRef>) {
-        db.allergenDao().insertAddOnRefs(refs)
+        db.withTransaction {
+            db.allergenDao().deleteAddOnRefs(addOnId)
+            if (refs.isNotEmpty()) {
+                db.allergenDao().insertAddOnRefs(refs)
+            }
+        }
     }
 }

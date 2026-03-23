@@ -10,5 +10,6 @@ data class CheckoutUiState(
     val selectedSavedCardId: Long? = null,
     val savedCards: List<CustomerPaymentCard> = emptyList(),
     val isSubmitting: Boolean = false,
+    val isCartEmpty: Boolean = true,
     val cardValidation: CheckoutCardValidationResult = CheckoutCardValidationResult()
 )

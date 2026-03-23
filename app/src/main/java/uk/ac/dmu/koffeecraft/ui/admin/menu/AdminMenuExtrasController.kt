@@ -8,25 +8,32 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.Product
-import uk.ac.dmu.koffeecraft.data.entities.ProductAddOnCrossRef
-import uk.ac.dmu.koffeecraft.data.repository.AdminMenuRepository
 import java.util.Locale
 
 class AdminMenuExtrasController(
     private val fragment: Fragment,
-    private val repository: AdminMenuRepository
+    private val viewModel: AdminMenuViewModel
 ) {
+
+    private var isObserving = false
+    private var activeProduct: Product? = null
+    private var onSavedCallback: (() -> Unit)? = null
+
+    private var tvAssignedEmpty: TextView? = null
+    private var tvLibraryEmpty: TextView? = null
+    private var containerAssignedExtras: LinearLayout? = null
+    private var containerLibraryExtras: LinearLayout? = null
 
     fun showManageExtrasDialog(
         product: Product,
@@ -46,12 +53,19 @@ class AdminMenuExtrasController(
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvManageExtrasTitle)
         val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvManageExtrasSubtitle)
         val btnCreateExtra = dialogView.findViewById<MaterialButton>(R.id.btnCreateExtra)
-        val tvAssignedEmpty = dialogView.findViewById<TextView>(R.id.tvAssignedEmpty)
-        val tvLibraryEmpty = dialogView.findViewById<TextView>(R.id.tvLibraryEmpty)
-        val containerAssignedExtras =
+        val localTvAssignedEmpty = dialogView.findViewById<TextView>(R.id.tvAssignedEmpty)
+        val localTvLibraryEmpty = dialogView.findViewById<TextView>(R.id.tvLibraryEmpty)
+        val localContainerAssignedExtras =
             dialogView.findViewById<LinearLayout>(R.id.containerAssignedExtras)
-        val containerLibraryExtras =
+        val localContainerLibraryExtras =
             dialogView.findViewById<LinearLayout>(R.id.containerLibraryExtras)
+
+        activeProduct = product
+        onSavedCallback = onSaved
+        tvAssignedEmpty = localTvAssignedEmpty
+        tvLibraryEmpty = localTvLibraryEmpty
+        containerAssignedExtras = localContainerAssignedExtras
+        containerLibraryExtras = localContainerLibraryExtras
 
         tvTitle.text = "Manage extras for ${product.name}"
         tvSubtitle.text = if (product.isCoffee) {
@@ -60,25 +74,12 @@ class AdminMenuExtrasController(
             "Keep cake extras organised, assign only what this cake should offer, and manage the shared library professionally."
         }
 
-        fun refreshExtrasContent() {
-            populateManageExtrasDialog(
-                product = product,
-                assignedContainer = containerAssignedExtras,
-                libraryContainer = containerLibraryExtras,
-                tvAssignedEmpty = tvAssignedEmpty,
-                tvLibraryEmpty = tvLibraryEmpty,
-                onChanged = {
-                    refreshExtrasContent()
-                    onSaved()
-                }
-            )
-        }
-
         btnCreateExtra.setOnClickListener {
-            showAddOnFormDialog(product.productFamily, null) {
-                refreshExtrasContent()
-                onSaved()
-            }
+            showAddOnFormDialog(
+                product = product,
+                category = product.productFamily,
+                existing = null
+            )
         }
 
         val dialog = MaterialAlertDialogBuilder(fragment.requireContext())
@@ -87,202 +88,175 @@ class AdminMenuExtrasController(
             .create()
 
         dialog.setOnShowListener {
-            refreshExtrasContent()
+            bindLoadingState()
+            viewModel.loadProductExtras(product)
         }
 
+        dialog.setOnDismissListener {
+            clearDialogRefs()
+        }
+
+        ensureObserver()
         dialog.show()
     }
 
-    private fun populateManageExtrasDialog(
-        product: Product,
-        assignedContainer: LinearLayout,
-        libraryContainer: LinearLayout,
-        tvAssignedEmpty: TextView,
-        tvLibraryEmpty: TextView,
-        onChanged: () -> Unit
-    ) {
-        fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            val allAddOns = repository.addOnDao().getAllByCategory(product.productFamily)
-            val assignedAddOns = repository.addOnDao().getAssignedForProduct(product.productId)
-            val assignedIds = assignedAddOns.map { it.addOnId }.toSet()
-            val unassignedLibraryAddOns = allAddOns.filterNot { assignedIds.contains(it.addOnId) }
+    private fun ensureObserver() {
+        if (isObserving) return
+        isObserving = true
 
-            withContext(Dispatchers.Main) {
-                if (!fragment.isAdded) return@withContext
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.productExtrasState.collect { state ->
+                    val currentProduct = activeProduct ?: return@collect
+                    if (state.productId != currentProduct.productId) return@collect
 
-                assignedContainer.removeAllViews()
-                libraryContainer.removeAllViews()
-
-                tvAssignedEmpty.visibility =
-                    if (assignedAddOns.isEmpty()) View.VISIBLE else View.GONE
-                tvLibraryEmpty.visibility =
-                    if (unassignedLibraryAddOns.isEmpty()) View.VISIBLE else View.GONE
-
-                assignedAddOns.forEach { addOn ->
-                    val stateText = if (addOn.isActive) {
-                        "Assigned • Active"
-                    } else {
-                        "Assigned • Disabled in library"
-                    }
-
-                    addManageExtraCard(
-                        container = assignedContainer,
-                        addOn = addOn,
-                        stateText = stateText,
-                        primaryText = "Remove",
-                        onPrimary = {
-                            fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                repository.addOnDao().deleteProductRef(product.productId, addOn.addOnId)
-
-                                withContext(Dispatchers.Main) {
-                                    if (!fragment.isAdded) return@withContext
-                                    Toast.makeText(
-                                        fragment.requireContext(),
-                                        "\"${addOn.name}\" removed from ${product.name}.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    onChanged()
-                                }
-                            }
-                        },
-                        secondaryText = "Edit",
-                        onSecondary = {
-                            showAddOnFormDialog(addOn.category, addOn) {
-                                onChanged()
-                            }
-                        },
-                        tertiaryText = if (addOn.isActive) "Disable" else "Enable",
-                        onTertiary = {
-                            fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                repository.addOnDao().setActive(addOn.addOnId, !addOn.isActive)
-
-                                withContext(Dispatchers.Main) {
-                                    if (!fragment.isAdded) return@withContext
-                                    Toast.makeText(
-                                        fragment.requireContext(),
-                                        if (addOn.isActive) {
-                                            "\"${addOn.name}\" disabled."
-                                        } else {
-                                            "\"${addOn.name}\" enabled."
-                                        },
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    onChanged()
-                                }
-                            }
-                        }
+                    renderExtras(
+                        product = currentProduct,
+                        assignedExtras = state.assignedExtras,
+                        libraryExtras = state.libraryExtras,
+                        isLoading = state.isLoading
                     )
                 }
+            }
+        }
+    }
 
-                unassignedLibraryAddOns.forEach { addOn ->
-                    if (addOn.isActive) {
-                        addManageExtraCard(
-                            container = libraryContainer,
-                            addOn = addOn,
-                            stateText = "Available in library",
-                            primaryText = "Assign",
-                            onPrimary = {
-                                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                    repository.addOnDao().insertProductRefs(
-                                        listOf(
-                                            ProductAddOnCrossRef(
-                                                productId = product.productId,
-                                                addOnId = addOn.addOnId
-                                            )
-                                        )
-                                    )
+    private fun renderExtras(
+        product: Product,
+        assignedExtras: List<AddOn>,
+        libraryExtras: List<AddOn>,
+        isLoading: Boolean
+    ) {
+        val assignedContainer = containerAssignedExtras ?: return
+        val libraryContainer = containerLibraryExtras ?: return
+        val assignedEmpty = tvAssignedEmpty ?: return
+        val libraryEmpty = tvLibraryEmpty ?: return
 
-                                    withContext(Dispatchers.Main) {
-                                        if (!fragment.isAdded) return@withContext
-                                        Toast.makeText(
-                                            fragment.requireContext(),
-                                            "\"${addOn.name}\" assigned to ${product.name}.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        onChanged()
-                                    }
-                                }
-                            },
-                            secondaryText = "Edit",
-                            onSecondary = {
-                                showAddOnFormDialog(addOn.category, addOn) {
-                                    onChanged()
-                                }
-                            },
-                            tertiaryText = "Disable",
-                            onTertiary = {
-                                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                    repository.addOnDao().setActive(addOn.addOnId, false)
+        assignedContainer.removeAllViews()
+        libraryContainer.removeAllViews()
 
-                                    withContext(Dispatchers.Main) {
-                                        if (!fragment.isAdded) return@withContext
-                                        Toast.makeText(
-                                            fragment.requireContext(),
-                                            "\"${addOn.name}\" disabled.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        onChanged()
-                                    }
-                                }
-                            }
-                        )
-                    } else {
-                        addManageExtraCard(
-                            container = libraryContainer,
-                            addOn = addOn,
-                            stateText = "Disabled in library",
-                            primaryText = "Enable",
-                            onPrimary = {
-                                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                    repository.addOnDao().setActive(addOn.addOnId, true)
+        if (isLoading) {
+            assignedEmpty.visibility = View.VISIBLE
+            libraryEmpty.visibility = View.VISIBLE
+            assignedEmpty.text = "Loading..."
+            libraryEmpty.text = "Loading..."
+            return
+        }
 
-                                    withContext(Dispatchers.Main) {
-                                        if (!fragment.isAdded) return@withContext
-                                        Toast.makeText(
-                                            fragment.requireContext(),
-                                            "\"${addOn.name}\" enabled.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        onChanged()
-                                    }
-                                }
-                            },
-                            secondaryText = "Edit",
-                            onSecondary = {
-                                showAddOnFormDialog(addOn.category, addOn) {
-                                    onChanged()
-                                }
-                            },
-                            tertiaryText = "Delete",
-                            onTertiary = {
-                                MaterialAlertDialogBuilder(fragment.requireContext())
-                                    .setTitle("Delete this extra permanently?")
-                                    .setMessage(
-                                        "This will permanently remove \"${addOn.name}\" from the library and remove its links to products and allergens. Use enable if you may need it again later."
-                                    )
-                                    .setNegativeButton("Cancel", null)
-                                    .setPositiveButton("Delete") { _, _ ->
-                                        fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                            repository.addOnDao().deleteRefsForAddOn(addOn.addOnId)
-                                            repository.allergenDao().deleteAddOnRefs(addOn.addOnId)
-                                            repository.addOnDao().deleteById(addOn.addOnId)
+        assignedEmpty.visibility = if (assignedExtras.isEmpty()) View.VISIBLE else View.GONE
+        libraryEmpty.visibility = if (libraryExtras.isEmpty()) View.VISIBLE else View.GONE
 
-                                            withContext(Dispatchers.Main) {
-                                                if (!fragment.isAdded) return@withContext
-                                                Toast.makeText(
-                                                    fragment.requireContext(),
-                                                    "\"${addOn.name}\" deleted permanently.",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                onChanged()
-                                            }
-                                        }
-                                    }
-                                    .show()
-                            }
-                        )
+        assignedEmpty.text = "No extras assigned yet."
+        libraryEmpty.text = "No extras available in the library."
+
+        assignedExtras.forEach { addOn ->
+            val stateText = if (addOn.isActive) {
+                "Assigned • Active"
+            } else {
+                "Assigned • Disabled in library"
+            }
+
+            addManageExtraCard(
+                container = assignedContainer,
+                addOn = addOn,
+                stateText = stateText,
+                primaryText = "Remove",
+                onPrimary = {
+                    viewModel.removeProductExtra(product, addOn) {
+                        onSavedCallback?.invoke()
+                    }
+                },
+                secondaryText = "Edit",
+                onSecondary = {
+                    showAddOnFormDialog(
+                        product = product,
+                        category = addOn.category,
+                        existing = addOn
+                    )
+                },
+                tertiaryText = if (addOn.isActive) "Disable" else "Enable",
+                onTertiary = {
+                    viewModel.setProductExtraActive(
+                        product = product,
+                        addOn = addOn,
+                        isActive = !addOn.isActive
+                    ) {
+                        onSavedCallback?.invoke()
                     }
                 }
+            )
+        }
+
+        libraryExtras.forEach { addOn ->
+            if (addOn.isActive) {
+                addManageExtraCard(
+                    container = libraryContainer,
+                    addOn = addOn,
+                    stateText = "Available in library",
+                    primaryText = "Assign",
+                    onPrimary = {
+                        viewModel.assignProductExtra(product, addOn) {
+                            onSavedCallback?.invoke()
+                        }
+                    },
+                    secondaryText = "Edit",
+                    onSecondary = {
+                        showAddOnFormDialog(
+                            product = product,
+                            category = addOn.category,
+                            existing = addOn
+                        )
+                    },
+                    tertiaryText = "Disable",
+                    onTertiary = {
+                        viewModel.setProductExtraActive(
+                            product = product,
+                            addOn = addOn,
+                            isActive = false
+                        ) {
+                            onSavedCallback?.invoke()
+                        }
+                    }
+                )
+            } else {
+                addManageExtraCard(
+                    container = libraryContainer,
+                    addOn = addOn,
+                    stateText = "Disabled in library",
+                    primaryText = "Enable",
+                    onPrimary = {
+                        viewModel.setProductExtraActive(
+                            product = product,
+                            addOn = addOn,
+                            isActive = true
+                        ) {
+                            onSavedCallback?.invoke()
+                        }
+                    },
+                    secondaryText = "Edit",
+                    onSecondary = {
+                        showAddOnFormDialog(
+                            product = product,
+                            category = addOn.category,
+                            existing = addOn
+                        )
+                    },
+                    tertiaryText = "Delete",
+                    onTertiary = {
+                        MaterialAlertDialogBuilder(fragment.requireContext())
+                            .setTitle("Delete this extra permanently?")
+                            .setMessage(
+                                "This will permanently remove \"${addOn.name}\" from the library and remove its links to products and allergens. Use enable if you may need it again later."
+                            )
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Delete") { _, _ ->
+                                viewModel.deleteProductExtraPermanently(product, addOn) {
+                                    onSavedCallback?.invoke()
+                                }
+                            }
+                            .show()
+                    }
+                )
             }
         }
     }
@@ -335,9 +309,9 @@ class AdminMenuExtrasController(
     }
 
     private fun showAddOnFormDialog(
+        product: Product,
         category: String,
-        existing: AddOn?,
-        onSaved: () -> Unit
+        existing: AddOn?
     ) {
         val dialogView = fragment.layoutInflater.inflate(R.layout.dialog_add_on_form, null)
 
@@ -411,42 +385,39 @@ class AdminMenuExtrasController(
                 val validatedPrice = price ?: return@setOnClickListener
                 val validatedCalories = calories ?: return@setOnClickListener
 
-                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    if (existing == null) {
-                        repository.addOnDao().insert(
-                            AddOn(
-                                name = name,
-                                category = category,
-                                price = validatedPrice,
-                                estimatedCalories = validatedCalories,
-                                isActive = isActive
-                            )
-                        )
-                    } else {
-                        repository.addOnDao().update(
-                            existing.copy(
-                                name = name,
-                                price = validatedPrice,
-                                estimatedCalories = validatedCalories,
-                                isActive = isActive
-                            )
-                        )
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (!fragment.isAdded) return@withContext
-                        Toast.makeText(
-                            fragment.requireContext(),
-                            if (existing == null) "Extra created." else "Extra updated.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        dialog.dismiss()
-                        onSaved()
-                    }
+                viewModel.saveProductExtra(
+                    category = category,
+                    existing = existing,
+                    name = name,
+                    price = validatedPrice,
+                    estimatedCalories = validatedCalories,
+                    isActive = isActive,
+                    product = product
+                ) {
+                    dialog.dismiss()
+                    onSavedCallback?.invoke()
                 }
             }
         }
 
         dialog.show()
+    }
+
+    private fun bindLoadingState() {
+        tvAssignedEmpty?.visibility = View.VISIBLE
+        tvLibraryEmpty?.visibility = View.VISIBLE
+        tvAssignedEmpty?.text = "Loading..."
+        tvLibraryEmpty?.text = "Loading..."
+        containerAssignedExtras?.removeAllViews()
+        containerLibraryExtras?.removeAllViews()
+    }
+
+    private fun clearDialogRefs() {
+        activeProduct = null
+        onSavedCallback = null
+        tvAssignedEmpty = null
+        tvLibraryEmpty = null
+        containerAssignedExtras = null
+        containerLibraryExtras = null
     }
 }
