@@ -37,3 +37,23 @@ Focus:
 
 Evidence:
 - docs/evidence/testing/instrumented-batch-2-overview.png
+
+
+
+## Batch 3 – Instrumented DAO Tests
+Date: 2026-03-23
+
+Tests included:
+- CustomerPaymentCardDaoInstrumentedTest
+- OrderItemDaoInstrumentedTest
+- FeedbackDaoInstrumentedTest
+- NotificationDaoInstrumentedTest
+
+Focus:
+- saved payment card persistence and default card selection
+- order item query behaviour for reorder, feedback, and display
+- feedback aggregation and moderation state changes
+- notification queries, unread counts, and read state updates
+
+Evidence:
+- docs/evidence/testing/dao-batch-3-overview.png
