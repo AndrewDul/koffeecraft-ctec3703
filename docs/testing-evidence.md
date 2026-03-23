@@ -13,11 +13,16 @@ Result:
 - 43 tests passed
 
 Evidence:
-- docs/evidence/testing/unit-batch-1-overview.png
+- docs/evidence/testing/unit-batch-1-overview1.png
 - docs/evidence/testing/unit-batch-1-overview2.png
 
 Notes:
 - This batch focused on validation logic, payment input handling, rewards logic, and admin product form validation.
+
+Validation hardening update:
+- Password validation was improved so whitespace no longer counts as a special character.
+- Date of birth validation was improved to reject impossible dates and future dates.
+- Batch 1 unit tests were re-run after these validation changes.
 
 
 ## Batch 2 – Instrumented Repository Tests

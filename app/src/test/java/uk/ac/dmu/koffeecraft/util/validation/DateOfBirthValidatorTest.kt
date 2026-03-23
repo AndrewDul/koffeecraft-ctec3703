@@ -35,4 +35,18 @@ class DateOfBirthValidatorTest {
     fun isValid_returnsFalse_forBlankInput() {
         assertFalse(DateOfBirthValidator.isValid(""))
     }
+    @Test
+    fun isValid_returnsFalse_forImpossibleDate() {
+        assertFalse(DateOfBirthValidator.isValid("2001-02-30"))
+    }
+
+    @Test
+    fun isValid_returnsTrue_forValidLeapDay() {
+        assertTrue(DateOfBirthValidator.isValid("2000-02-29"))
+    }
+
+    @Test
+    fun isValid_returnsFalse_forFutureDate() {
+        assertFalse(DateOfBirthValidator.isValid("2999-01-01"))
+    }
 }

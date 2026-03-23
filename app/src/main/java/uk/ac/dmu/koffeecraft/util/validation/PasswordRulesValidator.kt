@@ -7,7 +7,7 @@ object PasswordRulesValidator {
             hasUppercase = password.any { it.isUpperCase() },
             hasLowercase = password.any { it.isLowerCase() },
             hasDigit = password.any { it.isDigit() },
-            hasSpecial = password.any { !it.isLetterOrDigit() },
+            hasSpecial = password.any { !it.isLetterOrDigit() && !it.isWhitespace() },
             hasMinLength = password.length >= 8
         )
     }

@@ -49,4 +49,16 @@ class PasswordRulesValidatorTest {
     fun isValid_returnsFalse_forEmptyPassword() {
         assertFalse(PasswordRulesValidator.isValid(""))
     }
+    @Test
+    fun describe_doesNotCountWhitespaceAsSpecialCharacter() {
+        val rules = PasswordRulesValidator.describe("Strong1 ")
+
+        assertFalse(rules.hasSpecial)
+        assertFalse(rules.isValid)
+    }
+
+    @Test
+    fun isValid_returnsTrue_forRealSpecialCharacter_notWhitespace() {
+        assertTrue(PasswordRulesValidator.isValid("Strong1!"))
+    }
 }
