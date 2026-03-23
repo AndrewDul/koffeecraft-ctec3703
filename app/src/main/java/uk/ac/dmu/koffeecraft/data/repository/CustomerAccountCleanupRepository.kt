@@ -3,16 +3,16 @@ package uk.ac.dmu.koffeecraft.data.repository
 import android.content.Context
 import androidx.room.withTransaction
 import androidx.sqlite.db.SupportSQLiteDatabase
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.cart.RememberedCartStore
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.data.settings.HiddenOrdersStore
 
 class CustomerAccountCleanupRepository(
     context: Context,
-    private val database: KoffeeCraftDatabase
+    private val database: KoffeeCraftDatabase,
+    private val sessionRepository: SessionRepository,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -94,7 +94,7 @@ class CustomerAccountCleanupRepository(
     }
 
     private fun clearLocalState(customerId: Long) {
-        RememberedCartStore.clearCartForCustomer(appContext, customerId)
+        cartRepository.clearPersistedCartForCustomer(customerId)
         HiddenOrdersStore.clearForCustomer(appContext, customerId)
 
         val rememberedSession = RememberedSessionStore.getSession(appContext)
@@ -105,9 +105,9 @@ class CustomerAccountCleanupRepository(
             RememberedSessionStore.clear(appContext)
         }
 
-        if (SessionManager.currentCustomerId == customerId) {
-            CartManager.clear()
-            SessionManager.clear()
+        if (sessionRepository.isCurrentCustomer(customerId)) {
+            cartRepository.clear()
+            sessionRepository.clear()
         }
     }
 }

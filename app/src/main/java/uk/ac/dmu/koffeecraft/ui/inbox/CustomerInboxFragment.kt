@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
 
@@ -35,12 +34,15 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val customerId = SessionManager.currentCustomerId ?: return
+
         val launchInboxMessageId = arguments?.getLong("launchInboxMessageId", -1L)?.takeIf { it > 0L }
 
         viewModel = ViewModelProvider(
             this,
-            CustomerInboxViewModel.Factory(appContainer.customerInboxRepository)
+            CustomerInboxViewModel.Factory(
+                repository = appContainer.customerInboxRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerInboxViewModel::class.java]
 
         val rv = view.findViewById<RecyclerView>(R.id.rvCustomerInbox)
@@ -80,7 +82,7 @@ class CustomerInboxFragment : Fragment(R.layout.fragment_customer_inbox) {
             }
         }
 
-        viewModel.start(customerId, launchInboxMessageId)
+        viewModel.start(launchInboxMessageId)
     }
 
     private fun setupFilters() {

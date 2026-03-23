@@ -1,12 +1,10 @@
 package uk.ac.dmu.koffeecraft.data.cart
 
-import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 data class CartItem(
     val lineKey: String,
@@ -36,17 +34,12 @@ data class CartSnapshot(
 object CartManager {
 
     private val items = linkedMapOf<String, CartItem>()
-    private lateinit var appContext: Context
 
     private val _snapshot = MutableStateFlow(CartSnapshot())
     val snapshot: StateFlow<CartSnapshot> = _snapshot
 
     private val _itemCount = MutableStateFlow(0)
     val itemCount: StateFlow<Int> = _itemCount
-
-    fun attachContext(context: Context) {
-        appContext = context.applicationContext
-    }
 
     private fun isMeaningfullyCustomised(option: ProductOption, addOns: List<AddOn>): Boolean {
         return !option.isDefault || addOns.isNotEmpty()
@@ -58,7 +51,7 @@ object CartManager {
             .forEach { it.quantity = 1 }
     }
 
-    private fun refreshCartState(persist: Boolean = true) {
+    private fun refreshCartState() {
         normalizeRewardQuantities()
 
         val currentItems = items.values.toList()
@@ -74,33 +67,14 @@ object CartManager {
 
         _snapshot.value = nextSnapshot
         _itemCount.value = nextSnapshot.itemCount
-
-        if (persist) {
-            persistCurrentCartForSession(currentItems)
-        }
     }
 
-    private fun persistCurrentCartForSession(currentItems: List<CartItem>) {
-        if (!::appContext.isInitialized) return
-        if (SessionManager.isAdmin) return
-
-        val customerId = SessionManager.currentCustomerId ?: return
-        RememberedCartStore.saveCartForCustomer(
-            context = appContext,
-            customerId = customerId,
-            items = currentItems
-        )
-    }
-
-    fun replaceAll(
-        newItems: List<CartItem>,
-        persist: Boolean = true
-    ) {
+    fun replaceAll(newItems: List<CartItem>) {
         items.clear()
         newItems.forEach { item ->
             items[item.lineKey] = item
         }
-        refreshCartState(persist = persist)
+        refreshCartState()
     }
 
     fun add(product: Product) {
@@ -127,7 +101,7 @@ object CartManager {
 
     fun addExisting(item: CartItem) {
         if (item.isReward) {
-            refreshCartState(persist = false)
+            refreshCartState()
             return
         }
 
@@ -152,7 +126,7 @@ object CartManager {
         val existing = items[key]
 
         if (existing != null) {
-            refreshCartState(persist = false)
+            refreshCartState()
             return false
         }
 
@@ -204,7 +178,7 @@ object CartManager {
 
         val existing = items[key]
         if (existing != null) {
-            refreshCartState(persist = false)
+            refreshCartState()
             return false
         }
 
@@ -304,20 +278,8 @@ object CartManager {
         refreshCartState()
     }
 
-    fun clearInMemoryOnly() {
-        items.clear()
-        refreshCartState(persist = false)
-    }
-
-    fun clearPersistedCartForCustomer(
-        context: Context,
-        customerId: Long
-    ) {
-        RememberedCartStore.clearCartForCustomer(context.applicationContext, customerId)
-    }
-
     fun currentSnapshot(): CartSnapshot {
-        refreshCartState(persist = false)
+        refreshCartState()
         return _snapshot.value
     }
 

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePreset
 import uk.ac.dmu.koffeecraft.data.entities.CustomerFavouritePresetAddOnCrossRef
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerFavouritePresetCard
 @Dao
 interface CustomerFavouritePresetDao {
 
@@ -83,17 +83,3 @@ interface CustomerFavouritePresetDao {
     suspend fun getAddOnsForPreset(presetId: Long): List<AddOn>
 }
 
-data class CustomerFavouritePresetCard(
-    val presetId: Long,
-    val productId: Long,
-    val productName: String,
-    val productDescription: String,
-    val optionId: Long,
-    val optionLabel: String,
-    val optionSizeValue: Int,
-    val optionSizeUnit: String,
-    val totalPrice: Double,
-    val totalCalories: Int,
-    val addOnSummary: String?,
-    val createdAt: Long
-)

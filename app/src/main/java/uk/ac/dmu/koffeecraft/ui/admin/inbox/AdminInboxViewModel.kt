@@ -9,21 +9,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.dao.CustomerInboxTarget
 import uk.ac.dmu.koffeecraft.data.repository.AdminInboxRepository
 import uk.ac.dmu.koffeecraft.data.repository.AdminInboxSendResult
-
-enum class AdminInboxTargetMode {
-    ORDER_NUMBER,
-    CUSTOMER_ID
-}
-
-enum class AdminInboxMessageType {
-    CUSTOM,
-    IMPORTANT,
-    SERVICE
-}
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerInboxTarget
 data class AdminInboxUiState(
     val currentTargetMode: AdminInboxTargetMode = AdminInboxTargetMode.ORDER_NUMBER,
     val currentMessageType: AdminInboxMessageType = AdminInboxMessageType.CUSTOM,

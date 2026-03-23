@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 
 class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
@@ -27,15 +26,16 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
     private lateinit var tvBeansProgress: TextView
     private lateinit var adapter: CustomerRewardsAdapter
 
-    private val customerId: Long?
-        get() = SessionManager.currentCustomerId
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(
             this,
-            CustomerRewardsViewModel.Factory(appContainer.customerRewardsRepository)
+            CustomerRewardsViewModel.Factory(
+                repository = appContainer.customerRewardsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerRewardsViewModel::class.java]
 
         tvBeansCount = view.findViewById(R.id.tvBeansCount)
@@ -53,14 +53,8 @@ class CustomerRewardsFragment : Fragment(R.layout.fragment_customer_rewards) {
 
         observeState()
 
-        val safeCustomerId = customerId
-        if (safeCustomerId == null) {
-            Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         progressBeansBooster.max = BeansBoosterManager.BOOSTER_STEP
-        viewModel.start(safeCustomerId)
+        viewModel.start()
     }
 
     override fun onResume() {

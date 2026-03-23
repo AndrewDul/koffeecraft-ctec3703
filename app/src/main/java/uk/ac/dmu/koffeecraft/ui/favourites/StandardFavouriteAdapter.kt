@@ -7,9 +7,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.StandardFavouriteCard
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.StandardFavouriteCard
 class StandardFavouriteAdapter(
     private var items: List<StandardFavouriteCard>,
     private val onRemove: (StandardFavouriteCard) -> Unit,

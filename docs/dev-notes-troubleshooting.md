@@ -1575,3 +1575,215 @@ As a result, KoffeeCraft now presents a more mature architecture that is:
 - more maintainable
 - easier to document
 - easier to justify during assessment
+
+
+## 65) Room / KSP failed because ProductOptionDao was accidentally replaced with an entity file
+
+### Problem
+
+The build failed during KSP processing with a Room type-resolution error around `KoffeeCraftDatabase`.
+
+### Symptom
+
+KSP reported a missing type similar to:
+- `MissingType`
+- `KoffeeCraftDatabase references a type that is not present`
+
+### Cause
+
+`ProductOptionDao.kt` had been overwritten with `ProductOption` entity-style content and even used the wrong package.  
+Because of that, `KoffeeCraftDatabase` still declared `productOptionDao(): ProductOptionDao`, but the actual DAO type no longer existed.
+
+### Fix
+
+I restored `ProductOptionDao.kt` as a real Room DAO and moved the `ProductOption` entity back into its correct entity file.
+
+I also aligned the `ProductOption` entity with the current schema direction by restoring the proper Room entity structure.
+
+### Result
+
+Room and KSP could resolve the DAO type correctly again and the database layer compiled successfully.
+
+---
+
+## 66) Room schema export warning after database hardening
+
+### Problem
+
+After the Room cleanup, the build showed a schema export warning.
+
+### Symptom
+
+KSP reported that Room could not export the schema because no schema location had been configured.
+
+### Cause
+
+`exportSchema` was still enabled in the Room database configuration, but the Gradle KSP configuration did not yet provide `room.schemaLocation`.
+
+### Fix
+
+I added the Room schema output argument in `app/build.gradle.kts`:
+
+- `ksp { arg("room.schemaLocation", "$projectDir/schemas") }`
+
+I also created the `app/schemas` folder so Room had a valid export destination.
+
+### Result
+
+The warning was removed and schema export remained enabled, which is better for project quality and documentation than disabling schema export.
+
+---
+
+## 67) Login compile error after auth/session refactor
+
+### Problem
+
+After the authentication cleanup, the project failed to compile in the login flow.
+
+### Symptom
+
+Kotlin reported a type mismatch similar to:
+- actual type `AuthSessionRepository`
+- expected type `AuthRepository`
+
+### Cause
+
+`LoginFragment` was already passing the newer `AuthSessionRepository`, but `LoginViewModelFactory` still expected the older repository type.
+
+This happened because the auth refactor was only partially completed.
+
+### Fix
+
+I updated `LoginViewModelFactory` so it now accepts `AuthSessionRepository` and creates `LoginViewModel` using the same repository type.
+
+### Result
+
+The login flow compiled correctly again and the ViewModel factory matched the cleaned authentication architecture.
+
+---
+
+## 68) Admin accounts repository failed to compile after dependency cleanup
+
+### Problem
+
+The project failed to compile in `AdminAccountsRepository` after the cleanup of account/session/cart dependencies.
+
+### Symptom
+
+Kotlin reported missing constructor arguments for:
+- `sessionRepository`
+- `cartRepository`
+
+### Cause
+
+`CustomerAccountCleanupRepository` had already been refactored to require injected dependencies instead of relying on older internal setup, but `AdminAccountsRepository` still created it using the old constructor.
+
+### Fix
+
+I updated `AdminAccountsRepository` to receive:
+- `SessionRepository`
+- `CartRepository`
+
+I then passed those dependencies into `CustomerAccountCleanupRepository` and aligned the `AppContainer` wiring with the new constructor.
+
+### Result
+
+The admin account management feature compiled correctly again and repository dependency injection became consistent with the rest of the project.
+
+---
+
+## 69) Query model migration caused unresolved-reference build errors
+
+### Problem
+
+After I separated projection models from `data.dao` into `data.querymodel`, the project failed to compile across multiple repositories and UI files.
+
+### Symptom
+
+Kotlin reported many unresolved references such as:
+- `AdminAccountTarget`
+- `CustomerAccountTarget`
+- `OrderDisplayItem`
+- `OrderFeedbackItem`
+- `CustomerFavouritePresetCard`
+- `StandardFavouriteCard`
+
+### Cause
+
+The migration to `data.querymodel` was only partially completed at first.
+
+Some files had already been updated to import the new package, but:
+- some query-model files had not yet been created
+- some files still mixed old `data.dao` imports with new `data.querymodel` imports
+- some refactored screens still depended on the older package structure
+
+### Fix
+
+I created the missing `data.querymodel` files and moved the projection models into dedicated grouped files for:
+- account query models
+- favourite query models
+- order query models
+- feedback query models
+
+I then removed the leftover old imports from `data.dao` and kept only the `data.querymodel` imports in repositories, adapters, fragments, and viewmodels.
+
+### Result
+
+The project compiled again and the query/projection model migration was completed properly.
+
+This also improved the architecture because the DAO package is now cleaner and query models have a clearer location.
+
+---
+
+## 70) Duplicate model imports after query-model migration
+
+### Problem
+
+After the query-model migration, some screens failed or became unstable because both the old and new model imports existed at the same time.
+
+### Symptom
+
+Files such as admin account management imported both:
+- `data.dao.*`
+- `data.querymodel.*`
+
+for the same model names.
+
+### Cause
+
+The migration was completed incrementally, so some files ended up with duplicate imports after the new package was introduced.
+
+### Fix
+
+I removed the old projection-model imports from `data.dao` and kept only the new imports from `data.querymodel`.
+
+### Result
+
+The files became consistent again and the project structure was easier to understand.
+
+---
+
+## 71) Cart and session cleanup required repository wiring changes
+
+### Problem
+
+After the final cart/session architecture cleanup, the cart flow needed another integration pass.
+
+### Cause
+
+`CartManager` was being turned into a pure in-memory state store, while persistence and session-aware cart behaviour were being moved into `CartRepository`.
+
+This meant older wiring still had to be updated in order to match the new responsibilities.
+
+### Fix
+
+I updated the cart layer so:
+- `CartManager` no longer depends on session logic
+- `CartManager` no longer depends on storage logic
+- `CartRepository` now owns cart persistence decisions and uses `SessionRepository` when needed
+- `AppContainer` was updated to inject the correct dependencies into `CartRepository`
+
+### Result
+
+The final cart/session architecture became consistent and the project built correctly on the cleaned design.
+

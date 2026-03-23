@@ -6,7 +6,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import uk.ac.dmu.koffeecraft.data.entities.Feedback
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackItem
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackOverview
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackRatingBreakdown
+import uk.ac.dmu.koffeecraft.data.querymodel.HomeRatedProductInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductCommentInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductRatingInsight
 @Dao
 interface FeedbackDao {
 
@@ -205,57 +210,3 @@ interface FeedbackDao {
     suspend fun unhideComment(feedbackId: Long, updatedAt: Long)
 }
 
-data class AdminFeedbackItem(
-    val feedbackId: Long,
-    val orderItemId: Long,
-    val orderId: Long,
-    val productId: Long,
-    val productName: String,
-    val productCategory: String,
-    val customerId: Long,
-    val rating: Int,
-    val comment: String,
-    val isHidden: Boolean,
-    val isModerated: Boolean,
-    val createdAt: Long,
-    val updatedAt: Long
-)
-
-data class AdminFeedbackOverview(
-    val overallAverage: Double,
-    val coffeeAverage: Double,
-    val cakeAverage: Double,
-    val totalReviews: Int,
-    val reviewsWithComments: Int,
-    val hiddenComments: Int
-)
-
-data class AdminFeedbackRatingBreakdown(
-    val rating: Int,
-    val reviewCount: Int
-)
-
-data class ProductRatingInsight(
-    val productId: Long,
-    val productName: String,
-    val averageRating: Double,
-    val ratingCount: Int
-)
-
-data class ProductCommentInsight(
-    val productId: Long,
-    val productName: String,
-    val commentCount: Int,
-    val averageRating: Double,
-    val ratingCount: Int
-)
-
-data class HomeRatedProductInsight(
-    val productId: Long,
-    val productName: String,
-    val productDescription: String,
-    val price: Double,
-    val imageKey: String?,
-    val averageRating: Double,
-    val ratingCount: Int
-)

@@ -14,7 +14,6 @@ import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete_account) {
 
@@ -29,7 +28,10 @@ class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete
 
         vm = ViewModelProvider(
             this,
-            CustomerDeleteAccountViewModel.Factory(appContainer.customerSettingsRepository)
+            CustomerDeleteAccountViewModel.Factory(
+                customerSettingsRepository = appContainer.customerSettingsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerDeleteAccountViewModel::class.java]
 
         tilCurrentPassword = view.findViewById(R.id.tilCurrentPassword)
@@ -45,13 +47,6 @@ class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete
             findNavController().navigateUp()
         }
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            tvError.text = "You are not logged in as a customer."
-            tvError.visibility = View.VISIBLE
-            btnDeleteAccount.isEnabled = false
-            return
-        }
 
         btnDeleteAccount.setOnClickListener {
             tilCurrentPassword.error = null
@@ -64,7 +59,6 @@ class CustomerDeleteAccountFragment : Fragment(R.layout.fragment_customer_delete
             }
 
             vm.deleteAccount(
-                customerId = customerId,
                 currentPassword = currentPassword
             )
         }

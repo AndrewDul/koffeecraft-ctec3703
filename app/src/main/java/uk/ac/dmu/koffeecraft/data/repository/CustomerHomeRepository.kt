@@ -1,10 +1,9 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.dao.HomeLovedProductInsight
-import uk.ac.dmu.koffeecraft.data.dao.HomeRatedProductInsight
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Product
-
+import uk.ac.dmu.koffeecraft.data.querymodel.HomeLovedProductInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.HomeRatedProductInsight
 data class CustomerHomeScreenData(
     val beansBalance: Int,
     val beansBoosterProgress: Int,

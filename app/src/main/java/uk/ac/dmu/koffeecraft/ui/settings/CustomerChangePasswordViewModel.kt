@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CustomerSettingsRepository
 import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CustomerChangePasswordViewModel(
-    private val customerSettingsRepository: CustomerSettingsRepository
+    private val customerSettingsRepository: CustomerSettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     data class UiState(
@@ -32,18 +34,27 @@ class CustomerChangePasswordViewModel(
     val effects = _effects.receiveAsFlow()
 
     fun changePassword(
-        customerId: Long,
         currentPassword: String,
         newPassword: String
     ) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         _state.value = _state.value.copy(isSaving = true)
 
         viewModelScope.launch {
-            when (val result = customerSettingsRepository.changePassword(
-                customerId = customerId,
-                currentPassword = currentPassword,
-                newPassword = newPassword
-            )) {
+            when (
+                val result = customerSettingsRepository.changePassword(
+                    customerId = customerId,
+                    currentPassword = currentPassword,
+                    newPassword = newPassword
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _state.value = _state.value.copy(isSaving = false)
                     _effects.send(UiEffect.ShowMessage(result.message))
@@ -64,12 +75,16 @@ class CustomerChangePasswordViewModel(
     }
 
     class Factory(
-        private val customerSettingsRepository: CustomerSettingsRepository
+        private val customerSettingsRepository: CustomerSettingsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerChangePasswordViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerChangePasswordViewModel(customerSettingsRepository) as T
+                return CustomerChangePasswordViewModel(
+                    customerSettingsRepository = customerSettingsRepository,
+                    sessionRepository = sessionRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

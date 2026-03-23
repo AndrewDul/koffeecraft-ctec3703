@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
@@ -43,7 +42,10 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
 
         viewModel = ViewModelProvider(
             this,
-            ProductFeedbackViewModel.Factory(appContainer.feedbackRepository)
+            ProductFeedbackViewModel.Factory(
+                repository = appContainer.feedbackRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[ProductFeedbackViewModel::class.java]
 
         tvTitle = view.findViewById(R.id.tvTitle)
@@ -72,8 +74,7 @@ class ProductFeedbackFragment : Fragment(R.layout.fragment_product_feedback) {
 
         viewModel.start(
             orderId = orderId,
-            orderItemId = orderItemId,
-            customerId = SessionManager.currentCustomerId
+            orderItemId = orderItemId
         )
     }
 

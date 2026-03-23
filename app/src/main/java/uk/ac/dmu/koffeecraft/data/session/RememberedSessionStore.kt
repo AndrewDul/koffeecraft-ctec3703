@@ -62,20 +62,6 @@ object RememberedSessionStore {
             .apply()
     }
 
-    fun restoreIntoMemory(context: Context): RememberedSession? {
-        val session = getSession(context) ?: run {
-            SessionManager.clear()
-            return null
-        }
-
-        when (session.role) {
-            Role.CUSTOMER -> SessionManager.setCustomer(session.userId)
-            Role.ADMIN -> SessionManager.setAdmin(session.userId)
-        }
-
-        return session
-    }
-
     fun getSession(context: Context): RememberedSession? {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 

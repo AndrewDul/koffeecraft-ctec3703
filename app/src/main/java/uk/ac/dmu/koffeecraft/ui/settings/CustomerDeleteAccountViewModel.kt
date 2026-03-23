@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CustomerSettingsRepository
 import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CustomerDeleteAccountViewModel(
-    private val customerSettingsRepository: CustomerSettingsRepository
+    private val customerSettingsRepository: CustomerSettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     data class UiState(
@@ -30,17 +32,24 @@ class CustomerDeleteAccountViewModel(
     private val _effects = Channel<UiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
-    fun deleteAccount(
-        customerId: Long,
-        currentPassword: String
-    ) {
+    fun deleteAccount(currentPassword: String) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         _state.value = _state.value.copy(isDeleting = true)
 
         viewModelScope.launch {
-            when (val result = customerSettingsRepository.deleteAccount(
-                customerId = customerId,
-                currentPassword = currentPassword
-            )) {
+            when (
+                val result = customerSettingsRepository.deleteAccount(
+                    customerId = customerId,
+                    currentPassword = currentPassword
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _state.value = _state.value.copy(isDeleting = false)
                     _effects.send(UiEffect.ShowMessage(result.message))
@@ -56,12 +65,16 @@ class CustomerDeleteAccountViewModel(
     }
 
     class Factory(
-        private val customerSettingsRepository: CustomerSettingsRepository
+        private val customerSettingsRepository: CustomerSettingsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerDeleteAccountViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerDeleteAccountViewModel(customerSettingsRepository) as T
+                return CustomerDeleteAccountViewModel(
+                    customerSettingsRepository = customerSettingsRepository,
+                    sessionRepository = sessionRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

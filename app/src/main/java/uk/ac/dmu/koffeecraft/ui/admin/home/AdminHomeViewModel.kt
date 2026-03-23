@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductCommentInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductFavouriteInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductRatingInsight
 import uk.ac.dmu.koffeecraft.data.repository.AdminHomeDashboardData
 import uk.ac.dmu.koffeecraft.data.repository.AdminHomeRepository
 import java.util.Calendar
@@ -92,7 +95,7 @@ class AdminHomeViewModel(
         )
     }
 
-    private fun mapTopRated(items: List<uk.ac.dmu.koffeecraft.data.dao.ProductRatingInsight>): List<AdminHomeCarouselItem> {
+    private fun mapTopRated(items: List<ProductRatingInsight>): List<AdminHomeCarouselItem> {
         if (items.isEmpty()) {
             return listOf(
                 AdminHomeCarouselItem(
@@ -114,7 +117,7 @@ class AdminHomeViewModel(
         }
     }
 
-    private fun mapMostLoved(items: List<uk.ac.dmu.koffeecraft.data.dao.ProductFavouriteInsight>): List<AdminHomeCarouselItem> {
+    private fun mapMostLoved(items: List<ProductFavouriteInsight>): List<AdminHomeCarouselItem> {
         if (items.isEmpty()) {
             return listOf(
                 AdminHomeCarouselItem(
@@ -136,7 +139,7 @@ class AdminHomeViewModel(
         }
     }
 
-    private fun mapMostCommented(items: List<uk.ac.dmu.koffeecraft.data.dao.ProductCommentInsight>): List<AdminHomeCarouselItem> {
+    private fun mapMostCommented(items: List<ProductCommentInsight>): List<AdminHomeCarouselItem> {
         if (items.isEmpty()) {
             return listOf(
                 AdminHomeCarouselItem(

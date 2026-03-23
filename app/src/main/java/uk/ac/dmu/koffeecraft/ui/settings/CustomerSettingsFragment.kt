@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerSettingsFragment : Fragment(R.layout.fragment_customer_settings) {
 
@@ -31,7 +30,10 @@ class CustomerSettingsFragment : Fragment(R.layout.fragment_customer_settings) {
 
         viewModel = ViewModelProvider(
             this,
-            CustomerSettingsViewModel.Factory(appContainer.customerSettingsRepository)
+            CustomerSettingsViewModel.Factory(
+                repository = appContainer.customerSettingsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerSettingsViewModel::class.java]
 
         tvCustomerName = view.findViewById(R.id.tvCustomerName)
@@ -89,12 +91,12 @@ class CustomerSettingsFragment : Fragment(R.layout.fragment_customer_settings) {
         }
 
         observeState()
-        viewModel.load(SessionManager.currentCustomerId)
+        viewModel.load()
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.load(SessionManager.currentCustomerId)
+        viewModel.load()
     }
 
     private fun observeState() {

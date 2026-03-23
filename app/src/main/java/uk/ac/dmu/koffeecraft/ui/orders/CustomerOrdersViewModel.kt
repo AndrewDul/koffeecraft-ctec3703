@@ -12,9 +12,11 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.repository.CustomerOrderDateFilter
 import uk.ac.dmu.koffeecraft.data.repository.CustomerOrdersRepository
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CustomerOrdersViewModel(
-    private val customerOrdersRepository: CustomerOrdersRepository
+    private val customerOrdersRepository: CustomerOrdersRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CustomerOrdersUiState())
@@ -27,14 +29,22 @@ class CustomerOrdersViewModel(
     private var observeJob: Job? = null
     private var allOrders: List<Order> = emptyList()
 
-    fun start(customerId: Long) {
-        if (this.customerId == customerId && observeJob != null) return
+    fun start() {
+        val resolvedCustomerId = sessionRepository.currentCustomerId ?: run {
+            _state.value = _state.value.copy(
+                items = emptyList(),
+                emptyMessage = "You are not logged in as a customer."
+            )
+            return
+        }
 
-        this.customerId = customerId
+        if (this.customerId == resolvedCustomerId && observeJob != null) return
+
+        this.customerId = resolvedCustomerId
         observeJob?.cancel()
 
         observeJob = viewModelScope.launch {
-            customerOrdersRepository.observeOrders(customerId).collectLatest { orders ->
+            customerOrdersRepository.observeOrders(resolvedCustomerId).collectLatest { orders ->
                 allOrders = orders
                 refreshVisibleOrders()
             }

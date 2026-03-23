@@ -6,7 +6,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import uk.ac.dmu.koffeecraft.data.entities.Customer
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerAccountTarget
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerCampaignTarget
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerInboxTarget
 @Dao
 interface CustomerDao {
 
@@ -237,38 +239,4 @@ interface CustomerDao {
         """
     )
     suspend fun addBeansToCustomer(customerId: Long, beansAmount: Int)
-}
-
-data class CustomerInboxTarget(
-    val customerId: Long,
-    val firstName: String,
-    val lastName: String,
-    val email: String,
-    val dateOfBirth: String?,
-    val marketingInboxConsent: Boolean
-)
-
-data class CustomerAccountTarget(
-    val customerId: Long,
-    val firstName: String,
-    val lastName: String,
-    val email: String,
-    val isActive: Boolean,
-    val createdAt: Long
-)
-
-data class CustomerCampaignTarget(
-    val customerId: Long,
-    val firstName: String,
-    val lastName: String,
-    val email: String,
-    val dateOfBirth: String?,
-    val marketingInboxConsent: Boolean,
-    val beansBalance: Int,
-    val orderCount: Int,
-    val lastOrderAt: Long?,
-    val lifetimeSpend: Double
-) {
-    val displayName: String
-        get() = "$firstName $lastName".trim()
 }

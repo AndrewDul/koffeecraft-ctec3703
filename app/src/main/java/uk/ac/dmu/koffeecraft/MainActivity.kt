@@ -22,7 +22,6 @@ import androidx.navigation.navOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 
 class MainActivity : AppCompatActivity() {
@@ -48,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        CartManager.attachContext(applicationContext)
 
         viewModel = ViewModelProvider(
             this,

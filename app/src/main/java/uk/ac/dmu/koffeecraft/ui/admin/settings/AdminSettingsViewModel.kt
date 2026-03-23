@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.AdminSettingsRepository
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 data class AdminSettingsUiState(
     val adminName: String = "",
@@ -19,7 +20,8 @@ data class AdminSettingsUiState(
 )
 
 class AdminSettingsViewModel(
-    private val repository: AdminSettingsRepository
+    private val repository: AdminSettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -33,11 +35,14 @@ class AdminSettingsViewModel(
     private val _effects = Channel<UiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
-    fun load(adminId: Long?) {
+    fun load() {
+        val adminId = sessionRepository.currentAdminId
+
         viewModelScope.launch {
             val data = repository.loadScreenData(adminId)
 
-            val profileMissing = adminId != null && (data.adminName == null || data.adminEmail == null)
+            val profileMissing = adminId != null &&
+                    (data.adminName == null || data.adminEmail == null)
 
             _state.value = AdminSettingsUiState(
                 adminName = data.adminName ?: "",
@@ -71,12 +76,13 @@ class AdminSettingsViewModel(
     }
 
     class Factory(
-        private val repository: AdminSettingsRepository
+        private val repository: AdminSettingsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AdminSettingsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return AdminSettingsViewModel(repository) as T
+                return AdminSettingsViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

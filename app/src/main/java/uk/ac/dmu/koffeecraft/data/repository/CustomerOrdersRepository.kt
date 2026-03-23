@@ -2,18 +2,17 @@ package uk.ac.dmu.koffeecraft.data.repository
 
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.settings.HiddenOrdersStore
 import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
 import uk.ac.dmu.koffeecraft.util.orders.OrderSimulationManager
 import java.util.Calendar
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderDisplayItem
 class CustomerOrdersRepository(
     context: Context,
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -75,9 +74,9 @@ class CustomerOrdersRepository(
         val reorderItems = db.orderItemDao().getReorderItems(orderId)
         if (reorderItems.isEmpty()) return false
 
-        CartManager.clear()
+        cartRepository.clear()
         reorderItems.forEach { item ->
-            CartManager.add(item.product, item.quantity)
+            cartRepository.addProduct(item.product, item.quantity)
         }
         return true
     }

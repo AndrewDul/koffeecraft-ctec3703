@@ -9,12 +9,11 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderDisplayItem
 data class OrderFeedbackSummary(
     val eligibleItemCount: Int,
     val reviewedItemCount: Int

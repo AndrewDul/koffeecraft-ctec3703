@@ -1,9 +1,8 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.dao.OrderFeedbackItem
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Feedback
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderFeedbackItem
 sealed interface ProductFeedbackSaveResult {
     data class NextItem(
         val nextItem: OrderFeedbackItem,

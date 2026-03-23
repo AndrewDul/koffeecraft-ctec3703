@@ -5,7 +5,7 @@ import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AppNotification
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 data class OnboardingInitialData(
     val marketingInboxConsent: Boolean
@@ -18,7 +18,8 @@ sealed interface OnboardingFinishResult {
 
 class OnboardingRepository(
     private val context: Context,
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val sessionRepository: SessionRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -73,7 +74,7 @@ class OnboardingRepository(
             )
         }
 
-        SessionManager.setCustomer(customerId)
+        sessionRepository.setCustomer(customerId)
         RememberedSessionStore.saveCustomerSession(
             context = appContext,
             customerId = customerId,

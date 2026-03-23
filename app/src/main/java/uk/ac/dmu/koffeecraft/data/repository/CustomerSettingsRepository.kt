@@ -1,11 +1,10 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import android.content.Context
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Customer
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.data.settings.ThemeSettings
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import uk.ac.dmu.koffeecraft.util.validation.EmailValidator
@@ -19,11 +18,18 @@ data class CustomerSettingsScreenData(
 
 class CustomerSettingsRepository(
     context: Context,
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val sessionRepository: SessionRepository,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
-    private val cleanupRepository = CustomerAccountCleanupRepository(appContext, db)
+    private val cleanupRepository = CustomerAccountCleanupRepository(
+        context = appContext,
+        database = db,
+        sessionRepository = sessionRepository,
+        cartRepository = cartRepository
+    )
 
     suspend fun getCustomer(customerId: Long): Customer? {
         return db.customerDao().getById(customerId)
@@ -54,8 +60,8 @@ class CustomerSettingsRepository(
     }
 
     fun signOut() {
-        CartManager.clearInMemoryOnly()
-        SessionManager.clear()
+        cartRepository.clearInMemoryOnly()
+        sessionRepository.clear()
         RememberedSessionStore.clear(appContext)
     }
 

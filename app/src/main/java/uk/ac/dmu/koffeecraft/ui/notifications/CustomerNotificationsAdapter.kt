@@ -9,10 +9,9 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.entities.AppNotification
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderDisplayItem
 class CustomerNotificationsAdapter(
     private var items: List<AppNotification>,
     private var detailsByOrderId: Map<Long, List<OrderDisplayItem>>,

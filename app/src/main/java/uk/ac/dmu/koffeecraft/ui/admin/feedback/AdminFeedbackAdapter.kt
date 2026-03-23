@@ -7,11 +7,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackItem
 class AdminFeedbackAdapter(
     private var items: List<AdminFeedbackItem>,
     private val onDelete: (AdminFeedbackItem) -> Unit,

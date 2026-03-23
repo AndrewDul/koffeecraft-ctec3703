@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CustomerSettingsRepository
 import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CustomerInboxPreferencesViewModel(
-    private val customerSettingsRepository: CustomerSettingsRepository
+    private val customerSettingsRepository: CustomerSettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     data class UiState(
@@ -32,7 +34,15 @@ class CustomerInboxPreferencesViewModel(
 
     private var startedCustomerId: Long? = null
 
-    fun start(customerId: Long) {
+    fun start() {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         if (startedCustomerId == customerId) return
         startedCustomerId = customerId
 
@@ -53,14 +63,24 @@ class CustomerInboxPreferencesViewModel(
         _state.value = _state.value.copy(marketingInboxConsent = enabled)
     }
 
-    fun save(customerId: Long) {
+    fun save() {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         _state.value = _state.value.copy(isSaving = true)
 
         viewModelScope.launch {
-            when (val result = customerSettingsRepository.updateMarketingInboxConsent(
-                customerId = customerId,
-                enabled = _state.value.marketingInboxConsent
-            )) {
+            when (
+                val result = customerSettingsRepository.updateMarketingInboxConsent(
+                    customerId = customerId,
+                    enabled = _state.value.marketingInboxConsent
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _state.value = _state.value.copy(isSaving = false)
                     _effects.send(UiEffect.ShowMessage(result.message))
@@ -75,12 +95,16 @@ class CustomerInboxPreferencesViewModel(
     }
 
     class Factory(
-        private val customerSettingsRepository: CustomerSettingsRepository
+        private val customerSettingsRepository: CustomerSettingsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerInboxPreferencesViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerInboxPreferencesViewModel(customerSettingsRepository) as T
+                return CustomerInboxPreferencesViewModel(
+                    customerSettingsRepository = customerSettingsRepository,
+                    sessionRepository = sessionRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

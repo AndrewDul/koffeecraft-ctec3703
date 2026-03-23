@@ -1,14 +1,14 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import android.content.Context
-import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
-import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Admin
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminAccountTarget
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerAccountTarget
 sealed interface AdminCreateAccountResult {
     data object Success : AdminCreateAccountResult
 
@@ -22,11 +22,19 @@ sealed interface AdminCreateAccountResult {
 
 class AdminAccountsRepository(
     context: Context,
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val sessionRepository: SessionRepository,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
-    private val cleanupRepository = CustomerAccountCleanupRepository(appContext, db)
+
+    private val cleanupRepository = CustomerAccountCleanupRepository(
+        context = appContext,
+        database = db,
+        sessionRepository = sessionRepository,
+        cartRepository = cartRepository
+    )
 
     suspend fun findCustomerByOrderId(orderId: Long): CustomerAccountTarget? {
         return db.customerDao().getAccountTargetByOrderId(orderId)

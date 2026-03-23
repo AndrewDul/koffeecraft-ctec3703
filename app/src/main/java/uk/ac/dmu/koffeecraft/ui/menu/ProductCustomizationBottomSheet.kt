@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 
 class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet_product_customize) {
 
@@ -48,7 +47,6 @@ class ProductCustomizationBottomSheet : BottomSheetDialogFragment(R.layout.sheet
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        CartManager.attachContext(requireContext().applicationContext)
 
         viewModel = ViewModelProvider(
             this,

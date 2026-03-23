@@ -1,11 +1,10 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackOverview
-import uk.ac.dmu.koffeecraft.data.dao.ProductCommentInsight
-import uk.ac.dmu.koffeecraft.data.dao.ProductFavouriteInsight
-import uk.ac.dmu.koffeecraft.data.dao.ProductRatingInsight
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackOverview
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductCommentInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductFavouriteInsight
+import uk.ac.dmu.koffeecraft.data.querymodel.ProductRatingInsight
 data class AdminHomeDashboardData(
     val ordersToday: Int,
     val revenueToday: Double,

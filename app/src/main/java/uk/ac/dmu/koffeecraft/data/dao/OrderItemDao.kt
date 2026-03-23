@@ -7,7 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import uk.ac.dmu.koffeecraft.data.entities.OrderItem
 import uk.ac.dmu.koffeecraft.data.entities.Product
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderDisplayItem
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderFeedbackItem
+import uk.ac.dmu.koffeecraft.data.querymodel.ReorderItem
 @Dao
 interface OrderItemDao {
 
@@ -120,50 +122,4 @@ WHERE oi.orderId = :orderId
 ORDER BY oi.orderItemId ASC
 """)
     suspend fun getDisplayItemsForOrder(orderId: Long): List<OrderDisplayItem>
-}
-
-data class ReorderItem(
-    @Embedded val product: Product,
-    val quantity: Int
-)
-
-data class OrderFeedbackItem(
-    val orderItemId: Long,
-    val orderId: Long,
-    val productId: Long,
-    val productName: String,
-    val productDescription: String,
-    val quantity: Int,
-    val unitPrice: Double,
-    val selectedOptionLabel: String?,
-    val selectedOptionSizeValue: Int?,
-    val selectedOptionSizeUnit: String?,
-    val selectedAddOnsSummary: String?,
-    val estimatedCalories: Int?,
-    val feedbackId: Long?,
-    val rating: Int?,
-    val comment: String?
-) {
-    val isCrafted: Boolean
-        get() = !selectedAddOnsSummary.isNullOrBlank() ||
-                (!selectedOptionLabel.isNullOrBlank() &&
-                        selectedOptionSizeValue != null &&
-                        !selectedOptionSizeUnit.isNullOrBlank())
-}
-
-data class OrderDisplayItem(
-    val productName: String,
-    val quantity: Int,
-    val unitPrice: Double,
-    val selectedOptionLabel: String?,
-    val selectedOptionSizeValue: Int?,
-    val selectedOptionSizeUnit: String?,
-    val selectedAddOnsSummary: String?,
-    val estimatedCalories: Int?
-) {
-    val isCrafted: Boolean
-        get() = !selectedAddOnsSummary.isNullOrBlank() ||
-                (!selectedOptionLabel.isNullOrBlank() &&
-                        selectedOptionSizeValue != null &&
-                        !selectedOptionSizeUnit.isNullOrBlank())
 }

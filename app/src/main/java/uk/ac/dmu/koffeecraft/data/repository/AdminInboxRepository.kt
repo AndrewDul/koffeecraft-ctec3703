@@ -1,11 +1,9 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.dao.CustomerInboxTarget
+
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
-import uk.ac.dmu.koffeecraft.ui.admin.inbox.AdminInboxMessageType
-import uk.ac.dmu.koffeecraft.ui.admin.inbox.AdminInboxTargetMode
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerInboxTarget
 sealed interface AdminInboxSendResult {
     data class Success(val message: String) : AdminInboxSendResult
     data class Error(val message: String) : AdminInboxSendResult

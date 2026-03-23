@@ -7,8 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.util.Locale
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.OrderFeedbackItem
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderFeedbackItem
 class FeedbackProductsAdapter(
     private var items: List<OrderFeedbackItem>,
     private val onOpen: (OrderFeedbackItem) -> Unit

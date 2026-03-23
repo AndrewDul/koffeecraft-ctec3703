@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
 
@@ -46,15 +45,15 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
     private lateinit var topCakesAdapter: CustomerHomeCarouselAdapter
     private lateinit var mostLovedAdapter: CustomerHomeCarouselAdapter
 
-    private val customerId: Long?
-        get() = SessionManager.currentCustomerId
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(
             this,
-            CustomerHomeViewModel.Factory(appContainer.customerHomeRepository)
+            CustomerHomeViewModel.Factory(
+                repository = appContainer.customerHomeRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerHomeViewModel::class.java]
 
         tvBeansValue = view.findViewById(R.id.tvBeansValue)
@@ -106,13 +105,12 @@ class CustomerHomeFragment : Fragment(R.layout.fragment_customer_home) {
         cardRewardsSection.setOnClickListener { openRewards() }
 
         observeState()
-
-        customerId?.let { viewModel.refresh(it) }
+        viewModel.refresh()
     }
 
     override fun onResume() {
         super.onResume()
-        customerId?.let { viewModel.refresh(it) }
+        viewModel.refresh()
     }
 
     private fun observeState() {

@@ -3,7 +3,6 @@ package uk.ac.dmu.koffeecraft.data.repository
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
@@ -30,13 +29,14 @@ class MainActivityRepository(
     context: Context,
     private val db: KoffeeCraftDatabase,
     private val cartPersistenceRepository: CartPersistenceRepository,
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
 
     suspend fun bootstrapRememberedSession(): MainBootstrapResult {
-        val rememberedSession = RememberedSessionStore.restoreIntoMemory(appContext)
+        val rememberedSession = RememberedSessionStore.getSession(appContext)
             ?: return MainBootstrapResult.None
 
         return when (rememberedSession.role) {
@@ -46,11 +46,11 @@ class MainActivityRepository(
                 if (admin == null || !admin.isActive) {
                     sessionRepository.clear()
                     RememberedSessionStore.clear(appContext)
-                    CartManager.clearInMemoryOnly()
+                    cartRepository.clearInMemoryOnly()
                     MainBootstrapResult.None
                 } else {
                     sessionRepository.setAdmin(admin.adminId)
-                    CartManager.clearInMemoryOnly()
+                    cartRepository.clearInMemoryOnly()
                     MainBootstrapResult.LaunchAdmin
                 }
             }
@@ -61,14 +61,14 @@ class MainActivityRepository(
                 if (customer == null || !customer.isActive) {
                     sessionRepository.clear()
                     RememberedSessionStore.clear(appContext)
-                    CartManager.clearInMemoryOnly()
+                    cartRepository.clearInMemoryOnly()
                     MainBootstrapResult.None
                 } else {
                     sessionRepository.setCustomer(customer.customerId)
 
                     val restoredItems =
                         cartPersistenceRepository.restoreCartForCustomer(customer.customerId)
-                    CartManager.replaceAll(restoredItems, persist = false)
+                    cartRepository.replaceAll(restoredItems, persist = false)
 
                     MainBootstrapResult.LaunchCustomer(
                         customerId = customer.customerId,
@@ -85,7 +85,7 @@ class MainActivityRepository(
 
     fun observeCustomerBadges(customerId: Long): Flow<MainActivityBadgeData> {
         return combine(
-            CartManager.itemCount,
+            cartRepository.observeItemCount(),
             db.inboxMessageDao().observeUnreadCountForCustomer(customerId),
             db.notificationDao().observeUnreadCustomerCount(customerId),
             db.inboxMessageDao().observeInboxForCustomer(customerId)

@@ -1,10 +1,9 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import android.content.Context
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 import uk.ac.dmu.koffeecraft.data.settings.ThemeSettings
 
@@ -17,7 +16,9 @@ data class AdminSettingsData(
 
 class AdminSettingsRepository(
     context: Context,
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val sessionRepository: SessionRepository,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -54,8 +55,8 @@ class AdminSettingsRepository(
     }
 
     fun signOut() {
-        CartManager.clearInMemoryOnly()
-        SessionManager.clear()
+        cartRepository.clearInMemoryOnly()
+        sessionRepository.clear()
         RememberedSessionStore.clear(appContext)
     }
 }

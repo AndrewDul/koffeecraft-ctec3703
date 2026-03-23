@@ -61,7 +61,7 @@ import uk.ac.dmu.koffeecraft.data.entities.ProductOption
         CustomerFavouritePreset::class,
         CustomerFavouritePresetAddOnCrossRef::class
     ],
-    version = 18,
+    version = 19,
     exportSchema = true
 )
 abstract class KoffeeCraftDatabase : RoomDatabase() {

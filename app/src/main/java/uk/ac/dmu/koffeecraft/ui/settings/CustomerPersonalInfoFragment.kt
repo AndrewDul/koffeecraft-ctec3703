@@ -14,7 +14,6 @@ import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.validation.CustomerPersonalInfoValidator
 
 class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_personal_info) {
@@ -36,7 +35,10 @@ class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_persona
 
         vm = ViewModelProvider(
             this,
-            CustomerPersonalInfoViewModel.Factory(appContainer.customerSettingsRepository)
+            CustomerPersonalInfoViewModel.Factory(
+                customerSettingsRepository = appContainer.customerSettingsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerPersonalInfoViewModel::class.java]
 
         tilFirstName = view.findViewById(R.id.tilFirstName)
@@ -53,13 +55,6 @@ class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_persona
             findNavController().navigateUp()
         }
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            tvError.text = "You are not logged in as a customer."
-            tvError.visibility = View.VISIBLE
-            btnSaveChanges.isEnabled = false
-            return
-        }
 
         btnSaveChanges.setOnClickListener {
             tilFirstName.error = null
@@ -84,14 +79,13 @@ class CustomerPersonalInfoFragment : Fragment(R.layout.fragment_customer_persona
             if (!validation.isValid) return@setOnClickListener
 
             vm.save(
-                customerId = customerId,
                 firstName = firstName,
                 lastName = lastName,
                 email = email
             )
         }
 
-        vm.start(customerId)
+        vm.start()
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.state.collect { state ->

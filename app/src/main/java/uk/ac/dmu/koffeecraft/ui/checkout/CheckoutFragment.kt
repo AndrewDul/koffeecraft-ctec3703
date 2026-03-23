@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.data.settings.SimulationSettings
 import uk.ac.dmu.koffeecraft.util.notifications.NotificationHelper
 import uk.ac.dmu.koffeecraft.util.payment.PaymentCardValidator
@@ -38,18 +37,13 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            Toast.makeText(requireContext(), "Not logged in as customer.", Toast.LENGTH_SHORT).show()
-            findNavController().navigateUp()
-            return
-        }
 
         vm = ViewModelProvider(
             this,
             CheckoutViewModelFactory(
                 checkoutRepository = appContainer.checkoutRepository,
-                cartRepository = appContainer.cartRepository
+                cartRepository = appContainer.cartRepository,
+                sessionRepository = appContainer.sessionRepository
             )
         )[CheckoutViewModel::class.java]
 
@@ -181,7 +175,6 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         btnPay.setOnClickListener {
             vm.submitOrder(
-                customerId = customerId,
                 cardNickname = etNickname.text?.toString()?.trim().orEmpty(),
                 cardholderName = etHolder.text?.toString()?.trim().orEmpty(),
                 cardNumber = etNumber.text?.toString()?.trim().orEmpty(),
@@ -191,7 +184,7 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             )
         }
 
-        vm.start(customerId)
+        vm.start()
 
         collectState(
             tvTotalValue = tvTotalValue,

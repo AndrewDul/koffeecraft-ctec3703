@@ -13,7 +13,6 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerInboxPreferencesFragment : Fragment(R.layout.fragment_customer_inbox_preferences) {
 
@@ -26,7 +25,10 @@ class CustomerInboxPreferencesFragment : Fragment(R.layout.fragment_customer_inb
 
         vm = ViewModelProvider(
             this,
-            CustomerInboxPreferencesViewModel.Factory(appContainer.customerSettingsRepository)
+            CustomerInboxPreferencesViewModel.Factory(
+                customerSettingsRepository = appContainer.customerSettingsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerInboxPreferencesViewModel::class.java]
 
         switchPromoConsent = view.findViewById(R.id.switchPromoConsent)
@@ -36,22 +38,15 @@ class CustomerInboxPreferencesFragment : Fragment(R.layout.fragment_customer_inb
             findNavController().navigateUp()
         }
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-            btnSavePreferences.isEnabled = false
-            return
-        }
-
         switchPromoConsent.setOnCheckedChangeListener { _, isChecked ->
             vm.setMarketingInboxConsent(isChecked)
         }
 
         btnSavePreferences.setOnClickListener {
-            vm.save(customerId)
+            vm.save()
         }
 
-        vm.start(customerId)
+        vm.start()
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.state.collect { state ->

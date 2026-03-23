@@ -1,12 +1,11 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.dao.CustomerCampaignTarget
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerCampaignTarget
 enum class CampaignAudienceMode {
     ALL_OPTED_IN,
     BIRTHDAY_TODAY,

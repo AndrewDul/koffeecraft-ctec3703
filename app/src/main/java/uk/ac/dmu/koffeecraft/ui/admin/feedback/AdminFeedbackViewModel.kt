@@ -8,12 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackItem
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackOverview
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackRatingBreakdown
 import uk.ac.dmu.koffeecraft.data.repository.AdminFeedbackRepository
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackItem
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackOverview
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackRatingBreakdown
 enum class RatingFilter { ALL, ONE, TWO, THREE, FOUR, FIVE }
 enum class CommentFilter { ALL, WITH_COMMENT, WITHOUT_COMMENT }
 enum class FeedbackCategoryFilter { ALL, COFFEE, CAKE }

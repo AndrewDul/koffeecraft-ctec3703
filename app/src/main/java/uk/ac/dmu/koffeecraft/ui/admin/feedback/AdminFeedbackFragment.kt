@@ -16,9 +16,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackItem
-import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackItem
 class AdminFeedbackFragment : Fragment(R.layout.fragment_admin_feedback) {
 
     private lateinit var viewModel: AdminFeedbackViewModel

@@ -13,6 +13,8 @@ import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardsActionResult
 import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardsRepository
 import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardsScreenData
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
+
 
 data class CustomerRewardsUiState(
     val isLoading: Boolean = false,
@@ -24,7 +26,8 @@ data class CustomerRewardsUiState(
 )
 
 class CustomerRewardsViewModel(
-    private val repository: CustomerRewardsRepository
+    private val repository: CustomerRewardsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -42,15 +45,19 @@ class CustomerRewardsViewModel(
     private val _effects = Channel<UiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
-    private var customerId: Long? = null
 
-    fun start(customerId: Long) {
-        this.customerId = customerId
+    fun start() {
         refreshRewards()
     }
 
     fun refreshRewards() {
-        val safeCustomerId = customerId ?: return
+        val safeCustomerId = sessionRepository.currentCustomerId
+        if (safeCustomerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
 
         _state.value = _state.value.copy(isLoading = true)
 
@@ -67,7 +74,13 @@ class CustomerRewardsViewModel(
     }
 
     fun handleRewardAction(reward: RewardUiModel) {
-        val safeCustomerId = customerId ?: return
+        val safeCustomerId = sessionRepository.currentCustomerId
+        if (safeCustomerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
 
         when (reward.id) {
             "BEAN_BOOSTER" -> {
@@ -244,12 +257,16 @@ class CustomerRewardsViewModel(
     }
 
     class Factory(
-        private val repository: CustomerRewardsRepository
+        private val repository: CustomerRewardsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerRewardsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerRewardsViewModel(repository) as T
+                return CustomerRewardsViewModel(
+                    repository = repository,
+                    sessionRepository = sessionRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

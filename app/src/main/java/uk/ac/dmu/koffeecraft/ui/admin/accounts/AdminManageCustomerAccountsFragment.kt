@@ -24,11 +24,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
-import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
-import java.util.Date
 
+import java.util.Date
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminAccountTarget
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerAccountTarget
 class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_manage_customer_accounts) {
 
     private lateinit var vm: AdminManageCustomerAccountsViewModel
@@ -67,7 +66,7 @@ class AdminManageCustomerAccountsFragment : Fragment(R.layout.fragment_admin_man
             this,
             AdminManageCustomerAccountsViewModel.Factory(
                 adminAccountsRepository = appContainer.adminAccountsRepository,
-                currentAdminId = SessionManager.currentAdminId
+                sessionRepository = appContainer.sessionRepository
             )
         )[AdminManageCustomerAccountsViewModel::class.java]
 

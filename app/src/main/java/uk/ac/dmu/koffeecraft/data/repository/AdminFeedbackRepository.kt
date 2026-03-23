@@ -2,11 +2,10 @@ package uk.ac.dmu.koffeecraft.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackItem
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackOverview
-import uk.ac.dmu.koffeecraft.data.dao.AdminFeedbackRatingBreakdown
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackItem
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackOverview
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminFeedbackRatingBreakdown
 data class AdminFeedbackData(
     val items: List<AdminFeedbackItem>,
     val overview: AdminFeedbackOverview,

@@ -2,10 +2,9 @@ package uk.ac.dmu.koffeecraft.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AppNotification
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderDisplayItem
 data class CustomerNotificationsData(
     val items: List<AppNotification>,
     val detailsByOrderId: Map<Long, List<OrderDisplayItem>>

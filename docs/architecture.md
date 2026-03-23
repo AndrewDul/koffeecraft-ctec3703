@@ -3289,5 +3289,167 @@ This was important because these layers are explicitly relevant to how the syste
 
 ---
 
+## Final architecture hardening and consistency pass
+
+In this stage, I focused on finishing the architectural cleanup so the project structure is now much closer to a consistent assessment-ready MVVM + Repository design.
+
+The goal of this pass was not to add new user-facing features.  
+The goal was to remove the remaining structural inconsistencies, complete unfinished refactors, and make the codebase easier to explain, maintain, and defend during the assessment.
+
+### Main architectural direction
+
+I continued pushing the application toward a cleaner layered structure where:
+
+- Fragments focus on UI rendering and user interaction
+- ViewModels own screen state and UI actions
+- Repositories coordinate business logic and data access
+- Room, stores, and managers stay in infrastructure or lower-level support roles
+
+This improved consistency across both the customer and admin parts of the application.
+
+---
+
+### Session-aware flow cleanup
+
+One of the biggest improvements in this stage was reducing the remaining direct session handling in UI-related flows.
+
+I updated several customer and admin features so session-aware behaviour is now handled through `SessionRepository` instead of relying on UI-level access to low-level session state.
+
+This included further cleanup in flows such as:
+- checkout
+- customer orders
+- rewards
+- customer settings sub-screens
+- admin account management
+- customer notifications and related session-aware behaviour
+
+This made session-dependent features more consistent and reduced the amount of responsibility kept in fragments.
+
+---
+
+### Query model separation from DAO package
+
+Another important cleanup in this stage was separating query/projection models from the DAO package.
+
+Previously, several projection models used by repositories and UI were still stored inside `data.dao`, which made the package less clear because it mixed:
+- DAO interfaces
+- query result models
+
+I moved these projection-style models into a dedicated `data.querymodel` package.
+
+This included models used in areas such as:
+- favourites
+- orders
+- notifications
+- feedback
+- admin account management
+- admin home insights
+- customer/admin communication targeting
+
+This improved the structure because:
+- `data.dao` is now closer to being focused on DAO interfaces only
+- query result models have a clearer home
+- repository and UI imports are easier to understand
+- the data layer is easier to explain in the report
+
+---
+
+### Room and database integrity hardening
+
+I also completed a database integrity pass to make the Room layer stronger and more aligned with the expanded application design.
+
+I updated the schema so the data layer now has clearer relational integrity for several expanded tables and cross-reference structures.
+
+This included:
+- adding or aligning foreign keys
+- adding or aligning indices
+- updating migrations to match the entity structure more safely
+- improving schema consistency for newer tables such as saved cards, favourites presets, inbox/messages, notifications, product options, and related cross-reference tables
+
+I also kept schema export enabled and configured Room schema output properly instead of disabling it.
+
+This improved:
+- database consistency
+- maintainability
+- migration reliability
+- architectural quality of the data layer
+
+---
+
+### Cart architecture cleanup
+
+One of the final architectural changes in this stage was the cart flow cleanup.
+
+Previously, cart-related responsibility was still too spread across:
+- cart state logic
+- persistence logic
+- session-aware persistence decisions
+
+I completed this separation by making `CartManager` behave as a much cleaner in-memory state store only.
+
+After this cleanup:
+- `CartManager` is responsible only for cart state and cart operations
+- `CartRepository` is responsible for persistence policy
+- remembered cart storage is handled outside the manager
+- session-aware cart persistence decisions are handled through repository-level dependencies
+
+This removed the remaining direct coupling between cart state and session infrastructure and made the cart flow much easier to justify architecturally.
+
+---
+
+### Authentication and dependency consistency fixes
+
+During this pass, I also finished several important consistency fixes around refactored dependencies.
+
+This included aligning:
+- login factory/repository wiring
+- admin account management repository wiring
+- AppContainer dependency setup
+- repository constructor expectations after session and cart cleanup
+
+These changes were important because the architecture cleanup had already improved the design, but some dependency wiring still reflected older versions of the code.
+
+I corrected those mismatches so the final structure is now much more coherent.
+
+---
+
+### Build and integration cleanup during refactor completion
+
+Because this pass involved moving responsibilities between layers, I also had to resolve several integration issues caused by partially completed refactors.
+
+The main issues were related to:
+- Room / KSP type resolution
+- outdated constructor wiring
+- old imports still pointing to DAO-based projection models
+- missing or mismatched query-model files during package cleanup
+- incomplete factory updates after repository changes
+
+I resolved these so the project now builds again on the cleaned architecture instead of a partially migrated state.
+
+---
+
+### Result of this stage
+
+This final cleanup significantly improved:
+- separation of concerns
+- dependency clarity
+- repository responsibility boundaries
+- session flow consistency
+- cart architecture consistency
+- Room schema integrity
+- package structure clarity
+- overall maintainability
+
+The application behaviour stayed aligned with the existing feature set, but the internal structure is now much cleaner and much easier to explain as a deliberate architectural design.
+
+At this point, the project is in a much stronger position for the assessment because the architecture is now more consistent with:
+- clarity
+- modularity
+- maintainability
+- scalability
+- appropriate design pattern usage
+
+This stage was mainly about finishing the structure properly, so I could stop revisiting the same layers and leave the architecture in a stable, defendable state.
+
 
 

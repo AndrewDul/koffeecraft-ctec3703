@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.dao.OrderFeedbackItem
 import uk.ac.dmu.koffeecraft.data.repository.FeedbackRepository
 import uk.ac.dmu.koffeecraft.data.repository.ProductFeedbackSaveResult
-
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderFeedbackItem
 data class ProductFeedbackUiState(
     val title: String = "",
     val subtitle: String = "",
@@ -20,12 +20,13 @@ data class ProductFeedbackUiState(
     val comment: String = "",
     val errorVisible: Boolean = false,
     val errorText: String = "",
-    val saveEnabled: Boolean = true,
+    val saveEnabled: Boolean = false,
     val saveText: String = "Submit & Next"
 )
 
 class ProductFeedbackViewModel(
-    private val repository: FeedbackRepository
+    private val repository: FeedbackRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -42,19 +43,18 @@ class ProductFeedbackViewModel(
 
     private var orderId: Long = 0L
     private var orderItemId: Long = 0L
-    private var customerId: Long? = null
+    private var currentCustomerId: Long? = null
     private var currentItem: OrderFeedbackItem? = null
 
     fun start(
         orderId: Long,
-        orderItemId: Long,
-        customerId: Long?
+        orderItemId: Long
     ) {
         this.orderId = orderId
         this.orderItemId = orderItemId
-        this.customerId = customerId
+        this.currentCustomerId = sessionRepository.currentCustomerId
 
-        if (customerId == null) {
+        if (currentCustomerId == null) {
             _state.value = ProductFeedbackUiState(
                 errorVisible = true,
                 errorText = "You are not logged in as a customer.",
@@ -99,7 +99,7 @@ class ProductFeedbackViewModel(
     }
 
     fun save() {
-        val safeCustomerId = customerId
+        val safeCustomerId = currentCustomerId
         if (safeCustomerId == null) {
             viewModelScope.launch {
                 _effects.send(UiEffect.ShowMessage("You are not logged in as a customer."))
@@ -143,12 +143,13 @@ class ProductFeedbackViewModel(
     }
 
     class Factory(
-        private val repository: FeedbackRepository
+        private val repository: FeedbackRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ProductFeedbackViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return ProductFeedbackViewModel(repository) as T
+                return ProductFeedbackViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

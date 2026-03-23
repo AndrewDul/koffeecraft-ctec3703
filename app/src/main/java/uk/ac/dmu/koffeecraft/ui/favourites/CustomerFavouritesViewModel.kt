@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetCard
-import uk.ac.dmu.koffeecraft.data.dao.StandardFavouriteCard
 import uk.ac.dmu.koffeecraft.data.repository.CustomerFavouritesActionResult
 import uk.ac.dmu.koffeecraft.data.repository.CustomerFavouritesRepository
-
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerFavouritePresetCard
+import uk.ac.dmu.koffeecraft.data.querymodel.StandardFavouriteCard
 data class CustomerFavouritesUiState(
     val presets: List<CustomerFavouritePresetCard> = emptyList(),
     val standardProducts: List<StandardFavouriteCard> = emptyList(),
@@ -24,7 +24,8 @@ data class CustomerFavouritesUiState(
 )
 
 class CustomerFavouritesViewModel(
-    private val repository: CustomerFavouritesRepository
+    private val repository: CustomerFavouritesRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -38,9 +39,21 @@ class CustomerFavouritesViewModel(
     val effects = _effects.receiveAsFlow()
 
     private var observeJob: Job? = null
+    private var startedCustomerId: Long? = null
 
-    fun start(customerId: Long) {
-        if (observeJob != null) return
+    fun start() {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
+        if (observeJob != null && startedCustomerId == customerId) return
+
+        startedCustomerId = customerId
+        observeJob?.cancel()
 
         observeJob = viewModelScope.launch {
             repository.observeFavourites(customerId).collect { data ->
@@ -71,10 +84,15 @@ class CustomerFavouritesViewModel(
         }
     }
 
-    fun removeStandardFavourite(
-        customerId: Long,
-        productId: Long
-    ) {
+    fun removeStandardFavourite(productId: Long) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         viewModelScope.launch {
             when (val result = repository.removeStandardFavourite(customerId, productId)) {
                 is CustomerFavouritesActionResult.Success -> {
@@ -117,12 +135,13 @@ class CustomerFavouritesViewModel(
     }
 
     class Factory(
-        private val repository: CustomerFavouritesRepository
+        private val repository: CustomerFavouritesRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerFavouritesViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerFavouritesViewModel(repository) as T
+                return CustomerFavouritesViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

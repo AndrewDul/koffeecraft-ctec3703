@@ -900,7 +900,371 @@ object DatabaseMigrations {
             )
         }
     }
+    private val MIGRATION_18_19 = object : Migration(18, 19) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("PRAGMA foreign_keys=OFF")
 
+            db.execSQL(
+                """
+                DELETE FROM product_options
+                WHERE productId NOT IN (SELECT productId FROM products)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM product_add_on_cross_ref
+                WHERE productId NOT IN (SELECT productId FROM products)
+                   OR addOnId NOT IN (SELECT addOnId FROM add_ons)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM product_allergen_cross_ref
+                WHERE productId NOT IN (SELECT productId FROM products)
+                   OR allergenId NOT IN (SELECT allergenId FROM allergens)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM add_on_allergen_cross_ref
+                WHERE addOnId NOT IN (SELECT addOnId FROM add_ons)
+                   OR allergenId NOT IN (SELECT allergenId FROM allergens)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM customer_favourite_presets
+                WHERE customerId NOT IN (SELECT customerId FROM customers)
+                   OR productId NOT IN (SELECT productId FROM products)
+                   OR optionId NOT IN (SELECT optionId FROM product_options)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM customer_favourite_preset_add_on_cross_ref
+                WHERE presetId NOT IN (SELECT presetId FROM customer_favourite_presets)
+                   OR addOnId NOT IN (SELECT addOnId FROM add_ons)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM inbox_messages
+                WHERE recipientCustomerId NOT IN (SELECT customerId FROM customers)
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                DELETE FROM app_notifications
+                WHERE (recipientCustomerId IS NOT NULL AND recipientCustomerId NOT IN (SELECT customerId FROM customers))
+                   OR (orderId IS NOT NULL AND orderId NOT IN (SELECT orderId FROM orders))
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS product_options_new (
+                    optionId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    productId INTEGER NOT NULL,
+                    optionName TEXT NOT NULL,
+                    displayLabel TEXT NOT NULL,
+                    sizeValue INTEGER NOT NULL,
+                    sizeUnit TEXT NOT NULL,
+                    extraPrice REAL NOT NULL,
+                    estimatedCalories INTEGER NOT NULL,
+                    isDefault INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(productId) REFERENCES products(productId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO product_options_new (
+                    optionId,
+                    productId,
+                    optionName,
+                    displayLabel,
+                    sizeValue,
+                    sizeUnit,
+                    extraPrice,
+                    estimatedCalories,
+                    isDefault
+                )
+                SELECT
+                    optionId,
+                    productId,
+                    optionName,
+                    displayLabel,
+                    sizeValue,
+                    sizeUnit,
+                    extraPrice,
+                    estimatedCalories,
+                    isDefault
+                FROM product_options
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS product_add_on_cross_ref_new (
+                    productId INTEGER NOT NULL,
+                    addOnId INTEGER NOT NULL,
+                    PRIMARY KEY(productId, addOnId),
+                    FOREIGN KEY(productId) REFERENCES products(productId) ON DELETE CASCADE,
+                    FOREIGN KEY(addOnId) REFERENCES add_ons(addOnId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO product_add_on_cross_ref_new (productId, addOnId)
+                SELECT productId, addOnId
+                FROM product_add_on_cross_ref
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS product_allergen_cross_ref_new (
+                    productId INTEGER NOT NULL,
+                    allergenId INTEGER NOT NULL,
+                    PRIMARY KEY(productId, allergenId),
+                    FOREIGN KEY(productId) REFERENCES products(productId) ON DELETE CASCADE,
+                    FOREIGN KEY(allergenId) REFERENCES allergens(allergenId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO product_allergen_cross_ref_new (productId, allergenId)
+                SELECT productId, allergenId
+                FROM product_allergen_cross_ref
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS add_on_allergen_cross_ref_new (
+                    addOnId INTEGER NOT NULL,
+                    allergenId INTEGER NOT NULL,
+                    PRIMARY KEY(addOnId, allergenId),
+                    FOREIGN KEY(addOnId) REFERENCES add_ons(addOnId) ON DELETE CASCADE,
+                    FOREIGN KEY(allergenId) REFERENCES allergens(allergenId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO add_on_allergen_cross_ref_new (addOnId, allergenId)
+                SELECT addOnId, allergenId
+                FROM add_on_allergen_cross_ref
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS customer_favourite_presets_new (
+                    presetId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    customerId INTEGER NOT NULL,
+                    productId INTEGER NOT NULL,
+                    optionId INTEGER NOT NULL,
+                    totalPriceSnapshot REAL NOT NULL,
+                    totalCaloriesSnapshot INTEGER NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY(customerId) REFERENCES customers(customerId) ON DELETE CASCADE,
+                    FOREIGN KEY(productId) REFERENCES products(productId) ON DELETE CASCADE,
+                    FOREIGN KEY(optionId) REFERENCES product_options(optionId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO customer_favourite_presets_new (
+                    presetId,
+                    customerId,
+                    productId,
+                    optionId,
+                    totalPriceSnapshot,
+                    totalCaloriesSnapshot,
+                    createdAt
+                )
+                SELECT
+                    presetId,
+                    customerId,
+                    productId,
+                    optionId,
+                    totalPriceSnapshot,
+                    totalCaloriesSnapshot,
+                    createdAt
+                FROM customer_favourite_presets
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS customer_favourite_preset_add_on_cross_ref_new (
+                    presetId INTEGER NOT NULL,
+                    addOnId INTEGER NOT NULL,
+                    PRIMARY KEY(presetId, addOnId),
+                    FOREIGN KEY(presetId) REFERENCES customer_favourite_presets(presetId) ON DELETE CASCADE,
+                    FOREIGN KEY(addOnId) REFERENCES add_ons(addOnId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO customer_favourite_preset_add_on_cross_ref_new (presetId, addOnId)
+                SELECT presetId, addOnId
+                FROM customer_favourite_preset_add_on_cross_ref
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS inbox_messages_new (
+                    inboxMessageId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    recipientCustomerId INTEGER NOT NULL,
+                    title TEXT NOT NULL,
+                    body TEXT NOT NULL,
+                    deliveryType TEXT NOT NULL,
+                    isRead INTEGER NOT NULL DEFAULT 0,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY(recipientCustomerId) REFERENCES customers(customerId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO inbox_messages_new (
+                    inboxMessageId,
+                    recipientCustomerId,
+                    title,
+                    body,
+                    deliveryType,
+                    isRead,
+                    createdAt
+                )
+                SELECT
+                    inboxMessageId,
+                    recipientCustomerId,
+                    title,
+                    body,
+                    deliveryType,
+                    isRead,
+                    createdAt
+                FROM inbox_messages
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS app_notifications_new (
+                    notificationId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    recipientRole TEXT NOT NULL,
+                    recipientCustomerId INTEGER,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    notificationType TEXT NOT NULL,
+                    orderId INTEGER,
+                    orderCreatedAt INTEGER,
+                    orderStatus TEXT,
+                    isRead INTEGER NOT NULL DEFAULT 0,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY(recipientCustomerId) REFERENCES customers(customerId) ON DELETE CASCADE,
+                    FOREIGN KEY(orderId) REFERENCES orders(orderId) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO app_notifications_new (
+                    notificationId,
+                    recipientRole,
+                    recipientCustomerId,
+                    title,
+                    message,
+                    notificationType,
+                    orderId,
+                    orderCreatedAt,
+                    orderStatus,
+                    isRead,
+                    createdAt
+                )
+                SELECT
+                    notificationId,
+                    recipientRole,
+                    recipientCustomerId,
+                    title,
+                    message,
+                    notificationType,
+                    orderId,
+                    orderCreatedAt,
+                    orderStatus,
+                    isRead,
+                    createdAt
+                FROM app_notifications
+                """.trimIndent()
+            )
+
+            db.execSQL("DROP TABLE IF EXISTS product_options")
+            db.execSQL("DROP TABLE IF EXISTS product_add_on_cross_ref")
+            db.execSQL("DROP TABLE IF EXISTS product_allergen_cross_ref")
+            db.execSQL("DROP TABLE IF EXISTS add_on_allergen_cross_ref")
+            db.execSQL("DROP TABLE IF EXISTS customer_favourite_preset_add_on_cross_ref")
+            db.execSQL("DROP TABLE IF EXISTS customer_favourite_presets")
+            db.execSQL("DROP TABLE IF EXISTS inbox_messages")
+            db.execSQL("DROP TABLE IF EXISTS app_notifications")
+
+            db.execSQL("ALTER TABLE product_options_new RENAME TO product_options")
+            db.execSQL("ALTER TABLE product_add_on_cross_ref_new RENAME TO product_add_on_cross_ref")
+            db.execSQL("ALTER TABLE product_allergen_cross_ref_new RENAME TO product_allergen_cross_ref")
+            db.execSQL("ALTER TABLE add_on_allergen_cross_ref_new RENAME TO add_on_allergen_cross_ref")
+            db.execSQL("ALTER TABLE customer_favourite_presets_new RENAME TO customer_favourite_presets")
+            db.execSQL("ALTER TABLE customer_favourite_preset_add_on_cross_ref_new RENAME TO customer_favourite_preset_add_on_cross_ref")
+            db.execSQL("ALTER TABLE inbox_messages_new RENAME TO inbox_messages")
+            db.execSQL("ALTER TABLE app_notifications_new RENAME TO app_notifications")
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_product_options_productId ON product_options(productId)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_product_options_productId_optionName ON product_options(productId, optionName)")
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_product_add_on_cross_ref_addOnId ON product_add_on_cross_ref(addOnId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_product_allergen_cross_ref_allergenId ON product_allergen_cross_ref(allergenId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_add_on_allergen_cross_ref_allergenId ON add_on_allergen_cross_ref(allergenId)")
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_customerId ON customer_favourite_presets(customerId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_productId ON customer_favourite_presets(productId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_optionId ON customer_favourite_presets(optionId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_presets_createdAt ON customer_favourite_presets(createdAt)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_preset_add_on_cross_ref_presetId ON customer_favourite_preset_add_on_cross_ref(presetId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_customer_favourite_preset_add_on_cross_ref_addOnId ON customer_favourite_preset_add_on_cross_ref(addOnId)")
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_recipientCustomerId ON inbox_messages(recipientCustomerId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_isRead ON inbox_messages(isRead)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_inbox_messages_createdAt ON inbox_messages(createdAt)")
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_recipientRole ON app_notifications(recipientRole)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_recipientCustomerId ON app_notifications(recipientCustomerId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_isRead ON app_notifications(isRead)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_createdAt ON app_notifications(createdAt)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_app_notifications_orderId ON app_notifications(orderId)")
+
+            db.execSQL("PRAGMA foreign_keys=ON")
+        }
+    }
     val ALL = arrayOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -918,6 +1282,8 @@ object DatabaseMigrations {
         MIGRATION_14_15,
         MIGRATION_15_16,
         MIGRATION_16_17,
-        MIGRATION_17_18
+        MIGRATION_17_18,
+        MIGRATION_18_19
     )
+
 }

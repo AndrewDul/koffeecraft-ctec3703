@@ -1,6 +1,5 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 
@@ -24,14 +23,15 @@ sealed interface CustomerRewardChoiceResult {
 }
 
 class CustomerRewardsRepository(
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val cartRepository: CartRepository
 ) {
 
     suspend fun loadRewardsScreen(customerId: Long): CustomerRewardsScreenData? {
         val customer = db.customerDao().getById(customerId) ?: return null
         val rewardProducts = db.productDao().getRewardProducts()
 
-        val reservedBeans = CartManager.beansToSpend()
+        val reservedBeans = cartRepository.beansToSpend()
         val availableBeansForNewRewards = (customer.beansBalance - reservedBeans).coerceAtLeast(0)
         val progress = customer.beansBoosterProgress.coerceIn(
             0,
@@ -75,7 +75,7 @@ class CustomerRewardsRepository(
         val customer = db.customerDao().getById(customerId)
             ?: return CustomerRewardChoiceResult.Error("Customer account could not be found.")
 
-        val availableBeans = (customer.beansBalance - CartManager.beansToSpend()).coerceAtLeast(0)
+        val availableBeans = (customer.beansBalance - cartRepository.beansToSpend()).coerceAtLeast(0)
         if (availableBeans < beansCost) {
             return CustomerRewardChoiceResult.Error("You do not have enough beans for this reward.")
         }
@@ -96,7 +96,7 @@ class CustomerRewardsRepository(
         val customer = db.customerDao().getById(customerId)
             ?: return CustomerRewardsActionResult.Error("Customer account could not be found.")
 
-        val availableBeans = (customer.beansBalance - CartManager.beansToSpend()).coerceAtLeast(0)
+        val availableBeans = (customer.beansBalance - cartRepository.beansToSpend()).coerceAtLeast(0)
         if (availableBeans < beansCost) {
             return CustomerRewardsActionResult.Error("You do not have enough beans for this reward.")
         }
@@ -105,7 +105,7 @@ class CustomerRewardsRepository(
         val selected = rewards.firstOrNull { it.name == productName }
             ?: return CustomerRewardsActionResult.Error("Reward product not found.")
 
-        val added = CartManager.addReward(
+        val added = cartRepository.addReward(
             sourceProduct = selected,
             rewardType = "PHYSICAL_REWARD",
             beansCostPerUnit = beansCost

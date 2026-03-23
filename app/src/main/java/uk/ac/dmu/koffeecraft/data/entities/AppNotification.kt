@@ -1,11 +1,26 @@
 package uk.ac.dmu.koffeecraft.data.entities
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "app_notifications",
+    foreignKeys = [
+        ForeignKey(
+            entity = Customer::class,
+            parentColumns = ["customerId"],
+            childColumns = ["recipientCustomerId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Order::class,
+            parentColumns = ["orderId"],
+            childColumns = ["orderId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [
         Index(value = ["recipientRole"]),
         Index(value = ["recipientCustomerId"]),

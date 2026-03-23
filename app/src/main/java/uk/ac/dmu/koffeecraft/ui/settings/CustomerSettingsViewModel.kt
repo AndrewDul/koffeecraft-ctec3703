@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CustomerSettingsRepository
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 data class CustomerSettingsUiState(
     val customerName: String = "",
@@ -18,7 +19,8 @@ data class CustomerSettingsUiState(
 )
 
 class CustomerSettingsViewModel(
-    private val repository: CustomerSettingsRepository
+    private val repository: CustomerSettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -32,7 +34,9 @@ class CustomerSettingsViewModel(
     private val _effects = Channel<UiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
-    fun load(customerId: Long?) {
+    fun load() {
+        val customerId = sessionRepository.currentCustomerId
+
         viewModelScope.launch {
             val data = repository.loadScreenData(customerId)
 
@@ -67,12 +71,13 @@ class CustomerSettingsViewModel(
     }
 
     class Factory(
-        private val repository: CustomerSettingsRepository
+        private val repository: CustomerSettingsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerSettingsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerSettingsViewModel(repository) as T
+                return CustomerSettingsViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

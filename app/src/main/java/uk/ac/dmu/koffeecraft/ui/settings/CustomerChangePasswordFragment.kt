@@ -16,7 +16,6 @@ import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.ui.ValidationUiStyler
 import uk.ac.dmu.koffeecraft.util.validation.PasswordRulesValidator
 
@@ -41,7 +40,10 @@ class CustomerChangePasswordFragment : Fragment(R.layout.fragment_customer_chang
 
         vm = ViewModelProvider(
             this,
-            CustomerChangePasswordViewModel.Factory(appContainer.customerSettingsRepository)
+            CustomerChangePasswordViewModel.Factory(
+                customerSettingsRepository = appContainer.customerSettingsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerChangePasswordViewModel::class.java]
 
         tilCurrentPassword = view.findViewById(R.id.tilCurrentPassword)
@@ -76,12 +78,6 @@ class CustomerChangePasswordFragment : Fragment(R.layout.fragment_customer_chang
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
         })
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-            btnChangePassword.isEnabled = false
-            return
-        }
 
         btnChangePassword.setOnClickListener {
             tilCurrentPassword.error = null
@@ -105,7 +101,6 @@ class CustomerChangePasswordFragment : Fragment(R.layout.fragment_customer_chang
             if (hasError) return@setOnClickListener
 
             vm.changePassword(
-                customerId = customerId,
                 currentPassword = currentPassword,
                 newPassword = newPassword
             )

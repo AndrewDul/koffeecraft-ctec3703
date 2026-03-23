@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.data.model.MenuProductConfiguration
 import uk.ac.dmu.koffeecraft.data.repository.MenuRepository
 import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
@@ -116,13 +117,14 @@ class MenuViewModel(
 
         if (!state.savePresetEnabled) return
 
+        val selectedAddOns = state.addOns.filter { it.addOnId in state.selectedAddOnIds }
+
         viewModelScope.launch {
             menuRepository.saveFavouritePreset(
                 customerId = customerId,
                 product = product,
                 option = option,
-                selectedAddOnIds = state.selectedAddOnIds,
-                cardState = state
+                selectedAddOns = selectedAddOns
             )
             sendMessage("Favourite combo saved.")
         }
@@ -133,12 +135,12 @@ class MenuViewModel(
 
         val state = _state.value.cardStates[product.productId] ?: return
         val option = state.options.firstOrNull { it.optionId == state.selectedOptionId } ?: return
+        val selectedAddOns = state.addOns.filter { it.addOnId in state.selectedAddOnIds }
 
         menuRepository.addConfiguredProductToCart(
             product = product,
             option = option,
-            selectedAddOnIds = state.selectedAddOnIds,
-            cardState = state
+            selectedAddOns = selectedAddOns
         )
 
         sendMessage("Product added to cart.")
@@ -190,11 +192,11 @@ class MenuViewModel(
         )
 
         viewModelScope.launch {
-            val loaded = menuRepository.loadProductCardState(productId)
+            val configuration = menuRepository.loadProductConfiguration(productId)
+            val loaded = configuration.toUiState()
             val currentProduct = _state.value.products.firstOrNull { it.productId == productId }
 
             val finalState = loaded.copy(
-                selectedOptionId = loaded.selectedOptionId,
                 selectedAddOnIds = emptySet(),
                 savePresetEnabled = currentProduct?.let {
                     shouldEnableSavePresetButton(
@@ -242,5 +244,19 @@ class MenuViewModel(
         viewModelScope.launch {
             _effects.send(UiEffect.ShowMessage(message))
         }
+    }
+
+    private fun MenuProductConfiguration.toUiState(): ProductCardUiState {
+        return ProductCardUiState(
+            options = options,
+            addOns = addOns,
+            baseAllergens = baseAllergens,
+            addOnAllergens = addOnAllergens,
+            selectedOptionId = defaultOptionId,
+            selectedAddOnIds = emptySet(),
+            isLoaded = true,
+            isLoading = false,
+            savePresetEnabled = false
+        )
     }
 }

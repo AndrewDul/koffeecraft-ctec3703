@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.MainActivity
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class AdminSettingsFragment : Fragment(R.layout.fragment_admin_settings) {
 
@@ -34,7 +33,10 @@ class AdminSettingsFragment : Fragment(R.layout.fragment_admin_settings) {
 
         viewModel = ViewModelProvider(
             this,
-            AdminSettingsViewModel.Factory(appContainer.adminSettingsRepository)
+            AdminSettingsViewModel.Factory(
+                repository = appContainer.adminSettingsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[AdminSettingsViewModel::class.java]
 
         tvAdminName = view.findViewById(R.id.tvAdminName)
@@ -79,12 +81,12 @@ class AdminSettingsFragment : Fragment(R.layout.fragment_admin_settings) {
         }
 
         observeState()
-        viewModel.load(SessionManager.currentAdminId)
+        viewModel.load()
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.load(SessionManager.currentAdminId)
+        viewModel.load()
     }
 
     private fun observeState() {

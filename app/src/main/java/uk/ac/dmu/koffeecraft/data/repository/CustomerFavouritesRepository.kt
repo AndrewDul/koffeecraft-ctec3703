@@ -2,12 +2,10 @@ package uk.ac.dmu.koffeecraft.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
-import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetCard
-import uk.ac.dmu.koffeecraft.data.dao.StandardFavouriteCard
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.Product
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerFavouritePresetCard
+import uk.ac.dmu.koffeecraft.data.querymodel.StandardFavouriteCard
 data class CustomerFavouritesData(
     val presets: List<CustomerFavouritePresetCard>,
     val standardProducts: List<StandardFavouriteCard>
@@ -19,7 +17,8 @@ sealed interface CustomerFavouritesActionResult {
 }
 
 class CustomerFavouritesRepository(
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val cartRepository: CartRepository
 ) {
 
     fun observeFavourites(customerId: Long): Flow<CustomerFavouritesData> {
@@ -56,7 +55,7 @@ class CustomerFavouritesRepository(
             return CustomerFavouritesActionResult.Error("This product is currently unavailable.")
         }
 
-        CartManager.add(product)
+        cartRepository.addProduct(product)
         return CustomerFavouritesActionResult.Success("Favourite added to cart.")
     }
 
@@ -72,7 +71,7 @@ class CustomerFavouritesRepository(
             return CustomerFavouritesActionResult.Error("This saved configuration is no longer available.")
         }
 
-        CartManager.addCustomisedProduct(
+        cartRepository.addCustomisedProduct(
             product = product,
             option = option,
             addOns = addOns

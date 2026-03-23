@@ -7,9 +7,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
-import uk.ac.dmu.koffeecraft.data.dao.CustomerFavouritePresetCard
 import java.util.Locale
-
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerFavouritePresetCard
 class CustomerFavouritePresetAdapter(
     private var items: List<CustomerFavouritePresetCard>,
     private val onRemove: (CustomerFavouritePresetCard) -> Unit,

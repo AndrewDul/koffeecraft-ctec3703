@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CustomerSettingsRepository
 import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CustomerPersonalInfoViewModel(
-    private val customerSettingsRepository: CustomerSettingsRepository
+    private val customerSettingsRepository: CustomerSettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     data class UiState(
@@ -35,7 +37,15 @@ class CustomerPersonalInfoViewModel(
 
     private var startedCustomerId: Long? = null
 
-    fun start(customerId: Long) {
+    fun start() {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         if (startedCustomerId == customerId) return
         startedCustomerId = customerId
 
@@ -56,20 +66,29 @@ class CustomerPersonalInfoViewModel(
     }
 
     fun save(
-        customerId: Long,
         firstName: String,
         lastName: String,
         email: String
     ) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         _state.value = _state.value.copy(isSaving = true)
 
         viewModelScope.launch {
-            when (val result = customerSettingsRepository.updatePersonalInfo(
-                customerId = customerId,
-                firstName = firstName,
-                lastName = lastName,
-                email = email
-            )) {
+            when (
+                val result = customerSettingsRepository.updatePersonalInfo(
+                    customerId = customerId,
+                    firstName = firstName,
+                    lastName = lastName,
+                    email = email
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _state.value = _state.value.copy(
                         firstName = firstName.trim(),
@@ -89,12 +108,16 @@ class CustomerPersonalInfoViewModel(
     }
 
     class Factory(
-        private val customerSettingsRepository: CustomerSettingsRepository
+        private val customerSettingsRepository: CustomerSettingsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerPersonalInfoViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerPersonalInfoViewModel(customerSettingsRepository) as T
+                return CustomerPersonalInfoViewModel(
+                    customerSettingsRepository = customerSettingsRepository,
+                    sessionRepository = sessionRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

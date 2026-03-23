@@ -13,13 +13,16 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
 import uk.ac.dmu.koffeecraft.data.repository.CustomerPaymentMethodsRepository
 import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CustomerPaymentMethodsViewModel(
-    private val customerPaymentMethodsRepository: CustomerPaymentMethodsRepository
+    private val customerPaymentMethodsRepository: CustomerPaymentMethodsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     data class UiState(
-        val cards: List<CustomerPaymentCard> = emptyList()
+        val cards: List<CustomerPaymentCard> = emptyList(),
+        val customerMissing: Boolean = false
     )
 
     sealed interface UiEffect {
@@ -36,7 +39,16 @@ class CustomerPaymentMethodsViewModel(
     private var observeJob: Job? = null
     private var startedCustomerId: Long? = null
 
-    fun start(customerId: Long) {
+    fun start() {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            _state.value = _state.value.copy(cards = emptyList(), customerMissing = true)
+            return
+        }
+
         if (startedCustomerId == customerId && observeJob != null) return
 
         startedCustomerId = customerId
@@ -44,28 +56,40 @@ class CustomerPaymentMethodsViewModel(
 
         observeJob = viewModelScope.launch {
             customerPaymentMethodsRepository.observeCards(customerId).collectLatest { cards ->
-                _state.value = _state.value.copy(cards = cards)
+                _state.value = _state.value.copy(
+                    cards = cards,
+                    customerMissing = false
+                )
             }
         }
     }
 
     fun addCard(
-        customerId: Long,
         nickname: String,
         cardholderName: String,
         cardNumber: String,
         expiryText: String,
         setAsDefault: Boolean
     ) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         viewModelScope.launch {
-            when (val result = customerPaymentMethodsRepository.addCard(
-                customerId = customerId,
-                nickname = nickname,
-                cardholderName = cardholderName,
-                cardNumber = cardNumber,
-                expiryText = expiryText,
-                setAsDefault = setAsDefault
-            )) {
+            when (
+                val result = customerPaymentMethodsRepository.addCard(
+                    customerId = customerId,
+                    nickname = nickname,
+                    cardholderName = cardholderName,
+                    cardNumber = cardNumber,
+                    expiryText = expiryText,
+                    setAsDefault = setAsDefault
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _effects.send(UiEffect.ShowMessage(result.message))
                     _effects.send(UiEffect.DismissAddCardDialog)
@@ -78,15 +102,22 @@ class CustomerPaymentMethodsViewModel(
         }
     }
 
-    fun setDefaultCard(
-        customerId: Long,
-        card: CustomerPaymentCard
-    ) {
+    fun setDefaultCard(card: CustomerPaymentCard) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         viewModelScope.launch {
-            when (val result = customerPaymentMethodsRepository.setDefaultCard(
-                customerId = customerId,
-                card = card
-            )) {
+            when (
+                val result = customerPaymentMethodsRepository.setDefaultCard(
+                    customerId = customerId,
+                    card = card
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _effects.send(UiEffect.ShowMessage(result.message))
                 }
@@ -98,15 +129,22 @@ class CustomerPaymentMethodsViewModel(
         }
     }
 
-    fun deleteCard(
-        customerId: Long,
-        card: CustomerPaymentCard
-    ) {
+    fun deleteCard(card: CustomerPaymentCard) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(UiEffect.ShowMessage("Please sign in first."))
+            }
+            return
+        }
+
         viewModelScope.launch {
-            when (val result = customerPaymentMethodsRepository.deleteCard(
-                customerId = customerId,
-                card = card
-            )) {
+            when (
+                val result = customerPaymentMethodsRepository.deleteCard(
+                    customerId = customerId,
+                    card = card
+                )
+            ) {
                 is SettingsActionResult.Success -> {
                     _effects.send(UiEffect.ShowMessage(result.message))
                 }
@@ -119,12 +157,16 @@ class CustomerPaymentMethodsViewModel(
     }
 
     class Factory(
-        private val customerPaymentMethodsRepository: CustomerPaymentMethodsRepository
+        private val customerPaymentMethodsRepository: CustomerPaymentMethodsRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerPaymentMethodsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerPaymentMethodsViewModel(customerPaymentMethodsRepository) as T
+                return CustomerPaymentMethodsViewModel(
+                    customerPaymentMethodsRepository = customerPaymentMethodsRepository,
+                    sessionRepository = sessionRepository
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

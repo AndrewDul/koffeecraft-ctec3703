@@ -1,9 +1,8 @@
 package uk.ac.dmu.koffeecraft.ui.orders
 
-import uk.ac.dmu.koffeecraft.data.dao.OrderDisplayItem
 import uk.ac.dmu.koffeecraft.data.entities.Order
 import uk.ac.dmu.koffeecraft.data.repository.CustomerOrderDateFilter
-
+import uk.ac.dmu.koffeecraft.data.querymodel.OrderDisplayItem
 data class CustomerOrdersUiState(
     val items: List<Order> = emptyList(),
     val detailsByOrderId: Map<Long, List<OrderDisplayItem>> = emptyMap(),

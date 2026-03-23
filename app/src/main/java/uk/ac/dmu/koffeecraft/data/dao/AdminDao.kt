@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import uk.ac.dmu.koffeecraft.data.entities.Admin
-
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminAccountTarget
 @Dao
 interface AdminDao {
 
@@ -98,12 +98,3 @@ interface AdminDao {
     suspend fun countActiveAdmins(): Int
 }
 
-data class AdminAccountTarget(
-    val adminId: Long,
-    val fullName: String,
-    val email: String,
-    val phone: String,
-    val username: String,
-    val isActive: Boolean,
-    val createdAt: Long
-)

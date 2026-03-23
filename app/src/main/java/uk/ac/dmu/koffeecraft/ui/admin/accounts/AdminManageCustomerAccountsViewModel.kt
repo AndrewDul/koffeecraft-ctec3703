@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import uk.ac.dmu.koffeecraft.data.dao.AdminAccountTarget
-import uk.ac.dmu.koffeecraft.data.dao.CustomerAccountTarget
 import uk.ac.dmu.koffeecraft.data.repository.AdminAccountsRepository
 import uk.ac.dmu.koffeecraft.data.repository.SettingsActionResult
-
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
+import uk.ac.dmu.koffeecraft.data.querymodel.AdminAccountTarget
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerAccountTarget
 enum class ManagedAccountType {
     CUSTOMERS,
     ADMINS
@@ -41,7 +41,7 @@ data class AdminManageAccountsUiState(
 
 class AdminManageCustomerAccountsViewModel(
     private val adminAccountsRepository: AdminAccountsRepository,
-    private val currentAdminId: Long?
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     sealed interface UiEffect {
@@ -156,7 +156,7 @@ class AdminManageCustomerAccountsViewModel(
                 val result = adminAccountsRepository.updateAdminStatus(
                     adminId = selectedAdmin.adminId,
                     isActive = isActive,
-                    currentAdminId = currentAdminId
+                    currentAdminId = sessionRepository.currentAdminId
                 )
             ) {
                 is SettingsActionResult.Success -> {
@@ -305,14 +305,14 @@ class AdminManageCustomerAccountsViewModel(
 
     class Factory(
         private val adminAccountsRepository: AdminAccountsRepository,
-        private val currentAdminId: Long?
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AdminManageCustomerAccountsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return AdminManageCustomerAccountsViewModel(
                     adminAccountsRepository = adminAccountsRepository,
-                    currentAdminId = currentAdminId
+                    sessionRepository = sessionRepository
                 ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")

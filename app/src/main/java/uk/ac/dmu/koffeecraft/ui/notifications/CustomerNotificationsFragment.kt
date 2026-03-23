@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 
 class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifications) {
 
@@ -28,11 +27,12 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val customerId = SessionManager.currentCustomerId ?: return
-
         viewModel = ViewModelProvider(
             this,
-            CustomerNotificationsViewModel.Factory(appContainer.customerNotificationsRepository)
+            CustomerNotificationsViewModel.Factory(
+                repository = appContainer.customerNotificationsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerNotificationsViewModel::class.java]
 
         val rv = view.findViewById<RecyclerView>(R.id.rvCustomerNotifications)
@@ -63,7 +63,7 @@ class CustomerNotificationsFragment : Fragment(R.layout.fragment_customer_notifi
             }
         }
 
-        viewModel.start(customerId)
+        viewModel.start()
     }
 
     private fun attachSwipeToDelete(rv: RecyclerView) {

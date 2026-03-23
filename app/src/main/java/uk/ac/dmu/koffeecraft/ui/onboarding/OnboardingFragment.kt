@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 
 class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
 
@@ -48,8 +47,6 @@ class OnboardingFragment : Fragment(R.layout.fragment_onboarding) {
         super.onViewCreated(view, savedInstanceState)
 
         val customerId = requireArguments().getLong("customerId")
-        val appContext = requireContext().applicationContext
-        CartManager.attachContext(appContext)
 
         viewModel = ViewModelProvider(
             this,

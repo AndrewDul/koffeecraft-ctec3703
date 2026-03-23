@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.entities.InboxMessage
 import uk.ac.dmu.koffeecraft.data.repository.CustomerInboxRepository
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 enum class InboxFilter {
     ALL,
@@ -29,16 +30,28 @@ data class CustomerInboxUiState(
 )
 
 class CustomerInboxViewModel(
-    private val repository: CustomerInboxRepository
+    private val repository: CustomerInboxRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CustomerInboxUiState())
     val state: StateFlow<CustomerInboxUiState> = _state
 
     private var observeJob: Job? = null
+    private var startedCustomerId: Long? = null
 
-    fun start(customerId: Long, launchInboxMessageId: Long?) {
-        if (observeJob != null) return
+    fun start(launchInboxMessageId: Long?) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            _state.value = CustomerInboxUiState(
+                isEmpty = true,
+                emptyMessage = "Please sign in first."
+            )
+            return
+        }
+
+        if (observeJob != null && startedCustomerId == customerId) return
+        startedCustomerId = customerId
 
         if (launchInboxMessageId != null && launchInboxMessageId > 0L) {
             viewModelScope.launch {
@@ -46,6 +59,7 @@ class CustomerInboxViewModel(
             }
         }
 
+        observeJob?.cancel()
         observeJob = viewModelScope.launch {
             repository.observeInbox(customerId).collect { items ->
                 _state.update { current ->
@@ -110,12 +124,13 @@ class CustomerInboxViewModel(
     }
 
     class Factory(
-        private val repository: CustomerInboxRepository
+        private val repository: CustomerInboxRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerInboxViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerInboxViewModel(repository) as T
+                return CustomerInboxViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

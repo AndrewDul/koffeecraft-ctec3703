@@ -1,6 +1,5 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.Allergen
@@ -23,7 +22,8 @@ sealed interface ProductCustomizationActionResult {
 }
 
 class ProductCustomizationRepository(
-    private val db: KoffeeCraftDatabase
+    private val db: KoffeeCraftDatabase,
+    private val cartRepository: CartRepository
 ) {
 
     suspend fun loadData(productId: Long): ProductCustomizationData? {
@@ -91,7 +91,7 @@ class ProductCustomizationRepository(
 
         if (rewardMode) {
             if (hasMeaningfulCustomisation) {
-                CartManager.addRewardCustomisedProduct(
+                cartRepository.addRewardCustomisedProduct(
                     sourceProduct = product,
                     rewardType = rewardType ?: "CUSTOM_REWARD",
                     beansCostPerUnit = rewardBeansCost,
@@ -99,7 +99,7 @@ class ProductCustomizationRepository(
                     addOns = selectedAddOns
                 )
             } else {
-                CartManager.addReward(
+                cartRepository.addReward(
                     sourceProduct = product,
                     rewardType = rewardType ?: "CUSTOM_REWARD",
                     beansCostPerUnit = rewardBeansCost
@@ -109,7 +109,7 @@ class ProductCustomizationRepository(
             return ProductCustomizationActionResult.Success("Reward added to cart.")
         }
 
-        CartManager.addCustomisedProduct(
+        cartRepository.addCustomisedProduct(
             product = product,
             option = option,
             addOns = selectedAddOns

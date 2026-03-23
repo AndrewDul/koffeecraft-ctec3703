@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CartRepository
 import uk.ac.dmu.koffeecraft.data.repository.CheckoutRepository
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.util.validation.CheckoutCardFormValidator
 import uk.ac.dmu.koffeecraft.util.validation.CheckoutCardValidationResult
 
 class CheckoutViewModel(
     private val checkoutRepository: CheckoutRepository,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -45,7 +47,15 @@ class CheckoutViewModel(
         }
     }
 
-    fun start(customerId: Long) {
+    fun start() {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(CheckoutUiEffect.ShowMessage("Not logged in as customer."))
+            }
+            return
+        }
+
         if (startedCustomerId == customerId && savedCardsJob != null) {
             return
         }
@@ -94,7 +104,6 @@ class CheckoutViewModel(
     }
 
     fun submitOrder(
-        customerId: Long,
         cardNickname: String,
         cardholderName: String,
         cardNumber: String,
@@ -102,6 +111,14 @@ class CheckoutViewModel(
         cvv: String,
         saveNewCardForFuture: Boolean
     ) {
+        val customerId = sessionRepository.currentCustomerId
+        if (customerId == null) {
+            viewModelScope.launch {
+                _effects.send(CheckoutUiEffect.ShowMessage("Not logged in as customer."))
+            }
+            return
+        }
+
         val cartSnapshot = cartRepository.getCurrentCart()
         if (cartSnapshot.items.isEmpty()) {
             viewModelScope.launch {

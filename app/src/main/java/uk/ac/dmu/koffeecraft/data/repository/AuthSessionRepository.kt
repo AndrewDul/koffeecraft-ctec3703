@@ -1,7 +1,6 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import android.content.Context
-import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.session.RememberedSessionStore
 import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
@@ -20,14 +19,11 @@ class AuthSessionRepository(
     context: Context,
     private val authRepository: AuthRepository,
     private val cartPersistenceRepository: CartPersistenceRepository,
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val cartRepository: CartRepository
 ) {
 
     private val appContext = context.applicationContext
-
-    init {
-        CartManager.attachContext(appContext)
-    }
 
     suspend fun login(
         email: String,
@@ -43,7 +39,7 @@ class AuthSessionRepository(
                     AuthRepository.UserRole.ADMIN -> {
                         sessionRepository.setAdmin(result.userId)
                         RememberedSessionStore.saveAdminSession(appContext, result.userId)
-                        CartManager.clearInMemoryOnly()
+                        cartRepository.clearInMemoryOnly()
 
                         AuthSessionLoginResult.Admin(result.userId)
                     }
@@ -59,7 +55,7 @@ class AuthSessionRepository(
                         val restoredItems =
                             cartPersistenceRepository.restoreCartForCustomer(result.userId)
 
-                        CartManager.replaceAll(restoredItems, persist = false)
+                        cartRepository.replaceAll(restoredItems, persist = false)
 
                         AuthSessionLoginResult.Customer(result.userId)
                     }
@@ -103,7 +99,7 @@ class AuthSessionRepository(
                     customerId = result.customerId,
                     onboardingPending = true
                 )
-                CartManager.clearInMemoryOnly()
+                cartRepository.clearInMemoryOnly()
 
                 AuthSessionRegisterResult.Success(result.customerId)
             }

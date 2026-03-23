@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.entities.CustomerPaymentCard
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.util.payment.PaymentCardValidator
 import uk.ac.dmu.koffeecraft.util.validation.SavedPaymentCardFormValidator
 
@@ -34,14 +33,16 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
     private lateinit var tvEmpty: TextView
     private lateinit var containerCards: LinearLayout
     private var activeAddCardDialog: AlertDialog? = null
-    private var currentCustomerId: Long? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         vm = ViewModelProvider(
             this,
-            CustomerPaymentMethodsViewModel.Factory(appContainer.customerPaymentMethodsRepository)
+            CustomerPaymentMethodsViewModel.Factory(
+                customerPaymentMethodsRepository = appContainer.customerPaymentMethodsRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerPaymentMethodsViewModel::class.java]
 
         tvEmpty = view.findViewById(R.id.tvPaymentCardsEmpty)
@@ -52,20 +53,11 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
         }
 
         val btnAddCard = view.findViewById<MaterialButton>(R.id.btnAddPaymentCard)
-        currentCustomerId = SessionManager.currentCustomerId
-
-        val customerId = currentCustomerId
-        if (customerId == null) {
-            Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-            btnAddCard.isEnabled = false
-            return
-        }
-
         btnAddCard.setOnClickListener {
-            showAddCardDialog(customerId)
+            showAddCardDialog()
         }
 
-        vm.start(customerId)
+        vm.start()
         collectViewModel()
     }
 
@@ -80,11 +72,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     vm.state.collect { state ->
-                        val customerId = currentCustomerId ?: return@collect
-                        renderCards(
-                            customerId = customerId,
-                            cards = state.cards
-                        )
+                        renderCards(state.cards)
                     }
                 }
 
@@ -106,10 +94,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
         }
     }
 
-    private fun renderCards(
-        customerId: Long,
-        cards: List<CustomerPaymentCard>
-    ) {
+    private fun renderCards(cards: List<CustomerPaymentCard>) {
         if (!isAdded) return
 
         containerCards.removeAllViews()
@@ -140,10 +125,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
             btnDefault.text = if (card.isDefault) "Default card" else "Set as default"
 
             btnDefault.setOnClickListener {
-                vm.setDefaultCard(
-                    customerId = customerId,
-                    card = card
-                )
+                vm.setDefaultCard(card)
             }
 
             btnDelete.setOnClickListener {
@@ -152,10 +134,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
                     .setMessage("This will remove \"${card.nickname}\" from your saved payment methods.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Remove") { _, _ ->
-                        vm.deleteCard(
-                            customerId = customerId,
-                            card = card
-                        )
+                        vm.deleteCard(card)
                     }
                     .show()
             }
@@ -164,7 +143,7 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
         }
     }
 
-    private fun showAddCardDialog(customerId: Long) {
+    private fun showAddCardDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_customer_payment_card_form, null)
 
         val tvPreviewNickname = dialogView.findViewById<TextView>(R.id.tvPreviewCardNickname)
@@ -285,7 +264,6 @@ class CustomerPaymentMethodsFragment : Fragment(R.layout.fragment_customer_payme
                 if (!validation.isValid) return@setOnClickListener
 
                 vm.addCard(
-                    customerId = customerId,
                     nickname = nicknameInput,
                     cardholderName = holderInput,
                     cardNumber = numberInput,

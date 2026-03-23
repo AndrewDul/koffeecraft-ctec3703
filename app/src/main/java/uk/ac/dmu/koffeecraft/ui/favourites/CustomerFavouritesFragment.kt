@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import uk.ac.dmu.koffeecraft.ui.menu.ProductCustomizationBottomSheet
 
 class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourites) {
@@ -27,21 +26,15 @@ class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourite
     private lateinit var tvPresetSection: TextView
     private lateinit var tvStandardSection: TextView
 
-    private val customerId: Long?
-        get() = SessionManager.currentCustomerId
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val safeCustomerId = customerId
-        if (safeCustomerId == null) {
-            Toast.makeText(requireContext(), "Please sign in first.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         viewModel = ViewModelProvider(
             this,
-            CustomerFavouritesViewModel.Factory(appContainer.customerFavouritesRepository)
+            CustomerFavouritesViewModel.Factory(
+                repository = appContainer.customerFavouritesRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerFavouritesViewModel::class.java]
 
         tvEmpty = view.findViewById(R.id.tvEmpty)
@@ -71,7 +64,7 @@ class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourite
         standardAdapter = StandardFavouriteAdapter(
             items = emptyList(),
             onRemove = { card ->
-                viewModel.removeStandardFavourite(safeCustomerId, card.productId)
+                viewModel.removeStandardFavourite(card.productId)
             },
             onCustomize = { card ->
                 ProductCustomizationBottomSheet.newInstance(card.productId)
@@ -86,7 +79,7 @@ class CustomerFavouritesFragment : Fragment(R.layout.fragment_customer_favourite
         rvProducts.adapter = standardAdapter
 
         observeState()
-        viewModel.start(safeCustomerId)
+        viewModel.start()
     }
 
     private fun observeState() {

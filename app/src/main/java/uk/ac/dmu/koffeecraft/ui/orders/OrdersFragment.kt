@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.core.di.appContainer
 import uk.ac.dmu.koffeecraft.data.repository.CustomerOrderDateFilter
-import uk.ac.dmu.koffeecraft.data.session.SessionManager
 import kotlin.math.abs
 
 class OrdersFragment : Fragment(R.layout.fragment_orders) {
@@ -38,16 +37,13 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
         val rv = view.findViewById<RecyclerView>(R.id.rvOrders)
         tvEmpty = view.findViewById(R.id.tvEmpty)
 
-        val customerId = SessionManager.currentCustomerId
-        if (customerId == null) {
-            tvEmpty.visibility = View.VISIBLE
-            tvEmpty.text = "You are not logged in as a customer."
-            return
-        }
 
         vm = ViewModelProvider(
             this,
-            CustomerOrdersViewModelFactory(appContainer.customerOrdersRepository)
+            CustomerOrdersViewModelFactory(
+                customerOrdersRepository = appContainer.customerOrdersRepository,
+                sessionRepository = appContainer.sessionRepository
+            )
         )[CustomerOrdersViewModel::class.java]
 
         btnBrowseMenu.setOnClickListener {
@@ -80,7 +76,7 @@ class OrdersFragment : Fragment(R.layout.fragment_orders) {
         rv.adapter = adapter
         attachSwipeToHide(rv)
 
-        vm.start(customerId)
+        vm.start()
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.state.collect { state ->

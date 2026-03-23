@@ -3,9 +3,9 @@ package uk.ac.dmu.koffeecraft.data.repository
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.dto.AdminOrderDetailsModel
+import uk.ac.dmu.koffeecraft.data.dto.AdminOrderLineModel
 import uk.ac.dmu.koffeecraft.data.dto.AdminOrderRow
-import uk.ac.dmu.koffeecraft.ui.admin.orders.AdminOrderDetailsUi
-import uk.ac.dmu.koffeecraft.ui.admin.orders.AdminOrderLineUi
 import uk.ac.dmu.koffeecraft.util.notifications.AdminNotificationManager
 import uk.ac.dmu.koffeecraft.util.notifications.CustomerNotificationManager
 
@@ -40,7 +40,7 @@ class AdminOrdersRepository(
         )
     }
 
-    suspend fun loadOrderDetails(orderId: Long): AdminOrderDetailsUi? {
+    suspend fun loadOrderDetails(orderId: Long): AdminOrderDetailsModel? {
         val order = db.orderDao().getById(orderId) ?: return null
         val customer = db.customerDao().getInboxTargetByOrderId(orderId) ?: return null
         val payment = db.paymentDao().getLatestForOrder(orderId)
@@ -48,7 +48,7 @@ class AdminOrdersRepository(
         val feedbackItems = db.orderItemDao().getFeedbackItemsForOrder(orderId)
 
         val itemLines = displayItems.map { item ->
-            AdminOrderLineUi(
+            AdminOrderLineModel(
                 productName = item.productName,
                 quantity = item.quantity,
                 unitPrice = item.unitPrice,
@@ -60,7 +60,7 @@ class AdminOrdersRepository(
             )
         }
 
-        return AdminOrderDetailsUi(
+        return AdminOrderDetailsModel(
             orderId = order.orderId,
             customerId = customer.customerId,
             customerName = "${customer.firstName} ${customer.lastName}".trim(),

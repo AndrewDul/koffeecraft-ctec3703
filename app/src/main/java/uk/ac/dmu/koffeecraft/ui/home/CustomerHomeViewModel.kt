@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import uk.ac.dmu.koffeecraft.data.repository.CustomerHomeRepository
 import uk.ac.dmu.koffeecraft.data.repository.CustomerHomeScreenData
+import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 import java.util.Locale
 
@@ -24,13 +25,16 @@ data class CustomerHomeUiState(
 )
 
 class CustomerHomeViewModel(
-    private val repository: CustomerHomeRepository
+    private val repository: CustomerHomeRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CustomerHomeUiState())
     val state: StateFlow<CustomerHomeUiState> = _state
 
-    fun refresh(customerId: Long) {
+    fun refresh() {
+        val customerId = sessionRepository.currentCustomerId ?: return
+
         viewModelScope.launch {
             val data = repository.loadHomeContent(customerId) ?: return@launch
             _state.value = mapToUiState(data)
@@ -177,12 +181,13 @@ class CustomerHomeViewModel(
     }
 
     class Factory(
-        private val repository: CustomerHomeRepository
+        private val repository: CustomerHomeRepository,
+        private val sessionRepository: SessionRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerHomeViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerHomeViewModel(repository) as T
+                return CustomerHomeViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
