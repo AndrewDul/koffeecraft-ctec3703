@@ -1787,3 +1787,61 @@ I updated the cart layer so:
 
 The final cart/session architecture became consistent and the project built correctly on the cleaned design.
 
+
+
+## 72)Batch 4 UI test troubleshooting
+
+While I was implementing Batch 4 Espresso UI smoke tests, I ran into several issues related to the Android test environment, view matching, and screen assertions. I fixed each issue to make the UI smoke tests stable enough for assessment evidence.
+
+### 1. Notification permission popup on the emulator
+When the UI tests started on the emulator, Android sometimes displayed the notification permission popup. This interrupted the test flow and made the results unreliable if I handled the popup manually.
+
+I fixed this by adding `GrantPermissionRule` with `POST_NOTIFICATIONS` to the Batch 4 UI test classes, so the tests no longer depended on manual interaction with the system permission dialog.
+
+### 2. Missing Android test rules dependency
+After adding `GrantPermissionRule`, the Android test source set failed to compile because the project did not include the required AndroidX test rules dependency. This caused unresolved reference errors for `androidx.test.rule.GrantPermissionRule`.
+
+I fixed this by adding the missing Android test dependencies in `app/build.gradle.kts`:
+
+- `androidx.test:rules:1.7.0`
+- `androidx.test:runner:1.7.0`
+
+### 3. Duplicate admin seed / admin account setup problem
+One early version of the admin UI test failed because the test setup tried to create an admin account that conflicted with an already existing seeded admin account. This triggered a SQLite unique constraint error on `admins.username`.
+
+I first removed the duplicate assumption, and then I made the admin UI test more stable by creating a unique admin account inside the test setup using a unique email and unique username.
+
+### 4. Admin login failure during UI testing
+At one stage, the admin UI test reached the login screen but failed with `Invalid email or password`, which meant the test was not reliably using an account that was guaranteed to exist for that specific test run.
+
+I fixed this by creating a dedicated admin account in the setup step for the UI test and logging in with that exact account.
+
+### 5. Registration validation assertions
+The registration validation test initially failed even though the validation logic itself was working. Espresso was trying to match visible error text directly on screen, but the real validation messages were stored in `TextInputLayout.error`.
+
+I fixed this by checking the `TextInputLayout.error` value instead of matching only visible text widgets.
+
+### 6. Wait action executed on the wrong target
+One customer flow UI test failed because the custom wait helper was executed on a specific view even though the helper was constrained to `isRoot()`.
+
+I fixed this by running the wait action on the root view before checking the post-login UI state.
+
+### 7. Ambiguous matcher for the customer Menu tab
+The customer navigation test failed because matching the text `"Menu"` was ambiguous. Bottom navigation exposed both a small label and a large label, so Espresso found more than one matching view.
+
+I fixed this by clicking the navigation item by ID (`R.id.menuFragment`) instead of matching the text label.
+
+### 8. Admin orders RecyclerView display assertion
+The admin UI test later failed on `rvAdminOrders` even though the orders screen had opened successfully. The RecyclerView existed and was marked visible, but it had zero height in that specific test state, so `isDisplayed()` failed.
+
+I fixed this by changing the smoke test assertion to check stable visible controls on the admin orders screen instead, such as the filter/search UI (`btnFind` and `Search & Filters`), which are more reliable indicators that the screen opened correctly.
+
+### Result
+After these fixes, Batch 4 UI smoke tests became stable enough to use as assessment evidence for:
+
+- welcome screen navigation
+- registration validation
+- successful registration flow
+- customer login and navigation
+- admin login and admin orders screen access
+

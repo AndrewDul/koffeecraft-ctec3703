@@ -57,3 +57,20 @@ Focus:
 
 Evidence:
 - docs/evidence/testing/dao-batch-3-overview.png
+
+
+## Batch 4 – UI Smoke Tests
+Date: 2026-03-23
+
+Tests included:
+- CustomerFlowEspressoTest
+- AdminFlowEspressoTest
+
+Focus:
+- welcome screen navigation
+- registration validation and successful onboarding entry
+- customer login and customer shell navigation
+- admin login and admin orders screen access
+
+Evidence:
+- docs/evidence/testing/ui-batch-4-overview.png
