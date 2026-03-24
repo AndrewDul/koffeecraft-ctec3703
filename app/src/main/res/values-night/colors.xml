@@ -3,7 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="kc_shell_background">#1C1612</color>
+    <color name="kc_shell_background">#241C17</color>
 
     <color name="kc_surface_primary">#2A211C</color>
     <color name="kc_surface_secondary">#31261F</color>
@@ -53,6 +53,7 @@
 
     <color name="kc_danger">#D78484</color>
     <color name="kc_danger_text">#F0C5BF</color>
+    <color name="kc_danger_soft">#C28B82</color>
 
     <color name="kc_warning_text">#E7C49D</color>
     <color name="kc_info_text">#D9C2B0</color>
@@ -81,6 +82,31 @@
 
     <color name="kc_validation_invalid_bg">#4C3131</color>
     <color name="kc_validation_invalid_stroke">#D78484</color>
+
     <color name="kc_divider">#4A3A31</color>
-    <color name="kc_danger_soft">#C28B82</color>
+
+    <!-- Premium top/bottom bar surfaces -->
+    <color name="kc_top_bar_surface">#2D231D</color>
+    <color name="kc_bottom_bar_surface">#2D231D</color>
+    <color name="kc_bar_stroke">#46362D</color>
+
+    <!-- Bottom nav selected/unselected -->
+    <color name="kc_nav_selected">#D1A27A</color>
+    <color name="kc_nav_unselected">#A88D78</color>
+
+    <!-- Top bar icon tint -->
+    <color name="kc_top_icon_tint">#C79772</color>
+
+    <!-- Home carousel cards -->
+    <color name="kc_home_carousel_card">#4B3A31</color>
+
+    <!-- Settings action tones -->
+    <color name="kc_signout_surface">#4A352F</color>
+    <color name="kc_signout_stroke">#6A4A42</color>
+    <color name="kc_signout_text">#E0C1B7</color>
+
+    <color name="kc_delete_account_surface">#553832</color>
+    <color name="kc_delete_account_stroke">#7A5047</color>
+    <color name="kc_delete_account_text">#F0B8AE</color>
+    <color name="kc_delete_account_text_soft">#D89A91</color>
 </resources>

@@ -3471,5 +3471,90 @@ On the UI side, I replaced mixed and partially inconsistent navigation assets wi
 
 I then simplified branding further by replacing the image-based logo with a text-based brand mark using "☕ Koffee Craft". I applied this to the customer top bar, admin top bar, welcome screen, and aligned login, onboarding, and register branding with the shared string resource.
 
+## Catalog recovery, icon system, and premium shell refinement
+
+I fixed a catalog initialization problem that caused some products to load without size options. This affected the menu flow because products with missing `ProductOption` data could not be added to cart and appeared in the UI with a `Missing size` state.
+
+### What I changed in the data layer
+
+I introduced a shared catalog defaults source to centralize the default setup for:
+- coffee size options
+- cake size options
+- default add-ons
+- allergen library
+- default product-to-add-on links
+
+This removed the earlier dependency on older migration-only setup logic and made the catalog bootstrap more consistent.
+
+I updated the fresh database creation flow so that new installations now seed:
+- admin data
+- products
+- default product options
+- add-ons
+- allergens
+- product/add-on relationships
+
+I also added a Room migration from version 19 to 20 to backfill missing product options and default add-on links for existing databases. This ensured that already installed app versions could recover missing catalog configuration without requiring a manual reset.
+
+In addition, I updated admin product creation so that new coffee and cake products automatically receive default sizes and add-ons. This prevents newly created products from entering an incomplete configuration state.
+
+### What I changed in the UI asset system
+
+I replaced the earlier mixed icon setup with a custom SVG-based icon system for both customer and admin flows. I imported and connected custom vector icons for:
+- top bar actions
+- customer bottom navigation
+- admin bottom navigation
+- empty/full state icons for cart, inbox, and notifications
+
+This made icon rendering more consistent, easier to tint by theme, and more appropriate for bottom navigation than earlier bitmap-style assets.
+
+### What I changed in branding
+
+I replaced the previous image-based logo in the top bar and key entry screens with a text-based brand mark using:
+- a coffee emoji
+- the `Koffee Craft` wordmark
+
+This simplified branding, improved consistency across screens, and reduced dependence on separate logo image assets.
+
+### What I changed in the app shell design
+
+I redesigned the top bar and bottom navigation to feel more premium and visually cohesive.
+
+The new shell design includes:
+- full-width top and bottom surfaces
+- rounded top bar bottom corners
+- rounded bottom navigation top corners
+- theme-aware premium surface colors
+- updated icon tint behavior
+- selected navigation labels shown only for the active item
+
+I also refined light and dark theme values so that:
+- the top bar and bottom navigation share the same surface tone in light theme
+- both surfaces are slightly darker and more balanced in dark theme
+- top bar icons use a stronger coffee-tone tint
+- carousel cards on the home page are slightly brighter for better contrast
+
+### What I changed in settings styling
+
+I refined the visual treatment of sensitive account actions in the settings screen.
+
+I separated the tone of:
+- `Sign out`
+- `Delete account`
+
+Both now use subtly warm danger styling, but with enough visual difference to communicate different levels of severity without making the screen feel harsh or aggressive.
+
+### Build and compatibility adjustments
+
+During UI refinement I hit a resource-linking issue caused by an unsupported `BottomNavigationView` attribute in the current Material dependency version. I removed the unsupported attribute and kept the rest of the shell styling compatible with the existing project setup.
+
+Overall, these changes improved:
+- catalog reliability
+- migration safety
+- consistency of product configuration
+- navigation clarity
+- branding cohesion
+- premium visual quality across light and dark themes
+
 
 

@@ -1860,3 +1860,60 @@ Root cause:
 
 I fixed this by cleaning up the unused `kc_home` mipmap/adaptive icon resources and keeping only the actual icons used by the current UI. This removed the broken resource reference and restored a successful build.
 
+## 75)Missing size prevented add to cart
+
+I found that some products could not be added to cart because they had no product options. In the UI this appeared as "Missing size".
+
+The root cause was in the catalog bootstrap flow:
+- fresh databases seeded admin and products only
+- default product options, add-ons, and allergen links were previously created only through an older migration path
+- existing databases had no backfill for missing product options
+- newly created coffee and cake products in admin also did not receive default sizes automatically
+
+I fixed this by:
+- adding a shared CatalogDefaults source
+- seeding missing catalog data on fresh database creation
+- adding a Room migration from version 19 to 20
+- updating admin product creation so new products receive default sizes and add-ons automatically
+
+## 76)Build failure caused by obsolete kc_home launcher resources
+
+I hit a build failure during resource processing because old adaptive icon files for kc_home were still present in the mipmap-anydpi-v26 folder and referenced a missing drawable resource: @drawable/kc_home_background.
+
+The root cause was that old launcher-related resources were left in the project even though the app was no longer using them as the launcher icon.
+
+I fixed this by cleaning up the unused kc_home adaptive icon resources and keeping only the assets used by the current UI.
+
+## 77)Build failure caused by unsupported BottomNavigationView attribute
+
+I hit another build failure in activity_main.xml and activity_admin.xml because the attribute itemActiveIndicatorEnabled was not available in the current Material library version used by the project.
+
+The root cause was a style update that used a newer Material attribute than the project currently supports.
+
+I fixed this by removing the unsupported attribute and keeping the rest of the bottom navigation styling compatible with the current dependency version.
+
+## 78)Bottom navigation icon issue with custom home icon
+
+I found that the custom home icon looked like a permanently highlighted light contour in the bottom navigation.
+
+The main reasons were:
+- itemIconTint had been disabled
+- the original image asset was too detailed for navigation icon size
+- the icon behaved more like a mini-logo than a navigation symbol
+
+I fixed this by moving to a cleaner custom SVG icon setup and reconnecting navigation icons through vector drawables and theme-aware tinting.
+
+## 79)Branding and shell consistency issues
+
+I noticed that branding and navigation styling were inconsistent across the app:
+- the old image-based logo did not fit well in the top bars
+- top and bottom bars did not feel visually aligned
+- icon sizes and colors were not fully consistent between themes
+- settings danger actions did not feel clearly separated from normal actions
+
+I fixed this by:
+- replacing the image-based logo with text branding
+- redesigning the top bar and bottom navigation as full-width premium surfaces with rounded corners
+- refining icon sizing, tint, and navigation label styling
+- updating light and dark color roles for bars, icons, and selected states
+- giving Sign out and Delete account subtle but different danger styling

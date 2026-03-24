@@ -85,4 +85,29 @@
 
     <color name="kc_divider">#EADFD4</color>
     <color name="kc_home_background">#6F4E37</color>
+
+    <!-- Premium top/bottom bar surfaces -->
+    <color name="kc_top_bar_surface">#E7D7C8</color>
+    <color name="kc_bottom_bar_surface">#E7D7C8</color>
+    <color name="kc_bar_stroke">#D0BEAC</color>
+
+    <!-- Bottom nav selected/unselected -->
+    <color name="kc_nav_selected">#6B4A36</color>
+    <color name="kc_nav_unselected">#8B7565</color>
+
+    <!-- Top bar icon tint -->
+    <color name="kc_top_icon_tint">#563C2E</color>
+
+    <!-- Home carousel cards -->
+    <color name="kc_home_carousel_card">#F5ECE3</color>
+
+    <!-- Settings action tones -->
+    <color name="kc_signout_surface">#F2E5DF</color>
+    <color name="kc_signout_stroke">#E2CFC6</color>
+    <color name="kc_signout_text">#765047</color>
+
+    <color name="kc_delete_account_surface">#F4DFDA</color>
+    <color name="kc_delete_account_stroke">#E1C0B7</color>
+    <color name="kc_delete_account_text">#8A4F46</color>
+    <color name="kc_delete_account_text_soft">#A56A61</color>
 </resources>
