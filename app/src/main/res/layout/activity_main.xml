@@ -18,14 +18,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
+        <TextView
             android:id="@+id/imgCustomerLogo"
-            android:layout_width="180dp"
-            android:layout_height="56dp"
-            android:contentDescription="@string/app_name"
-            android:scaleType="fitXY"
-            android:src="@drawable/kc_logo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="@string/app_logo"
+            android:textColor="@color/kc_text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/customerTopActions"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -48,7 +54,7 @@
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/cd_cart"
-                    android:src="@android:drawable/ic_menu_share"
+                    android:src="@drawable/kc_emptycart"
                     android:tint="@color/kc_icon_primary" />
 
                 <TextView
@@ -80,7 +86,7 @@
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/cd_inbox"
-                    android:src="@android:drawable/ic_dialog_email"
+                    android:src="@drawable/kc_emptyinbox"
                     android:tint="@color/kc_icon_primary" />
 
                 <TextView
@@ -112,7 +118,7 @@
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/cd_notifications"
-                    android:src="@android:drawable/ic_dialog_info"
+                    android:src="@drawable/kc_nonotifications"
                     android:tint="@color/kc_icon_primary" />
 
                 <TextView
@@ -140,7 +146,7 @@
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/cd_settings"
-                android:src="@android:drawable/ic_menu_manage"
+                android:src="@drawable/kc_settings"
                 android:tint="@color/kc_icon_primary" />
         </LinearLayout>
 
@@ -163,6 +169,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/kc_surface_primary"
+        app:itemIconSize="30dp"
         app:itemIconTint="@color/kc_chip_text_selector"
         app:itemTextColor="@color/kc_chip_text_selector"
         app:layout_constraintBottom_toBottomOf="parent"

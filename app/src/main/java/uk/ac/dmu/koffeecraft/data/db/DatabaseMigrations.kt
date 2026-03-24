@@ -1265,6 +1265,163 @@ object DatabaseMigrations {
             db.execSQL("PRAGMA foreign_keys=ON")
         }
     }
+    private val MIGRATION_19_20 = object : Migration(19, 20) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""INSERT OR IGNORE INTO allergens(name) VALUES ('Milk')""")
+            db.execSQL("""INSERT OR IGNORE INTO allergens(name) VALUES ('Nuts')""")
+            db.execSQL("""INSERT OR IGNORE INTO allergens(name) VALUES ('Gluten')""")
+            db.execSQL("""INSERT OR IGNORE INTO allergens(name) VALUES ('Soy')""")
+            db.execSQL("""INSERT OR IGNORE INTO allergens(name) VALUES ('Coconut')""")
+
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Milk', 'COFFEE', 0.30, 25, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Vanilla syrup', 'COFFEE', 0.30, 35, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Caramel syrup', 'COFFEE', 0.30, 40, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Cinnamon topping', 'COFFEE', 0.30, 10, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Chocolate topping', 'COFFEE', 0.30, 35, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Hazelnut syrup', 'COFFEE', 0.30, 40, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Coconut topping', 'COFFEE', 0.30, 30, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Nut topping', 'COFFEE', 0.30, 45, 1)""")
+
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Chocolate sauce', 'CAKE', 0.30, 45, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Raspberry sauce', 'CAKE', 0.30, 30, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Toffee sauce', 'CAKE', 0.30, 50, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Coconut topping', 'CAKE', 0.30, 30, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Nut topping', 'CAKE', 0.30, 45, 1)""")
+            db.execSQL("""INSERT OR IGNORE INTO add_ons(name, category, price, estimatedCalories, isActive) VALUES ('Icing sugar', 'CAKE', 0.30, 20, 1)""")
+
+            db.execSQL(
+                """
+            INSERT INTO add_on_allergen_cross_ref(addOnId, allergenId)
+            SELECT a.addOnId, al.allergenId
+            FROM add_ons a, allergens al
+            WHERE a.name = 'Milk' AND al.name = 'Milk'
+              AND NOT EXISTS (
+                  SELECT 1 FROM add_on_allergen_cross_ref x
+                  WHERE x.addOnId = a.addOnId AND x.allergenId = al.allergenId
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO add_on_allergen_cross_ref(addOnId, allergenId)
+            SELECT a.addOnId, al.allergenId
+            FROM add_ons a, allergens al
+            WHERE a.name IN ('Hazelnut syrup', 'Nut topping') AND al.name = 'Nuts'
+              AND NOT EXISTS (
+                  SELECT 1 FROM add_on_allergen_cross_ref x
+                  WHERE x.addOnId = a.addOnId AND x.allergenId = al.allergenId
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO add_on_allergen_cross_ref(addOnId, allergenId)
+            SELECT a.addOnId, al.allergenId
+            FROM add_ons a, allergens al
+            WHERE a.name = 'Coconut topping' AND al.name = 'Coconut'
+              AND NOT EXISTS (
+                  SELECT 1 FROM add_on_allergen_cross_ref x
+                  WHERE x.addOnId = a.addOnId AND x.allergenId = al.allergenId
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_options(productId, optionName, displayLabel, sizeValue, sizeUnit, extraPrice, estimatedCalories, isDefault)
+            SELECT p.productId, 'SMALL', 'Small', 250, 'ML', 0.0, 120, 1
+            FROM products p
+            WHERE p.category = 'COFFEE'
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_options po
+                  WHERE po.productId = p.productId AND po.optionName = 'SMALL'
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_options(productId, optionName, displayLabel, sizeValue, sizeUnit, extraPrice, estimatedCalories, isDefault)
+            SELECT p.productId, 'MEDIUM', 'Medium', 350, 'ML', 0.5, 170, 0
+            FROM products p
+            WHERE p.category = 'COFFEE'
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_options po
+                  WHERE po.productId = p.productId AND po.optionName = 'MEDIUM'
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_options(productId, optionName, displayLabel, sizeValue, sizeUnit, extraPrice, estimatedCalories, isDefault)
+            SELECT p.productId, 'LARGE', 'Large', 450, 'ML', 1.0, 220, 0
+            FROM products p
+            WHERE p.category = 'COFFEE'
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_options po
+                  WHERE po.productId = p.productId AND po.optionName = 'LARGE'
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_options(productId, optionName, displayLabel, sizeValue, sizeUnit, extraPrice, estimatedCalories, isDefault)
+            SELECT p.productId, 'STANDARD', 'Standard slice', 120, 'G', 0.0, 300, 1
+            FROM products p
+            WHERE p.category = 'CAKE'
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_options po
+                  WHERE po.productId = p.productId AND po.optionName = 'STANDARD'
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_options(productId, optionName, displayLabel, sizeValue, sizeUnit, extraPrice, estimatedCalories, isDefault)
+            SELECT p.productId, 'MEDIUM', 'Medium', 220, 'G', 0.5, 550, 0
+            FROM products p
+            WHERE p.category = 'CAKE'
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_options po
+                  WHERE po.productId = p.productId AND po.optionName = 'MEDIUM'
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_options(productId, optionName, displayLabel, sizeValue, sizeUnit, extraPrice, estimatedCalories, isDefault)
+            SELECT p.productId, 'LARGE', 'Large', 330, 'G', 1.0, 820, 0
+            FROM products p
+            WHERE p.category = 'CAKE'
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_options po
+                  WHERE po.productId = p.productId AND po.optionName = 'LARGE'
+              )
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            INSERT INTO product_add_on_cross_ref(productId, addOnId)
+            SELECT p.productId, a.addOnId
+            FROM products p
+            INNER JOIN add_ons a ON a.category = p.category
+            WHERE p.category IN ('COFFEE', 'CAKE')
+              AND NOT EXISTS (
+                  SELECT 1 FROM product_add_on_cross_ref x
+                  WHERE x.productId = p.productId AND x.addOnId = a.addOnId
+              )
+            """.trimIndent()
+            )
+        }
+    }
+
     val ALL = arrayOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -1283,7 +1440,8 @@ object DatabaseMigrations {
         MIGRATION_15_16,
         MIGRATION_16_17,
         MIGRATION_17_18,
-        MIGRATION_18_19
+        MIGRATION_18_19,
+        MIGRATION_19_20
     )
 
 }

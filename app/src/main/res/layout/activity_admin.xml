@@ -19,18 +19,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
+        <TextView
             android:id="@+id/imgAdminLogo"
-            android:layout_width="209dp"
-            android:layout_height="58dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/app_name"
-            android:scaleType="centerCrop"
-            android:src="@drawable/kc_logo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="@string/app_logo"
+            android:textColor="@color/kc_text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/adminTopActions"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:id="@+id/adminTopActions"
@@ -49,7 +53,7 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:contentDescription="@string/cd_inbox"
                 android:padding="10dp"
-                android:src="@android:drawable/ic_dialog_email"
+                android:src="@drawable/kc_emptyinbox"
                 android:tint="@color/kc_icon_primary" />
 
             <FrameLayout
@@ -64,7 +68,7 @@
                     android:background="@drawable/bg_orders_filter_chip"
                     android:contentDescription="@string/cd_notifications"
                     android:padding="10dp"
-                    android:src="@android:drawable/ic_dialog_info"
+                    android:src="@drawable/kc_nonotifications"
                     android:tint="@color/kc_icon_primary" />
 
                 <TextView
@@ -89,7 +93,7 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:contentDescription="@string/cd_settings"
                 android:padding="10dp"
-                android:src="@android:drawable/ic_menu_manage"
+                android:src="@drawable/kc_settings"
                 android:tint="@color/kc_icon_primary" />
         </LinearLayout>
 
@@ -112,6 +116,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/kc_surface_primary"
+        app:itemIconSize="30dp"
         app:itemIconTint="@color/kc_chip_text_selector"
         app:itemTextColor="@color/kc_chip_text_selector"
         app:labelVisibilityMode="labeled"

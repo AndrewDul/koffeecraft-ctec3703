@@ -1845,3 +1845,18 @@ After these fixes, Batch 4 UI smoke tests became stable enough to use as assessm
 - customer login and navigation
 - admin login and admin orders screen access
 
+
+## 74)Build failure caused by obsolete kc_home launcher resources
+
+I ran into a build failure during resource processing. The app failed in `:app:processDebugResources` because old adaptive icon files for `kc_home` were still present in the `mipmap-anydpi-v26` folder and referenced a missing drawable resource: `@drawable/kc_home_background`.
+
+The error appeared during Android resource linking and stopped the build before the app could run.
+
+Root cause:
+- old `kc_home` launcher-related resources were left in the project
+- `kc_home.xml` and `kc_home_round.xml` referenced `kc_home_background`
+- that drawable did not exist anymore
+- these files were no longer needed because the app was not using them as the launcher icon
+
+I fixed this by cleaning up the unused `kc_home` mipmap/adaptive icon resources and keeping only the actual icons used by the current UI. This removed the broken resource reference and restored a successful build.
+

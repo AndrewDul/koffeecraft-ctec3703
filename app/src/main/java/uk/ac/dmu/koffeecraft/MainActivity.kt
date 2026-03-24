@@ -59,6 +59,10 @@ class MainActivity : AppCompatActivity() {
         bindViews()
         setupNavigationShell()
         observeState()
+        btnCart.setImageResource(R.drawable.kc_emptycart)
+        btnInbox.setImageResource(R.drawable.kc_emptyinbox)
+        btnNotifications.setImageResource(R.drawable.kc_nonotifications)
+        btnSettings.setImageResource(R.drawable.kc_settings)
 
         if (savedInstanceState == null) {
             viewModel.bootstrapRememberedSession()
@@ -96,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         tvInboxBadge = findViewById(R.id.tvCustomerInboxBadge)
         tvNotificationBadge = findViewById(R.id.tvCustomerNotificationBadge)
     }
+
 
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -186,6 +191,8 @@ class MainActivity : AppCompatActivity() {
                         tvCartBadge.text = state.cartBadgeText
                         tvInboxBadge.text = state.inboxBadgeText
                         tvNotificationBadge.text = state.notificationBadgeText
+
+                        updateTopBarIcons(state)
                     }
                 }
 
@@ -261,6 +268,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
     }
 
     private fun handleDeepLinkIntent(
@@ -339,5 +347,25 @@ class MainActivity : AppCompatActivity() {
             bottomNav.menu.getItem(i).isChecked = false
         }
         bottomNav.menu.setGroupCheckable(0, true, true)
+    }
+
+    private fun updateTopBarIcons(state: MainActivityUiState) {
+        btnCart.setImageResource(
+            if (state.showCartBadge) R.drawable.kc_fullcart else R.drawable.kc_emptycart
+        )
+
+        btnInbox.setImageResource(
+            if (state.showInboxBadge) R.drawable.kc_fullinbox else R.drawable.kc_emptyinbox
+        )
+
+        btnNotifications.setImageResource(
+            if (state.showNotificationBadge) {
+                R.drawable.kc_notifications
+            } else {
+                R.drawable.kc_nonotifications
+            }
+        )
+
+        btnSettings.setImageResource(R.drawable.kc_settings)
     }
 }

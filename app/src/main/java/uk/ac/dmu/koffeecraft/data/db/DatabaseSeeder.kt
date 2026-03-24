@@ -24,6 +24,7 @@ object DatabaseSeeder {
                 val database = KoffeeCraftDatabase.getInstanceHolder() ?: return@launch
                 seedAdminIfNeeded(database)
                 seedProductsIfNeeded(database)
+                CatalogDefaults.seedMissingCatalogData(database)
             }
         }
 

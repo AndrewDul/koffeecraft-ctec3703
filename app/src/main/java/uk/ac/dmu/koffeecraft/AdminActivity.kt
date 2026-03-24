@@ -42,6 +42,9 @@ class AdminActivity : AppCompatActivity() {
         observeState()
 
         viewModel.start()
+        btnInbox.setImageResource(R.drawable.kc_emptyinbox)
+        btnNotifications.setImageResource(R.drawable.kc_nonotifications)
+        btnSettings.setImageResource(R.drawable.kc_settings)
     }
 
     private fun bindViews() {
@@ -102,6 +105,7 @@ class AdminActivity : AppCompatActivity() {
                 viewModel.state.collect { state ->
                     tvBadge.visibility = if (state.showNotificationBadge) View.VISIBLE else View.GONE
                     tvBadge.text = state.notificationBadgeText
+                    updateTopBarIcons(state)
                 }
             }
         }
@@ -141,5 +145,18 @@ class AdminActivity : AppCompatActivity() {
             bottomNav.menu.getItem(i).isChecked = false
         }
         bottomNav.menu.setGroupCheckable(0, true, true)
+    }
+    private fun updateTopBarIcons(state: AdminActivityUiState) {
+        btnInbox.setImageResource(R.drawable.kc_emptyinbox)
+
+        btnNotifications.setImageResource(
+            if (state.showNotificationBadge) {
+                R.drawable.kc_notifications
+            } else {
+                R.drawable.kc_nonotifications
+            }
+        )
+
+        btnSettings.setImageResource(R.drawable.kc_settings)
     }
 }

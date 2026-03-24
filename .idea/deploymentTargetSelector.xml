@@ -8,9 +8,6 @@
       <SelectionState runConfigName="Tests in 'uk.ac.dmu.koffeecraft.ui'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="CustomerFlowEspressoTest">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
     </selectionStates>
   </component>
 </project>

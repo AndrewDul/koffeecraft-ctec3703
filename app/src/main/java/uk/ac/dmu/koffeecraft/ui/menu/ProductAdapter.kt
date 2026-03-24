@@ -200,9 +200,16 @@ class ProductAdapter(
                 if (state.savePresetEnabled) onSavePreset()
             }
 
-            btnAddToCart.isEnabled = isAvailable
-            btnAddToCart.alpha = if (isAvailable) 1f else 0.55f
-            btnAddToCart.text = if (isAvailable) "Add to cart" else "Unavailable"
+            val hasOptions = state.options.isNotEmpty()
+            val canAddToCart = isAvailable && hasOptions
+
+            btnAddToCart.isEnabled = canAddToCart
+            btnAddToCart.alpha = if (canAddToCart) 1f else 0.55f
+            btnAddToCart.text = when {
+                !isAvailable -> "Unavailable"
+                !hasOptions -> "Missing size"
+                else -> "Add to cart"
+            }
             btnAddToCart.setOnClickListener {
                 if (isAvailable) onAddToCart()
             }

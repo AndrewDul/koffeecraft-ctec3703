@@ -131,10 +131,23 @@ class MenuViewModel(
     }
 
     fun onAddToCart(product: Product) {
-        if (!product.isActive) return
+        if (!product.isActive) {
+            sendMessage("This product is currently unavailable.")
+            return
+        }
 
-        val state = _state.value.cardStates[product.productId] ?: return
-        val option = state.options.firstOrNull { it.optionId == state.selectedOptionId } ?: return
+        val state = _state.value.cardStates[product.productId]
+        if (state == null) {
+            sendMessage("Product configuration is still loading.")
+            return
+        }
+
+        val option = state.options.firstOrNull { it.optionId == state.selectedOptionId }
+        if (option == null) {
+            sendMessage("This product has no size configured yet. Please add a size in Admin Menu.")
+            return
+        }
+
         val selectedAddOns = state.addOns.filter { it.addOnId in state.selectedAddOnIds }
 
         menuRepository.addConfiguredProductToCart(

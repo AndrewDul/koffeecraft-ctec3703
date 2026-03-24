@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">KoffeeCraft</string>
-    <string name="app_logo">☕ KoffeeCraft</string>
+    <string name="app_name">Koffee Craft</string>
+    <string name="app_logo">☕ Koffee Craft</string>
 
     <string name="cd_cart">Cart</string>
     <string name="cd_inbox">Inbox</string>

@@ -26,7 +26,21 @@ interface ProductDao {
         """
     )
     fun observeAll(): Flow<List<Product>>
-
+    @Query(
+        """
+    SELECT * FROM products
+    ORDER BY
+        CASE category
+            WHEN 'COFFEE' THEN 0
+            WHEN 'CAKE' THEN 1
+            WHEN 'MERCH' THEN 2
+            ELSE 3
+        END,
+        rewardEnabled DESC,
+        name ASC
+    """
+    )
+    suspend fun getAllOnce(): List<Product>
     @Query(
         """
         SELECT * FROM products

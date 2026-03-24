@@ -3452,4 +3452,24 @@ At this point, the project is in a much stronger position for the assessment bec
 This stage was mainly about finishing the structure properly, so I could stop revisiting the same layers and leave the architecture in a stable, defendable state.
 
 
+## Catalog defaults, custom icons, and text branding update
+
+I fixed a catalog bootstrap problem that caused some products to appear without size options. The issue came from the fact that fresh databases only seeded products and admin data, while default size options and add-ons were previously introduced only through an older migration path.
+
+To solve this, I added a shared catalog defaults layer that now acts as a single source of truth for:
+- default coffee sizes
+- default cake sizes
+- default add-ons
+- allergen library
+- default product/add-on links
+
+I updated the database seeding flow so fresh installations now receive a complete product catalog. I also added a Room migration from version 19 to 20 to backfill missing product options and add-on relationships for existing databases.
+
+I also updated admin product creation so that newly created coffee and cake products automatically receive default sizes and add-ons instead of relying on manual setup.
+
+On the UI side, I replaced mixed and partially inconsistent navigation assets with a custom SVG icon set. I imported and connected custom vector icons for both customer and admin flows, updated top bar action icons, and added support for empty/full icon states where needed, such as cart, inbox, and notifications.
+
+I then simplified branding further by replacing the image-based logo with a text-based brand mark using "☕ Koffee Craft". I applied this to the customer top bar, admin top bar, welcome screen, and aligned login, onboarding, and register branding with the shared string resource.
+
+
 

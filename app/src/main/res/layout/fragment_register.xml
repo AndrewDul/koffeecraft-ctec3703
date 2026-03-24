@@ -15,7 +15,7 @@
             android:id="@+id/tvBrand"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="☕ KoffeeCraft"
+            android:text="@string/app_logo"
             android:textColor="@color/kc_text_primary"
             android:textSize="26sp"
             android:textStyle="bold"

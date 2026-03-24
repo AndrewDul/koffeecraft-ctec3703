@@ -10,7 +10,7 @@ import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductAddOnCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductAllergenCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
-
+import uk.ac.dmu.koffeecraft.data.db.CatalogDefaults
 class AdminMenuRepository(
     private val db: KoffeeCraftDatabase
 ) {
@@ -49,7 +49,13 @@ class AdminMenuRepository(
             )
         )
 
-        db.productDao().getById(insertedId)
+        val createdProduct = db.productDao().getById(insertedId)
+        if (createdProduct != null) {
+            CatalogDefaults.seedCatalogLibrary(db)
+            CatalogDefaults.seedProductDefaults(db, createdProduct)
+        }
+
+        createdProduct
     }
 
     suspend fun updateProduct(
