@@ -3,6 +3,7 @@ package uk.ac.dmu.koffeecraft.ui.cart
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -65,6 +66,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
         }
 
         collectState()
+        collectEffects()
     }
 
     private fun collectState() {
@@ -72,6 +74,20 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 vm.state.collect { state ->
                     render(state)
+                }
+            }
+        }
+    }
+
+    private fun collectEffects() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.effects.collect { effect ->
+                    when (effect) {
+                        is CartViewModel.UiEffect.ShowMessage -> {
+                            Toast.makeText(requireContext(), effect.message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
         }

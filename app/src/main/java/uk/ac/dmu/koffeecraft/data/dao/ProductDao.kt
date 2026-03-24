@@ -26,26 +26,29 @@ interface ProductDao {
         """
     )
     fun observeAll(): Flow<List<Product>>
+
     @Query(
         """
-    SELECT * FROM products
-    ORDER BY
-        CASE category
-            WHEN 'COFFEE' THEN 0
-            WHEN 'CAKE' THEN 1
-            WHEN 'MERCH' THEN 2
-            ELSE 3
-        END,
-        rewardEnabled DESC,
-        name ASC
-    """
+        SELECT * FROM products
+        ORDER BY
+            CASE category
+                WHEN 'COFFEE' THEN 0
+                WHEN 'CAKE' THEN 1
+                WHEN 'MERCH' THEN 2
+                ELSE 3
+            END,
+            rewardEnabled DESC,
+            name ASC
+        """
     )
     suspend fun getAllOnce(): List<Product>
+
     @Query(
         """
         SELECT * FROM products
         WHERE category = :category
-        ORDER BY isAvailable DESC, name ASC
+          AND isAvailable = 1
+        ORDER BY name ASC
         """
     )
     fun observeByCategory(category: String): Flow<List<Product>>

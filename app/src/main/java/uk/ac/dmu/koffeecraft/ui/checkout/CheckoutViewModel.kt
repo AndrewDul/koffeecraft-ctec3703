@@ -119,43 +119,62 @@ class CheckoutViewModel(
             return
         }
 
-        val cartSnapshot = cartRepository.getCurrentCart()
-        if (cartSnapshot.items.isEmpty()) {
-            viewModelScope.launch {
-                _effects.send(CheckoutUiEffect.ShowMessage("Cart is empty."))
+        viewModelScope.launch {
+            val removedCount = cartRepository.removeUnavailableItems()
+            if (removedCount > 0) {
+                val refreshedCart = cartRepository.getCurrentCart()
+
+                _state.value = _state.value.copy(
+                    total = refreshedCart.total,
+                    beansToSpend = refreshedCart.beansToSpend,
+                    isCartEmpty = refreshedCart.items.isEmpty()
+                )
+
+                _effects.send(
+                    CheckoutUiEffect.ShowMessage(
+                        "One or more unavailable items were removed from your cart."
+                    )
+                )
+                return@launch
             }
-            return
-        }
 
-        val currentState = _state.value
+            val cartSnapshot = cartRepository.getCurrentCart()
+            if (cartSnapshot.items.isEmpty()) {
+                _state.value = _state.value.copy(
+                    total = cartSnapshot.total,
+                    beansToSpend = cartSnapshot.beansToSpend,
+                    isCartEmpty = true
+                )
+                _effects.send(CheckoutUiEffect.ShowMessage("Cart is empty."))
+                return@launch
+            }
 
-        if (currentState.paymentType == "CARD") {
-            val validation = CheckoutCardFormValidator.validate(
-                holder = cardholderName,
-                number = cardNumber,
-                expiry = expiryText,
-                cvv = cvv,
-                selectedSavedCardId = currentState.selectedSavedCardId
-            )
+            val currentState = _state.value
 
-            if (!validation.isValid) {
-                _state.value = currentState.copy(cardValidation = validation)
+            if (currentState.paymentType == "CARD") {
+                val validation = CheckoutCardFormValidator.validate(
+                    holder = cardholderName,
+                    number = cardNumber,
+                    expiry = expiryText,
+                    cvv = cvv,
+                    selectedSavedCardId = currentState.selectedSavedCardId
+                )
 
-                if (validation.generalError != null) {
-                    viewModelScope.launch {
+                if (!validation.isValid) {
+                    _state.value = currentState.copy(cardValidation = validation)
+
+                    if (validation.generalError != null) {
                         _effects.send(CheckoutUiEffect.ShowMessage(validation.generalError))
                     }
+                    return@launch
                 }
-                return
             }
-        }
 
-        _state.value = currentState.copy(
-            isSubmitting = true,
-            cardValidation = CheckoutCardValidationResult()
-        )
+            _state.value = currentState.copy(
+                isSubmitting = true,
+                cardValidation = CheckoutCardValidationResult()
+            )
 
-        viewModelScope.launch {
             val result = checkoutRepository.submitOrder(
                 customerId = customerId,
                 items = cartSnapshot.items,

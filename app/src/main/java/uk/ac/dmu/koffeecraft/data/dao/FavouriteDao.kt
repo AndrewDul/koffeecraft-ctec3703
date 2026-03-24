@@ -10,36 +10,45 @@ import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.querymodel.HomeLovedProductInsight
 import uk.ac.dmu.koffeecraft.data.querymodel.ProductFavouriteInsight
 import uk.ac.dmu.koffeecraft.data.querymodel.StandardFavouriteCard
+
 @Dao
 interface FavouriteDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(favourite: Favourite)
 
-    @Query("""
+    @Query(
+        """
         DELETE FROM favourites
         WHERE customerId = :customerId
           AND productId = :productId
-    """)
+        """
+    )
     suspend fun delete(customerId: Long, productId: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT productId
         FROM favourites
         WHERE customerId = :customerId
-    """)
+        """
+    )
     fun observeFavouriteProductIdsForCustomer(customerId: Long): Flow<List<Long>>
 
-    @Query("""
+    @Query(
+        """
         SELECT p.*
         FROM products p
         INNER JOIN favourites f ON f.productId = p.productId
         WHERE f.customerId = :customerId
+          AND p.isAvailable = 1
         ORDER BY f.createdAt DESC
-    """)
+        """
+    )
     fun observeFavouriteProductsForCustomer(customerId: Long): Flow<List<Product>>
 
-    @Query("""
+    @Query(
+        """
         SELECT
             p.productId AS productId,
             p.name AS name,
@@ -57,11 +66,14 @@ interface FavouriteDao {
             ON po.productId = p.productId
            AND po.isDefault = 1
         WHERE f.customerId = :customerId
+          AND p.isAvailable = 1
         ORDER BY f.createdAt DESC
-    """)
+        """
+    )
     fun observeStandardFavouriteCardsForCustomer(customerId: Long): Flow<List<StandardFavouriteCard>>
 
-    @Query("""
+    @Query(
+        """
         SELECT
             p.productId AS productId,
             p.name AS productName,
@@ -71,10 +83,12 @@ interface FavouriteDao {
         GROUP BY p.productId, p.name
         ORDER BY favouriteCount DESC, p.name ASC
         LIMIT 3
-    """)
+        """
+    )
     suspend fun getTopFavouriteProducts(): List<ProductFavouriteInsight>
 
-    @Query("""
+    @Query(
+        """
         SELECT
             p.productId AS productId,
             p.name AS productName,
@@ -85,10 +99,12 @@ interface FavouriteDao {
         HAVING COUNT(f.productId) > 0
         ORDER BY favouriteCount ASC, p.name ASC
         LIMIT 3
-    """)
+        """
+    )
     suspend fun getLowestNonZeroFavouriteProducts(): List<ProductFavouriteInsight>
 
-    @Query("""
+    @Query(
+        """
         SELECT
             p.productId AS productId,
             p.name AS productName,
@@ -104,6 +120,7 @@ interface FavouriteDao {
         HAVING COUNT(f.productId) > 0
         ORDER BY favouriteCount DESC, p.name ASC
         LIMIT :limit
-    """)
+        """
+    )
     suspend fun getMostLovedProducts(limit: Int): List<HomeLovedProductInsight>
 }

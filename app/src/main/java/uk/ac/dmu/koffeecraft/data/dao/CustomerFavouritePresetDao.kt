@@ -37,40 +37,43 @@ interface CustomerFavouritePresetDao {
     """)
     suspend fun getPresetById(presetId: Long): CustomerFavouritePreset?
 
-    @Query("""
-        SELECT
-            cp.presetId AS presetId,
-            cp.productId AS productId,
-            p.name AS productName,
-            p.description AS productDescription,
-            cp.optionId AS optionId,
-            po.displayLabel AS optionLabel,
-            po.sizeValue AS optionSizeValue,
-            po.sizeUnit AS optionSizeUnit,
-            cp.totalPriceSnapshot AS totalPrice,
-            cp.totalCaloriesSnapshot AS totalCalories,
-            GROUP_CONCAT(a.name, ', ') AS addOnSummary,
-            cp.createdAt AS createdAt
-        FROM customer_favourite_presets cp
-        INNER JOIN products p ON p.productId = cp.productId
-        INNER JOIN product_options po ON po.optionId = cp.optionId
-        LEFT JOIN customer_favourite_preset_add_on_cross_ref cpa ON cpa.presetId = cp.presetId
-        LEFT JOIN add_ons a ON a.addOnId = cpa.addOnId
-        WHERE cp.customerId = :customerId
-        GROUP BY
-            cp.presetId,
-            cp.productId,
-            p.name,
-            p.description,
-            cp.optionId,
-            po.displayLabel,
-            po.sizeValue,
-            po.sizeUnit,
-            cp.totalPriceSnapshot,
-            cp.totalCaloriesSnapshot,
-            cp.createdAt
-        ORDER BY cp.createdAt DESC
-    """)
+    @Query(
+        """
+    SELECT
+        cp.presetId AS presetId,
+        cp.productId AS productId,
+        p.name AS productName,
+        p.description AS productDescription,
+        cp.optionId AS optionId,
+        po.displayLabel AS optionLabel,
+        po.sizeValue AS optionSizeValue,
+        po.sizeUnit AS optionSizeUnit,
+        cp.totalPriceSnapshot AS totalPrice,
+        cp.totalCaloriesSnapshot AS totalCalories,
+        GROUP_CONCAT(a.name, ', ') AS addOnSummary,
+        cp.createdAt AS createdAt
+    FROM customer_favourite_presets cp
+    INNER JOIN products p ON p.productId = cp.productId
+    INNER JOIN product_options po ON po.optionId = cp.optionId
+    LEFT JOIN customer_favourite_preset_add_on_cross_ref cpa ON cpa.presetId = cp.presetId
+    LEFT JOIN add_ons a ON a.addOnId = cpa.addOnId
+    WHERE cp.customerId = :customerId
+      AND p.isAvailable = 1
+    GROUP BY
+        cp.presetId,
+        cp.productId,
+        p.name,
+        p.description,
+        cp.optionId,
+        po.displayLabel,
+        po.sizeValue,
+        po.sizeUnit,
+        cp.totalPriceSnapshot,
+        cp.totalCaloriesSnapshot,
+        cp.createdAt
+    ORDER BY cp.createdAt DESC
+    """
+    )
     fun observePresetCardsForCustomer(customerId: Long): Flow<List<CustomerFavouritePresetCard>>
 
     @Query("""

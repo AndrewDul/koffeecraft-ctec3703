@@ -67,8 +67,8 @@ class CustomerFavouritesRepository(
         val option = db.productOptionDao().getById(preset.optionId)
         val addOns = db.customerFavouritePresetDao().getAddOnsForPreset(presetId)
 
-        if (product == null || option == null) {
-            return CustomerFavouritesActionResult.Error("This saved configuration is no longer available.")
+        if (product == null || !product.isActive || option == null) {
+            return CustomerFavouritesActionResult.Error("This saved configuration is currently unavailable.")
         }
 
         cartRepository.addCustomisedProduct(

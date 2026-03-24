@@ -6,6 +6,7 @@ import uk.ac.dmu.koffeecraft.data.cart.CartItem
 import uk.ac.dmu.koffeecraft.data.cart.CartManager
 import uk.ac.dmu.koffeecraft.data.cart.CartSnapshot
 import uk.ac.dmu.koffeecraft.data.cart.RememberedCartStore
+import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
 import uk.ac.dmu.koffeecraft.data.entities.AddOn
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
@@ -13,7 +14,8 @@ import uk.ac.dmu.koffeecraft.data.session.SessionRepository
 
 class CartRepository(
     context: Context,
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val db: KoffeeCraftDatabase
 ) {
 
     private val appContext = context.applicationContext
@@ -118,6 +120,54 @@ class CartRepository(
     fun beansToSpend(): Int = CartManager.beansToSpend()
 
     fun purchasedProductCountForBeans(): Int = CartManager.purchasedProductCountForBeans()
+
+    suspend fun removeUnavailableItems(): Int {
+        val currentItems = CartManager.getItems()
+        if (currentItems.isEmpty()) return 0
+
+        val validItems = buildList {
+            currentItems.forEach { item ->
+                if (isCartItemStillValid(item)) {
+                    add(item)
+                }
+            }
+        }
+
+        val removedCount = currentItems.size - validItems.size
+        if (removedCount > 0) {
+            CartManager.replaceAll(validItems)
+            persistCurrentCartForActiveCustomer()
+        }
+
+        return removedCount
+    }
+
+    private suspend fun isCartItemStillValid(item: CartItem): Boolean {
+        val product = db.productDao().getById(item.product.productId) ?: return false
+        if (!product.isActive) return false
+
+        if (item.isReward && !product.rewardEnabled) {
+            return false
+        }
+
+        val optionId = item.selectedOptionId
+        if (optionId != null) {
+            val option = db.productOptionDao().getById(optionId) ?: return false
+            if (option.productId != product.productId) return false
+        }
+
+        if (item.selectedAddOnIds.isNotEmpty()) {
+            val activeAssignedIds = db.addOnDao()
+                .getActiveForProduct(product.productId)
+                .map { it.addOnId }
+                .toSet()
+
+            val allStillValid = item.selectedAddOnIds.all { it in activeAssignedIds }
+            if (!allStillValid) return false
+        }
+
+        return true
+    }
 
     private fun persistCurrentCartForActiveCustomer() {
         val customerId = sessionRepository.currentCustomerId ?: return

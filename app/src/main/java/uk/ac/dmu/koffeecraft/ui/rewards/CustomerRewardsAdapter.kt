@@ -53,11 +53,22 @@ class CustomerRewardsAdapter(
             tvDescription.text = item.description
             tvBeansLabel.text = item.beansLabel
             btnAction.text = item.actionLabel
-            btnAction.isEnabled = item.enabled
-            btnAction.alpha = if (item.enabled) 1f else 0.55f
 
+            if (item.enabled) {
+                btnAction.alpha = 1f
+            } else {
+                btnAction.alpha = 0.55f
+            }
+
+            btnAction.isEnabled = true
             btnAction.setOnClickListener {
-                if (item.enabled) onAction(item)
+                onAction(item)
+            }
+
+            itemView.isClickable = true
+            itemView.isFocusable = true
+            itemView.setOnClickListener {
+                onAction(item)
             }
         }
     }

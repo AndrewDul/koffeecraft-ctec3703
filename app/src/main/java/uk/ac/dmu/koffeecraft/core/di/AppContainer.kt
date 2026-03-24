@@ -49,7 +49,8 @@ class AppContainer(context: Context) {
     val cartRepository: CartRepository by lazy {
         CartRepository(
             context = appContext,
-            sessionRepository = sessionRepository
+            sessionRepository = sessionRepository,
+            db = database
         )
     }
 
