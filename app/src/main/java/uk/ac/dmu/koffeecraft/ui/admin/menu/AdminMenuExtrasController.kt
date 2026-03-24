@@ -366,12 +366,12 @@ class AdminMenuExtrasController(
                 var hasError = false
 
                 if (name.isBlank()) {
-                    tilName.error = "Enter extra name"
+                    tilName.error = "Enter the name of the add-on"
                     hasError = true
                 }
 
                 if (price == null || price < 0.0) {
-                    tilPrice.error = "Enter a valid price"
+                    tilPrice.error = "Enter a valid add-on price"
                     hasError = true
                 }
 

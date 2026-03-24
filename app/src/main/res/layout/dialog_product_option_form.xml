@@ -34,7 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Define the visible label, portion size, extra price, calories, and default option state."
+                android:text="Define the visible name, portion amount, extra price, calories, and default option state."
                 android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
 
@@ -44,14 +44,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:hint="Display label"
+                android:hint="Size name"
                 app:boxBackgroundColor="@color/kc_surface_secondary"
                 app:boxCornerRadiusBottomEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDisplayLabel"
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="textCapWords"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -68,14 +68,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:hint="Size value"
+                android:hint="Size amount"
                 app:boxBackgroundColor="@color/kc_surface_secondary"
                 app:boxCornerRadiusBottomEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSizeValue"
@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -101,14 +101,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:hint="Extra price"
+                android:hint="Extra price (£)"
                 app:boxBackgroundColor="@color/kc_surface_secondary"
                 app:boxCornerRadiusBottomEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etExtraPrice"
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -132,7 +132,7 @@
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCalories"
@@ -140,7 +140,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <CheckBox

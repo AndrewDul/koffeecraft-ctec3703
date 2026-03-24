@@ -136,6 +136,28 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             }
         }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.events.collectLatest { event ->
+                when (event) {
+                    is AdminMenuUiEvent.Message -> {
+                        Toast.makeText(requireContext(), event.text, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is AdminMenuUiEvent.ProductValidationFailed -> {
+                        showProductValidationErrors(event.result)
+                    }
+
+                    is AdminMenuUiEvent.ProductSaved -> {
+                        productDialog?.dismiss()
+                        Toast.makeText(
+                            requireContext(),
+                            if (event.created) "Product added." else "Product updated.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun showProductDialog(existing: Product?) {
@@ -237,6 +259,15 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
                 viewModel.archiveProduct(product)
             }
             .show()
+    }
+
+    private fun showProductValidationErrors(result: AdminMenuProductValidationResult) {
+        productDialogTilName?.error = result.nameError
+        productDialogTilDescription?.error = result.descriptionError
+        productDialogTilPrice?.error = result.priceError
+
+        val message = result.generalMessage ?: "Please complete all required fields."
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
     private fun clearProductDialogErrors() {

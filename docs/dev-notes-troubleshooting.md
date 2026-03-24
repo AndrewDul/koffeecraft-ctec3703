@@ -1917,3 +1917,49 @@ I fixed this by:
 - refining icon sizing, tint, and navigation label styling
 - updating light and dark color roles for bars, icons, and selected states
 - giving Sign out and Delete account subtle but different danger styling
+
+
+## 80)Admin add product dialog stayed open after save
+
+I found that the add product dialog in the admin menu stayed open even after I clicked Add and the save operation completed. This made it unclear whether the new product had actually been created.
+
+The root cause was that the fragment was not collecting and reacting to the ViewModel event stream for:
+- successful product save
+- product validation failure
+
+I fixed this by:
+- collecting admin menu events in the fragment
+- dismissing the dialog after a successful save
+- showing clear validation feedback when required fields are missing
+- keeping cancel behaviour simple so the dialog closes immediately
+
+## 81)Product size form labels were not clear enough
+
+I found that the product size form used labels such as `Display Label` and `Size Value`, which were too technical and not clear enough for quick admin use.
+
+I improved this by:
+- renaming the visible size field to a clearer size or portion name
+- clarifying the amount field as ml for drinks and g for cake portions
+- keeping placeholder and validation wording more explicit
+
+## 82)Add-on form labels were too technical
+
+I found that the add-on form used labels such as `Extra name` and `Extra price`, which were not intuitive enough.
+
+I changed them to clearer wording so the form now better communicates:
+- the name of the add-on
+- the add-on price
+
+## 83)Campaign and inbox templates contained unnecessary first-name placeholders
+
+I found that prepared text in the admin campaign and inbox flows still used first-name placeholders in greeting lines.
+
+I cleaned this up by removing the placeholder and using a simpler `Hello` greeting instead.
+
+## 84)Inbox message type buttons needed clearer contrast
+
+I noticed that the three admin inbox message type buttons looked too light in their unselected state.
+
+I adjusted the unselected styling to make them slightly darker while keeping the selected state unchanged.
+
+

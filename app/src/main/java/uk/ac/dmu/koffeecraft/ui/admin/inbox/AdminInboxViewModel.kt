@@ -9,15 +9,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uk.ac.dmu.koffeecraft.data.querymodel.CustomerInboxTarget
 import uk.ac.dmu.koffeecraft.data.repository.AdminInboxRepository
 import uk.ac.dmu.koffeecraft.data.repository.AdminInboxSendResult
-import uk.ac.dmu.koffeecraft.data.querymodel.CustomerInboxTarget
+
 data class AdminInboxUiState(
     val currentTargetMode: AdminInboxTargetMode = AdminInboxTargetMode.ORDER_NUMBER,
     val currentMessageType: AdminInboxMessageType = AdminInboxMessageType.CUSTOM,
     val searchHint: String = "Find customer by order number",
     val searchFieldHint: String = "Enter order number",
-    val messageHint: String = "Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation in direct messages.",
+    val messageHint: String = "Write a direct message for one customer.",
     val selectedTarget: CustomerInboxTarget? = null,
     val selectedTargetVisible: Boolean = false,
     val targetsEmptyVisible: Boolean = false,
@@ -99,7 +100,7 @@ class AdminInboxViewModel(
                 AdminInboxMessageType.SERVICE ->
                     "Use this for direct service follow-ups, order issues, or operational updates."
                 AdminInboxMessageType.CUSTOM ->
-                    "Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation in direct messages."
+                    "Write a custom direct message for one customer."
             }
         )
 
@@ -206,7 +207,7 @@ class AdminInboxViewModel(
                     _state.update {
                         it.copy(
                             currentMessageType = AdminInboxMessageType.CUSTOM,
-                            messageHint = "Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation in direct messages.",
+                            messageHint = "Write a custom direct message for one customer.",
                             canSend = false
                         )
                     }
@@ -238,7 +239,7 @@ class AdminInboxViewModel(
         return when (type) {
             AdminInboxMessageType.IMPORTANT -> {
                 """
-Hello [FIRST_NAME],
+Hello,
 
 This is an important message from KoffeeCraft regarding your account or recent order.
 
@@ -250,7 +251,7 @@ KoffeeCraft
 
             AdminInboxMessageType.SERVICE -> {
                 """
-Hello [FIRST_NAME],
+Hello,
 
 We are contacting you with a service update related to your recent KoffeeCraft experience.
 
@@ -262,7 +263,7 @@ KoffeeCraft
 
             AdminInboxMessageType.CUSTOM -> {
                 """
-Hello [FIRST_NAME],
+Hello,
 
 [WRITE_YOUR_MESSAGE_HERE]
 

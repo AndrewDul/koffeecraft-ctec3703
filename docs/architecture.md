@@ -3556,5 +3556,32 @@ Overall, these changes improved:
 - branding cohesion
 - premium visual quality across light and dark themes
 
+## Admin dialog behaviour and content clarity refinement
+
+I improved the admin menu workflow by making product creation and editing feedback much clearer.
+
+Previously, the add product dialog did not close after a successful save, which made it unclear whether the product had actually been created. The root cause was that the fragment was not reacting to the ViewModel event stream for product save success and validation failure.
+
+I updated the admin product flow so that:
+- successful product creation or update closes the dialog automatically
+- validation errors are shown clearly when required fields are missing
+- cancel closes the dialog immediately without extra friction
+
+I also refined the wording used in admin configuration forms. The earlier labels for product size and add-on setup were technically functional but not intuitive enough for quick admin use.
+
+I improved the size option form by making it clearer that the admin is defining:
+- the visible name of the size or portion
+- the amount of the size in ml or g
+- the extra price and estimated calories
+
+I also improved the add-on form wording so that the inputs read more naturally and are easier to understand at a glance.
+
+Finally, I cleaned up the admin communication tools by removing first-name placeholders from prepared campaign and inbox text and simplifying the default greeting to a neutral `Hello`. I also adjusted the inbox message type button styling so the unselected states are slightly darker while the selected style remains unchanged.
+
+These changes improved:
+- admin workflow clarity
+- form usability
+- save/validation feedback
+- consistency of prepared communication content
 
 

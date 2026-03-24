@@ -25,7 +25,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Extra details"
+                android:text="Add-on details"
                 android:textColor="@color/kc_text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -34,7 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Create or update a reusable extra for the selected product family."
+                android:text="Create or update a reusable add-on for the selected product family."
                 android:textColor="@color/kc_text_secondary"
                 android:textSize="13sp" />
 
@@ -44,14 +44,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:hint="Extra name"
+                android:hint="Name of add-on"
                 app:boxBackgroundColor="@color/kc_surface_secondary"
                 app:boxCornerRadiusBottomEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etAddOnName"
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="textCapWords"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -68,14 +68,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:hint="Extra price"
+                android:hint="Add-on price (£)"
                 app:boxBackgroundColor="@color/kc_surface_secondary"
                 app:boxCornerRadiusBottomEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etAddOnPrice"
@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -99,7 +99,7 @@
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxStrokeColor="@color/kc_border_soft"
-                app:hintTextColor="@color/kc_text_muted">
+                app:hintTextColor="@color/kc_text_secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etAddOnCalories"
@@ -107,7 +107,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:textColor="@color/kc_text_primary"
-                    android:textColorHint="@color/kc_text_muted" />
+                    android:textColorHint="@color/kc_text_secondary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <CheckBox
@@ -115,7 +115,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Extra is active"
+                android:text="Add-on is active"
                 android:textColor="@color/kc_text_primary" />
 
         </LinearLayout>

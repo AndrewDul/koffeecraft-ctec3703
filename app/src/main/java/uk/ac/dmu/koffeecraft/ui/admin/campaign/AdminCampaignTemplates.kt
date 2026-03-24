@@ -16,7 +16,7 @@ object AdminCampaignTemplates {
         return when (type) {
             CampaignType.PROMOTIONAL_OFFER -> {
                 """
-Hello [FIRST_NAME],
+Hello,
 
 We have prepared something special for you at KoffeeCraft.
 
@@ -30,7 +30,7 @@ KoffeeCraft
 
             CampaignType.BONUS_BEANS -> {
                 """
-Hello [FIRST_NAME],
+Hello,
 
 We have added [BEANS_AMOUNT] bonus beans to your KoffeeCraft account.
 
@@ -42,7 +42,7 @@ KoffeeCraft
 
             CampaignType.OFFER_PLUS_BEANS -> {
                 """
-Hello [FIRST_NAME],
+Hello,
 
 We have prepared a special KoffeeCraft offer for you and added [BEANS_AMOUNT] bonus beans to your account.
 
@@ -59,15 +59,15 @@ KoffeeCraft
     fun builderHint(type: CampaignType): String {
         return when (type) {
             CampaignType.PROMOTIONAL_OFFER -> {
-                "Promotional consent will be applied. Use [FIRST_NAME] and [LAST_NAME] if you want light personalisation."
+                "Promotional consent will be applied automatically for this campaign type."
             }
 
             CampaignType.BONUS_BEANS -> {
-                "Bonus beans will be added automatically when the campaign is sent. Use [BEANS_AMOUNT] in the message if you want to mention the reward."
+                "Bonus beans will be added automatically when the campaign is sent. Use [BEANS_AMOUNT] if you want to mention the reward."
             }
 
             CampaignType.OFFER_PLUS_BEANS -> {
-                "This campaign sends a promo message and awards beans at the same time. Promotional consent will be applied."
+                "This campaign sends a promo message and awards beans at the same time. Promotional consent will be applied automatically."
             }
         }
     }

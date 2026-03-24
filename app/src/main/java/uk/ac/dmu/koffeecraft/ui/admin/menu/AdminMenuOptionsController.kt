@@ -198,7 +198,23 @@ class AdminMenuOptionsController(
         val cbIsDefault = dialogView.findViewById<CheckBox>(R.id.cbIsDefault)
 
         val unit = if (product.isCoffee) "ML" else "G"
-        tvUnitHint.text = "Unit: $unit"
+        tvUnitHint.text = if (product.isCoffee) {
+            "Use millilitres for drink size."
+        } else {
+            "Use grams for cake portion weight."
+        }
+
+        tilDisplayLabel.hint = if (product.isCoffee) {
+            "Size name"
+        } else {
+            "Portion name"
+        }
+
+        tilSizeValue.hint = if (product.isCoffee) {
+            "Drink size in ml"
+        } else {
+            "Portion weight in g"
+        }
 
         if (existing != null) {
             etDisplayLabel.setText(existing.displayLabel)
@@ -231,12 +247,20 @@ class AdminMenuOptionsController(
                 var hasError = false
 
                 if (displayLabel.isBlank()) {
-                    tilDisplayLabel.error = "Enter a label"
+                    tilDisplayLabel.error = if (product.isCoffee) {
+                        "Enter a size name"
+                    } else {
+                        "Enter a portion name"
+                    }
                     hasError = true
                 }
 
                 if (sizeValue == null || sizeValue <= 0) {
-                    tilSizeValue.error = "Enter a valid size"
+                    tilSizeValue.error = if (product.isCoffee) {
+                        "Enter a valid size in ml"
+                    } else {
+                        "Enter a valid portion weight in g"
+                    }
                     hasError = true
                 }
 
