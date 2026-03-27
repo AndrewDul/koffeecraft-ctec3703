@@ -7,12 +7,16 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 
 data class CustomerHomeCarouselItem(
     val title: String,
     val subtitle: String,
     val metaLine: String,
-    val badgeLabel: String? = null
+    val badgeLabel: String? = null,
+    val productFamily: String,
+    val imageKey: String? = null,
+    val customImagePath: String? = null
 )
 
 class CustomerHomeCarouselAdapter(
@@ -38,14 +42,20 @@ class CustomerHomeCarouselAdapter(
     override fun getItemCount(): Int = items.size
 
     class HomeCarouselViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivIcon: ImageView = itemView.findViewById(R.id.ivHomeCarouselIcon)
+        private val ivImage: ImageView = itemView.findViewById(R.id.ivHomeCarouselImage)
         private val tvBadge: TextView = itemView.findViewById(R.id.tvHomeCarouselBadge)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvHomeCarouselTitle)
         private val tvSubtitle: TextView = itemView.findViewById(R.id.tvHomeCarouselSubtitle)
         private val tvMeta: TextView = itemView.findViewById(R.id.tvHomeCarouselMeta)
 
         fun bind(item: CustomerHomeCarouselItem, onClick: (CustomerHomeCarouselItem) -> Unit) {
-            ivIcon.setImageResource(R.drawable.coffee_bean)
+            ProductImageLoader.load(
+                imageView = ivImage,
+                productFamily = item.productFamily,
+                rewardEnabled = item.productFamily.equals("MERCH", ignoreCase = true),
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
+            )
 
             tvTitle.text = item.title
             tvSubtitle.text = item.subtitle

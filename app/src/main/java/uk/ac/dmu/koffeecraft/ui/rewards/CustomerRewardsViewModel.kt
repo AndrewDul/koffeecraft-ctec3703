@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardChoiceResult
 import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardsActionResult
 import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardsRepository
 import uk.ac.dmu.koffeecraft.data.repository.CustomerRewardsScreenData
-import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 import uk.ac.dmu.koffeecraft.data.session.SessionRepository
-
+import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 
 data class CustomerRewardsUiState(
     val isLoading: Boolean = false,
@@ -44,7 +44,6 @@ class CustomerRewardsViewModel(
 
     private val _effects = Channel<UiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
-
 
     fun start() {
         refreshRewards()
@@ -199,7 +198,9 @@ class CustomerRewardsViewModel(
             description = "Every 10 earned beans unlock a +5 bean booster.",
             beansLabel = BeansBoosterManager.rewardMetaLine(data.boosterProgress, data.pendingBoosters),
             actionLabel = if (data.pendingBoosters > 0) "Claim +5 beans" else "Keep collecting beans",
-            enabled = data.pendingBoosters > 0
+            enabled = data.pendingBoosters > 0,
+            productFamily = "MERCH",
+            imageKey = "reward_beans_1kg"
         )
 
         items += RewardUiModel(
@@ -208,7 +209,9 @@ class CustomerRewardsViewModel(
             description = "Choose one crafted coffee reward.",
             beansLabel = "15 beans",
             actionLabel = if (data.availableBeansForNewRewards >= 15) "Choose reward" else "Need more beans",
-            enabled = data.availableBeansForNewRewards >= 15
+            enabled = data.availableBeansForNewRewards >= 15,
+            productFamily = "COFFEE",
+            imageKey = "coffee_signature_house"
         )
 
         items += RewardUiModel(
@@ -217,39 +220,40 @@ class CustomerRewardsViewModel(
             description = "Choose one crafted cake reward.",
             beansLabel = "18 beans",
             actionLabel = if (data.availableBeansForNewRewards >= 18) "Choose reward" else "Need more beans",
-            enabled = data.availableBeansForNewRewards >= 18
+            enabled = data.availableBeansForNewRewards >= 18,
+            productFamily = "CAKE",
+            imageKey = "cake_cream_slice"
         )
 
-        if (data.rewardProductNames.contains("KoffeeCraft Mug")) {
-            items += RewardUiModel(
-                id = "MUG",
-                title = "KoffeeCraft Mug",
-                description = "Premium crafted mug with KoffeeCraft branding.",
-                beansLabel = "125 beans",
-                actionLabel = if (data.availableBeansForNewRewards >= 125) "Add to cart" else "Need more beans",
-                enabled = data.availableBeansForNewRewards >= 125
-            )
-        }
+        val rewardCostMap = linkedMapOf(
+            "KoffeeCraft Mug" to 125,
+            "KoffeeCraft Teddy Bear" to 250,
+            "1kg Crafted Coffee Beans" to 370
+        )
 
-        if (data.rewardProductNames.contains("KoffeeCraft Teddy Bear")) {
-            items += RewardUiModel(
-                id = "TEDDY",
-                title = "KoffeeCraft Teddy Bear",
-                description = "Soft teddy bear with KoffeeCraft branding.",
-                beansLabel = "250 beans",
-                actionLabel = if (data.availableBeansForNewRewards >= 250) "Add to cart" else "Need more beans",
-                enabled = data.availableBeansForNewRewards >= 250
-            )
-        }
+        rewardCostMap.forEach { (productName, beansCost) ->
+            val product = data.rewardProducts.firstOrNull { it.name == productName } ?: return@forEach
 
-        if (data.rewardProductNames.contains("1kg Crafted Coffee Beans")) {
             items += RewardUiModel(
-                id = "BEANS_1KG",
-                title = "1kg Crafted Coffee Beans",
-                description = "One kilogram of crafted KoffeeCraft coffee beans.",
-                beansLabel = "370 beans",
-                actionLabel = if (data.availableBeansForNewRewards >= 370) "Add to cart" else "Need more beans",
-                enabled = data.availableBeansForNewRewards >= 370
+                id = when (productName) {
+                    "KoffeeCraft Mug" -> "MUG"
+                    "KoffeeCraft Teddy Bear" -> "TEDDY"
+                    else -> "BEANS_1KG"
+                },
+                title = product.name,
+                description = product.description.ifBlank {
+                    "Special reward item available in the rewards screen."
+                },
+                beansLabel = "$beansCost beans",
+                actionLabel = if (data.availableBeansForNewRewards >= beansCost) {
+                    "Add to cart"
+                } else {
+                    "Need more beans"
+                },
+                enabled = data.availableBeansForNewRewards >= beansCost,
+                productFamily = product.productFamily,
+                imageKey = product.imageKey,
+                customImagePath = product.customImagePath
             )
         }
 
@@ -263,10 +267,7 @@ class CustomerRewardsViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CustomerRewardsViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CustomerRewardsViewModel(
-                    repository = repository,
-                    sessionRepository = sessionRepository
-                ) as T
+                return CustomerRewardsViewModel(repository, sessionRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

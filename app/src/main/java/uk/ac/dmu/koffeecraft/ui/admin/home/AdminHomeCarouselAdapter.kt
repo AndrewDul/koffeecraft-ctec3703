@@ -3,15 +3,20 @@ package uk.ac.dmu.koffeecraft.ui.admin.home
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 
 data class AdminHomeCarouselItem(
     val rankLabel: String,
     val productName: String,
     val primaryText: String,
-    val secondaryText: String
+    val secondaryText: String,
+    val productFamily: String,
+    val imageKey: String? = null,
+    val customImagePath: String? = null
 )
 
 class AdminHomeCarouselAdapter(
@@ -58,12 +63,21 @@ class AdminHomeCarouselAdapter(
     }
 
     class CarouselViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivImage: ImageView = itemView.findViewById(R.id.ivAdminHomeCarouselImage)
         private val tvRank: TextView = itemView.findViewById(R.id.tvRank)
         private val tvProductName: TextView = itemView.findViewById(R.id.tvProductName)
         private val tvPrimary: TextView = itemView.findViewById(R.id.tvPrimary)
         private val tvSecondary: TextView = itemView.findViewById(R.id.tvSecondary)
 
         fun bind(item: AdminHomeCarouselItem) {
+            ProductImageLoader.load(
+                imageView = ivImage,
+                productFamily = item.productFamily,
+                rewardEnabled = item.productFamily.equals("MERCH", ignoreCase = true),
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
+            )
+
             tvRank.text = item.rankLabel
             tvProductName.text = item.productName
             tvPrimary.text = item.primaryText

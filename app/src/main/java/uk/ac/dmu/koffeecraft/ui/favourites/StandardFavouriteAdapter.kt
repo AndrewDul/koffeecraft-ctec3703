@@ -3,12 +3,15 @@ package uk.ac.dmu.koffeecraft.ui.favourites
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import uk.ac.dmu.koffeecraft.R
 import java.util.Locale
+import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.querymodel.StandardFavouriteCard
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
+
 class StandardFavouriteAdapter(
     private var items: List<StandardFavouriteCard>,
     private val onRemove: (StandardFavouriteCard) -> Unit,
@@ -56,6 +59,7 @@ class StandardFavouriteAdapter(
 
     class StandardFavouriteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+        private val ivImage: ImageView = itemView.findViewById(R.id.ivFavouriteImage)
         private val tvName: TextView = itemView.findViewById(R.id.tvFavouriteName)
         private val tvDescription: TextView = itemView.findViewById(R.id.tvFavouriteDescription)
         private val tvMeta: TextView = itemView.findViewById(R.id.tvFavouriteMeta)
@@ -81,6 +85,14 @@ class StandardFavouriteAdapter(
             onCustomize: (StandardFavouriteCard) -> Unit,
             onBuyAgain: (StandardFavouriteCard) -> Unit
         ) {
+            ProductImageLoader.load(
+                imageView = ivImage,
+                productFamily = item.productFamily,
+                rewardEnabled = item.productFamily.equals("MERCH", ignoreCase = true),
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
+            )
+
             tvName.text = item.name
             tvDescription.text = item.description
             tvMeta.text = "${item.familyLabel} • Standard favourite"
@@ -95,6 +107,7 @@ class StandardFavouriteAdapter(
             layoutExpandedContent.visibility = if (expanded) View.VISIBLE else View.GONE
 
             itemView.alpha = if (item.isActive) 1f else 0.72f
+            ivImage.alpha = if (item.isActive) 1f else 0.72f
 
             itemView.setOnClickListener { onToggle() }
 

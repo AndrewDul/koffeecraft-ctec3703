@@ -14,14 +14,23 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
         android:orientation="vertical"
         android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/ivAdminHomeCarouselImage"
+            android:layout_width="match_parent"
+            android:layout_height="128dp"
+            android:background="@drawable/bg_spinner_soft"
+            android:contentDescription="Admin dashboard carousel image"
+            android:scaleType="centerCrop"
+            android:src="@drawable/kc_image_placeholder_generic" />
 
         <TextView
             android:id="@+id/tvRank"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
             android:background="@drawable/bg_orders_filter_chip_selected"
             android:paddingStart="12dp"
             android:paddingTop="6dp"
@@ -36,7 +45,7 @@
             android:id="@+id/tvProductName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="14dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:text="Latte"

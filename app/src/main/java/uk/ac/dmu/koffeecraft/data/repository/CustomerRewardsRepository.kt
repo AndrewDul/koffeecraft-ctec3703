@@ -1,6 +1,7 @@
 package uk.ac.dmu.koffeecraft.data.repository
 
 import uk.ac.dmu.koffeecraft.data.db.KoffeeCraftDatabase
+import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.util.rewards.BeansBoosterManager
 
 data class CustomerRewardsScreenData(
@@ -9,7 +10,7 @@ data class CustomerRewardsScreenData(
     val availableBeansForNewRewards: Int,
     val boosterProgress: Int,
     val pendingBoosters: Int,
-    val rewardProductNames: Set<String>
+    val rewardProducts: List<Product>
 )
 
 sealed interface CustomerRewardsActionResult {
@@ -45,7 +46,7 @@ class CustomerRewardsRepository(
             availableBeansForNewRewards = availableBeansForNewRewards,
             boosterProgress = progress,
             pendingBoosters = pendingBoosters,
-            rewardProductNames = rewardProducts.map { it.name }.toSet()
+            rewardProducts = rewardProducts
         )
     }
 

@@ -5,6 +5,9 @@ data class CustomerFavouritePresetCard(
     val productId: Long,
     val productName: String,
     val productDescription: String,
+    val productFamily: String,
+    val imageKey: String?,
+    val customImagePath: String?,
     val optionId: Long,
     val optionLabel: String,
     val optionSizeValue: Int,
@@ -18,6 +21,9 @@ data class CustomerFavouritePresetCard(
 data class ProductFavouriteInsight(
     val productId: Long,
     val productName: String,
+    val productFamily: String,
+    val imageKey: String?,
+    val customImagePath: String?,
     val favouriteCount: Int
 )
 
@@ -27,6 +33,8 @@ data class HomeLovedProductInsight(
     val productDescription: String,
     val productFamily: String,
     val price: Double,
+    val imageKey: String?,
+    val customImagePath: String?,
     val favouriteCount: Int
 )
 
@@ -37,6 +45,8 @@ data class StandardFavouriteCard(
     val productFamily: String,
     val price: Double,
     val isActive: Boolean,
+    val imageKey: String?,
+    val customImagePath: String?,
     val standardOptionLabel: String?,
     val standardSizeValue: Int?,
     val standardSizeUnit: String?,

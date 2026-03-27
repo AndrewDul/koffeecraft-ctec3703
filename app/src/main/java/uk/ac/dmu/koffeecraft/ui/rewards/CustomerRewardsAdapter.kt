@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import uk.ac.dmu.koffeecraft.R
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 
 data class RewardUiModel(
     val id: String,
@@ -15,7 +16,10 @@ data class RewardUiModel(
     val description: String,
     val beansLabel: String,
     val actionLabel: String,
-    val enabled: Boolean
+    val enabled: Boolean,
+    val productFamily: String,
+    val imageKey: String? = null,
+    val customImagePath: String? = null
 )
 
 class CustomerRewardsAdapter(
@@ -48,7 +52,14 @@ class CustomerRewardsAdapter(
         private val btnAction: MaterialButton = itemView.findViewById(R.id.btnRewardAction)
 
         fun bind(item: RewardUiModel, onAction: (RewardUiModel) -> Unit) {
-            ivReward.setImageResource(android.R.drawable.ic_menu_gallery)
+            ProductImageLoader.load(
+                imageView = ivReward,
+                productFamily = item.productFamily,
+                rewardEnabled = item.productFamily.equals("MERCH", ignoreCase = true),
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
+            )
+
             tvTitle.text = item.title
             tvDescription.text = item.description
             tvBeansLabel.text = item.beansLabel

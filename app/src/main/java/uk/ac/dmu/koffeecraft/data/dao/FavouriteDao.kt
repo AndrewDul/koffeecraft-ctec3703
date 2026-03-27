@@ -56,6 +56,8 @@ interface FavouriteDao {
             p.category AS productFamily,
             p.price AS price,
             p.isAvailable AS isActive,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             po.displayLabel AS standardOptionLabel,
             po.sizeValue AS standardSizeValue,
             po.sizeUnit AS standardSizeUnit,
@@ -77,10 +79,13 @@ interface FavouriteDao {
         SELECT
             p.productId AS productId,
             p.name AS productName,
+            p.category AS productFamily,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             COUNT(f.productId) AS favouriteCount
         FROM products p
         INNER JOIN favourites f ON f.productId = p.productId
-        GROUP BY p.productId, p.name
+        GROUP BY p.productId, p.name, p.category, p.imageKey, p.customImagePath
         ORDER BY favouriteCount DESC, p.name ASC
         LIMIT 3
         """
@@ -92,10 +97,13 @@ interface FavouriteDao {
         SELECT
             p.productId AS productId,
             p.name AS productName,
+            p.category AS productFamily,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             COUNT(f.productId) AS favouriteCount
         FROM products p
         INNER JOIN favourites f ON f.productId = p.productId
-        GROUP BY p.productId, p.name
+        GROUP BY p.productId, p.name, p.category, p.imageKey, p.customImagePath
         HAVING COUNT(f.productId) > 0
         ORDER BY favouriteCount ASC, p.name ASC
         LIMIT 3
@@ -111,12 +119,14 @@ interface FavouriteDao {
             p.description AS productDescription,
             p.category AS productFamily,
             p.price AS price,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             COUNT(f.productId) AS favouriteCount
         FROM products p
         INNER JOIN favourites f ON f.productId = p.productId
         WHERE p.isAvailable = 1
           AND p.category IN ('COFFEE', 'CAKE')
-        GROUP BY p.productId, p.name, p.description, p.category, p.price
+        GROUP BY p.productId, p.name, p.description, p.category, p.price, p.imageKey, p.customImagePath
         HAVING COUNT(f.productId) > 0
         ORDER BY favouriteCount DESC, p.name ASC
         LIMIT :limit

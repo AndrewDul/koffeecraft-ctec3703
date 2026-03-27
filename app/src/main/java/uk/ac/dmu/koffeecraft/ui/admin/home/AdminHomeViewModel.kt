@@ -102,7 +102,8 @@ class AdminHomeViewModel(
                     rankLabel = "#",
                     productName = "No ratings yet",
                     primaryText = "Waiting for customer feedback",
-                    secondaryText = "Top rated products will appear here"
+                    secondaryText = "Top rated products will appear here",
+                    productFamily = "COFFEE"
                 )
             )
         }
@@ -112,7 +113,10 @@ class AdminHomeViewModel(
                 rankLabel = "#${index + 1}",
                 productName = item.productName,
                 primaryText = "Average rating: ${formatRating(item.averageRating)} / 5",
-                secondaryText = "${item.ratingCount} ratings"
+                secondaryText = "${item.ratingCount} ratings",
+                productFamily = item.productFamily,
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
             )
         }
     }
@@ -124,7 +128,8 @@ class AdminHomeViewModel(
                     rankLabel = "#",
                     productName = "No favourites yet",
                     primaryText = "Waiting for customer hearts",
-                    secondaryText = "Most loved products will appear here"
+                    secondaryText = "Most loved products will appear here",
+                    productFamily = "COFFEE"
                 )
             )
         }
@@ -134,7 +139,10 @@ class AdminHomeViewModel(
                 rankLabel = "#${index + 1}",
                 productName = item.productName,
                 primaryText = "${item.favouriteCount} hearts",
-                secondaryText = "Loved products by customer favourites"
+                secondaryText = "Loved products by customer favourites",
+                productFamily = item.productFamily,
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
             )
         }
     }
@@ -146,7 +154,8 @@ class AdminHomeViewModel(
                     rankLabel = "#",
                     productName = "No comments yet",
                     primaryText = "Waiting for written feedback",
-                    secondaryText = "Most commented products will appear here"
+                    secondaryText = "Most commented products will appear here",
+                    productFamily = "COFFEE"
                 )
             )
         }
@@ -156,7 +165,10 @@ class AdminHomeViewModel(
                 rankLabel = "#${index + 1}",
                 productName = item.productName,
                 primaryText = "${item.commentCount} comments",
-                secondaryText = "Average rating: ${formatRating(item.averageRating)} / 5"
+                secondaryText = "Average rating: ${formatRating(item.averageRating)} / 5",
+                productFamily = item.productFamily,
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
             )
         }
     }

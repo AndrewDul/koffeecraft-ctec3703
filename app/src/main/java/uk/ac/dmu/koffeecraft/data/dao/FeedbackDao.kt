@@ -88,12 +88,15 @@ interface FeedbackDao {
         SELECT
             p.productId AS productId,
             p.name AS productName,
+            p.category AS productFamily,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             AVG(CAST(f.rating AS REAL)) AS averageRating,
             COUNT(f.feedbackId) AS ratingCount
         FROM feedback f
         INNER JOIN order_items oi ON oi.orderItemId = f.orderItemId
         INNER JOIN products p ON p.productId = oi.productId
-        GROUP BY p.productId, p.name
+        GROUP BY p.productId, p.name, p.category, p.imageKey, p.customImagePath
         ORDER BY averageRating DESC, ratingCount DESC, p.name ASC
         LIMIT 3
         """
@@ -105,12 +108,15 @@ interface FeedbackDao {
         SELECT
             p.productId AS productId,
             p.name AS productName,
+            p.category AS productFamily,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             AVG(CAST(f.rating AS REAL)) AS averageRating,
             COUNT(f.feedbackId) AS ratingCount
         FROM feedback f
         INNER JOIN order_items oi ON oi.orderItemId = f.orderItemId
         INNER JOIN products p ON p.productId = oi.productId
-        GROUP BY p.productId, p.name
+        GROUP BY p.productId, p.name, p.category, p.imageKey, p.customImagePath
         ORDER BY averageRating ASC, ratingCount DESC, p.name ASC
         LIMIT 3
         """
@@ -122,13 +128,16 @@ interface FeedbackDao {
         SELECT
             p.productId AS productId,
             p.name AS productName,
+            p.category AS productFamily,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             SUM(CASE WHEN TRIM(f.comment) != '' THEN 1 ELSE 0 END) AS commentCount,
             AVG(CAST(f.rating AS REAL)) AS averageRating,
             COUNT(f.feedbackId) AS ratingCount
         FROM feedback f
         INNER JOIN order_items oi ON oi.orderItemId = f.orderItemId
         INNER JOIN products p ON p.productId = oi.productId
-        GROUP BY p.productId, p.name
+        GROUP BY p.productId, p.name, p.category, p.imageKey, p.customImagePath
         HAVING SUM(CASE WHEN TRIM(f.comment) != '' THEN 1 ELSE 0 END) > 0
         ORDER BY commentCount DESC, averageRating DESC, p.name ASC
         LIMIT 3
@@ -141,13 +150,16 @@ interface FeedbackDao {
         SELECT
             p.productId AS productId,
             p.name AS productName,
+            p.category AS productFamily,
+            p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             SUM(CASE WHEN TRIM(f.comment) != '' THEN 1 ELSE 0 END) AS commentCount,
             AVG(CAST(f.rating AS REAL)) AS averageRating,
             COUNT(f.feedbackId) AS ratingCount
         FROM feedback f
         INNER JOIN order_items oi ON oi.orderItemId = f.orderItemId
         INNER JOIN products p ON p.productId = oi.productId
-        GROUP BY p.productId, p.name
+        GROUP BY p.productId, p.name, p.category, p.imageKey, p.customImagePath
         HAVING SUM(CASE WHEN TRIM(f.comment) != '' THEN 1 ELSE 0 END) > 0
         ORDER BY commentCount ASC, averageRating DESC, p.name ASC
         LIMIT 3
@@ -163,6 +175,7 @@ interface FeedbackDao {
             p.description AS productDescription,
             p.price AS price,
             p.imageKey AS imageKey,
+            p.customImagePath AS customImagePath,
             AVG(CAST(f.rating AS REAL)) AS averageRating,
             COUNT(f.feedbackId) AS ratingCount
         FROM feedback f
@@ -170,7 +183,7 @@ interface FeedbackDao {
         INNER JOIN products p ON p.productId = oi.productId
         WHERE p.category = :productFamily
           AND p.isAvailable = 1
-        GROUP BY p.productId, p.name, p.description, p.price, p.imageKey
+        GROUP BY p.productId, p.name, p.description, p.price, p.imageKey, p.customImagePath
         HAVING COUNT(f.feedbackId) >= :minimumRatings
         ORDER BY averageRating DESC, ratingCount DESC, p.name ASC
         LIMIT :limit

@@ -3,12 +3,15 @@ package uk.ac.dmu.koffeecraft.ui.favourites
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import uk.ac.dmu.koffeecraft.R
 import java.util.Locale
+import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.querymodel.CustomerFavouritePresetCard
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
+
 class CustomerFavouritePresetAdapter(
     private var items: List<CustomerFavouritePresetCard>,
     private val onRemove: (CustomerFavouritePresetCard) -> Unit,
@@ -54,6 +57,7 @@ class CustomerFavouritePresetAdapter(
 
     class PresetViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+        private val ivImage: ImageView = itemView.findViewById(R.id.ivPresetImage)
         private val tvName: TextView = itemView.findViewById(R.id.tvPresetName)
         private val tvSize: TextView = itemView.findViewById(R.id.tvPresetSize)
         private val tvAddOns: TextView = itemView.findViewById(R.id.tvPresetAddOns)
@@ -79,6 +83,14 @@ class CustomerFavouritePresetAdapter(
             onRemove: (CustomerFavouritePresetCard) -> Unit,
             onBuyAgain: (CustomerFavouritePresetCard) -> Unit
         ) {
+            ProductImageLoader.load(
+                imageView = ivImage,
+                productFamily = item.productFamily,
+                rewardEnabled = item.productFamily.equals("MERCH", ignoreCase = true),
+                imageKey = item.imageKey,
+                customImagePath = item.customImagePath
+            )
+
             val sizeText = buildSizeText(item)
             val addOnsText = item.addOnSummary?.takeIf { it.isNotBlank() } ?: "None"
 

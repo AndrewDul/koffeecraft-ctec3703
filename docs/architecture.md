@@ -3705,5 +3705,134 @@ This change gave me:
 I intentionally treated app library images as the main permanent solution and phone gallery images as an optional override. This keeps the project academically safe, technically correct, and visually strong while still demonstrating a more advanced admin capability.
 
 
+## Full product image architecture across admin, customer, rewards, favourites, and cart
+
+I implemented a full product image architecture for KoffeeCraft so product and reward visuals can be managed centrally and displayed consistently across the app. The goal of this change was to make image handling stable, premium, and reusable instead of leaving visual content hardcoded or fragmented across different screens.
+
+### Core image model
+
+I kept the existing `imageKey` field for permanent project-managed images and added `customImagePath` to the `Product` entity for locally imported images selected from the phone gallery. This created a dual-source image structure:
+
+- `imageKey` for permanent built-in assets stored in the project
+- `customImagePath` for locally imported assets copied into app-specific storage
+
+I also added a Room migration from version `20` to `21` so the new image path field could be introduced safely without breaking the existing database structure.
+
+### Why I used this approach
+
+I intentionally did not use gallery-imported files as the only image source because those files are device-local and are not part of the GitHub project. I also did not try to write runtime images into `drawable`, because Android resources are static and cannot be modified by the installed app during runtime.
+
+Because of that, I designed the system around two clear layers:
+
+1. **Permanent app library**
+  - built into the project
+  - version-controlled
+  - stable across GitHub, fresh installs, and assessment delivery
+
+2. **Optional phone gallery import**
+  - useful for device-local admin customisation and testing
+  - copied into app-specific storage for stability on that installation
+
+This gives the app a safe permanent image foundation while still demonstrating a more advanced admin capability.
+
+### Central image catalog
+
+I created a dedicated `ProductImageCatalog` as the source of truth for permanent built-in images. Instead of relying on physical subfolders inside `drawable`, I grouped images by business category in code:
+
+- `COFFEE`
+- `CAKE`
+- `REWARD`
+
+Each image entry includes:
+- a stable `key`
+- a display `label`
+- a business `category`
+- a `drawableResId`
+
+This lets the admin form show only relevant images depending on the type of product being edited, while still keeping the assets permanent and managed inside the project.
+
+### Shared image resolution layer
+
+I added a shared `ProductImageLoader` so every screen resolves images in the same order:
+
+1. load `customImagePath` if a valid local file exists
+2. otherwise load the built-in image from `imageKey`
+3. otherwise show a category-aware premium placeholder
+
+This was important because it removed hardcoded image usage from individual screens and replaced it with one consistent image-loading strategy.
+
+### Local gallery import handling
+
+I added `ProductImageStorage` to support the phone gallery option in the admin form. When an admin selects an image using the Android photo picker, the app copies the selected file into app-specific storage and stores the copied file path in `customImagePath`.
+
+I chose copying instead of storing only a gallery reference because copied files are more stable for repeated use on the same installation.
+
+### Admin image management flow
+
+I upgraded the admin product form so image management is now part of the standard create/edit flow. The form now includes:
+
+- a large preview area
+- an **App library** action
+- a **Phone gallery** action
+- metadata text showing the active image source
+
+I also added a dedicated image-library dialog and adapter so the admin can choose a permanent built-in image visually instead of relying on raw keys or hidden mappings.
+
+### Seed alignment and fallback behaviour
+
+I updated seeded products so the starter coffee, cake, and reward items now already contain default `imageKey` values. This makes the system visually useful immediately after installation.
+
+I also added premium placeholder drawables for:
+- generic products
+- coffee products
+- cake products
+- reward products
+- alternative category variants
+
+This ensures the UI still looks polished even before final branded product images are added.
+
+### Customer-facing image coverage
+
+After building the admin-side architecture, I connected the same image system across the main customer-facing surfaces so visuals are resolved consistently everywhere.
+
+I connected product images to:
+
+- customer menu cards
+- rewards cards
+- reward product picker
+- customer dashboard carousels
+- admin dashboard carousels
+- standard favourites
+- saved custom favourites
+- cart items
+
+This means the same image source now follows the product across the app instead of being limited to admin configuration only.
+
+### Query model and DAO alignment
+
+To support favourites and dashboard analytics properly, I extended the relevant query models and DAO queries so they now return `imageKey` and `customImagePath` where needed.
+
+This was necessary because some of those surfaces do not render raw `Product` entities directly. Instead, they depend on projections and insight models, so the image metadata had to be pulled through those layers explicitly.
+
+### Design impact
+
+This change significantly improved the visual consistency of the application. Product cards, reward cards, favourite tiles, dashboard carousels, and cart items now all display meaningful product imagery instead of relying on generic hardcoded placeholders.
+
+Because I used shared loading logic and category-aware fallbacks, the UI remains visually stable even when a product does not yet have a final branded image.
+
+### Architectural result
+
+This image architecture gave the project:
+
+- a permanent built-in image library safe for GitHub and assessment delivery
+- an optional local phone-gallery import path for advanced admin control
+- a shared reusable image-loading strategy
+- consistent image rendering across admin and customer features
+- cleaner scalability for future branded image packs and additional product categories
+
+### Final design decision
+
+I treated the built-in app library as the main permanent image system and the phone gallery as an optional local override. This gives KoffeeCraft a strong, portfolio-level visual foundation while still allowing more advanced admin-side behaviour without compromising project stability.
+
 
 

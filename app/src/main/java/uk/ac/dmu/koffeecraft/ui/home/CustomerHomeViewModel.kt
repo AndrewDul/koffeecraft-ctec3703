@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.data.repository.CustomerHomeRepository
 import uk.ac.dmu.koffeecraft.data.repository.CustomerHomeScreenData
 import uk.ac.dmu.koffeecraft.data.session.SessionRepository
@@ -70,7 +71,10 @@ class CustomerHomeViewModel(
                     } else {
                         String.format(Locale.UK, "From £%.2f", product.price)
                     },
-                    badgeLabel = "NEW"
+                    badgeLabel = "NEW",
+                    productFamily = product.productFamily,
+                    imageKey = product.imageKey,
+                    customImagePath = product.customImagePath
                 )
             },
             topCoffeeItems = data.topCoffees.map { item ->
@@ -84,7 +88,10 @@ class CustomerHomeViewModel(
                         item.ratingCount,
                         item.price
                     ),
-                    badgeLabel = "COFFEE"
+                    badgeLabel = "COFFEE",
+                    productFamily = "COFFEE",
+                    imageKey = item.imageKey,
+                    customImagePath = item.customImagePath
                 )
             },
             topCakeItems = data.topCakes.map { item ->
@@ -98,7 +105,10 @@ class CustomerHomeViewModel(
                         item.ratingCount,
                         item.price
                     ),
-                    badgeLabel = "CAKE"
+                    badgeLabel = "CAKE",
+                    productFamily = "CAKE",
+                    imageKey = item.imageKey,
+                    customImagePath = item.customImagePath
                 )
             },
             mostLovedItems = data.mostLovedProducts.map { item ->
@@ -117,7 +127,10 @@ class CustomerHomeViewModel(
                         item.productFamily.equals("COFFEE", ignoreCase = true) -> "COFFEE"
                         item.productFamily.equals("CAKE", ignoreCase = true) -> "CAKE"
                         else -> "LOVED"
-                    }
+                    },
+                    productFamily = item.productFamily,
+                    imageKey = item.imageKey,
+                    customImagePath = item.customImagePath
                 )
             }
         )
@@ -127,7 +140,7 @@ class CustomerHomeViewModel(
         beansBalance: Int,
         beansBoosterProgress: Int,
         pendingBeansBoosters: Int,
-        rewardProducts: List<uk.ac.dmu.koffeecraft.data.entities.Product>
+        rewardProducts: List<Product>
     ): List<CustomerHomeCarouselItem> {
         val items = mutableListOf<CustomerHomeCarouselItem>()
 
@@ -138,21 +151,27 @@ class CustomerHomeViewModel(
                 beansBoosterProgress,
                 pendingBeansBoosters
             ),
-            badgeLabel = if (pendingBeansBoosters > 0) "READY" else "REWARD"
+            badgeLabel = if (pendingBeansBoosters > 0) "READY" else "REWARD",
+            productFamily = "MERCH",
+            imageKey = "reward_beans_1kg"
         )
 
         items += CustomerHomeCarouselItem(
             title = "Free Coffee",
             subtitle = "Redeem a crafted coffee from the rewards screen.",
             metaLine = "15 beans",
-            badgeLabel = if (beansBalance >= 15) "AVAILABLE" else "REWARD"
+            badgeLabel = if (beansBalance >= 15) "AVAILABLE" else "REWARD",
+            productFamily = "COFFEE",
+            imageKey = "coffee_signature_house"
         )
 
         items += CustomerHomeCarouselItem(
             title = "Free Cake",
             subtitle = "Redeem a crafted cake from the rewards screen.",
             metaLine = "18 beans",
-            badgeLabel = if (beansBalance >= 18) "AVAILABLE" else "REWARD"
+            badgeLabel = if (beansBalance >= 18) "AVAILABLE" else "REWARD",
+            productFamily = "CAKE",
+            imageKey = "cake_cream_slice"
         )
 
         rewardProducts.forEach { product ->
@@ -173,7 +192,10 @@ class CustomerHomeViewModel(
                     "AVAILABLE"
                 } else {
                     "REWARD"
-                }
+                },
+                productFamily = product.productFamily,
+                imageKey = product.imageKey,
+                customImagePath = product.customImagePath
             )
         }
 

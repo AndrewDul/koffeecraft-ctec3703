@@ -24,12 +24,12 @@
 
             <ImageView
                 android:id="@+id/ivReward"
-                android:layout_width="78dp"
-                android:layout_height="78dp"
+                android:layout_width="86dp"
+                android:layout_height="86dp"
                 android:background="@drawable/bg_spinner_soft"
                 android:contentDescription="Reward image"
-                android:padding="12dp"
-                android:src="@android:drawable/ic_menu_gallery" />
+                android:scaleType="centerCrop"
+                android:src="@drawable/kc_image_placeholder_generic" />
 
             <LinearLayout
                 android:layout_width="0dp"

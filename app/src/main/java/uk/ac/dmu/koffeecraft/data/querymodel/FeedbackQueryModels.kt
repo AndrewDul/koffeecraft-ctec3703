@@ -33,6 +33,9 @@ data class AdminFeedbackRatingBreakdown(
 data class ProductRatingInsight(
     val productId: Long,
     val productName: String,
+    val productFamily: String,
+    val imageKey: String?,
+    val customImagePath: String?,
     val averageRating: Double,
     val ratingCount: Int
 )
@@ -40,6 +43,9 @@ data class ProductRatingInsight(
 data class ProductCommentInsight(
     val productId: Long,
     val productName: String,
+    val productFamily: String,
+    val imageKey: String?,
+    val customImagePath: String?,
     val commentCount: Int,
     val averageRating: Double,
     val ratingCount: Int
@@ -51,6 +57,7 @@ data class HomeRatedProductInsight(
     val productDescription: String,
     val price: Double,
     val imageKey: String?,
+    val customImagePath: String?,
     val averageRating: Double,
     val ratingCount: Int
 )

@@ -15,7 +15,8 @@ import com.google.android.material.chip.ChipGroup
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.entities.Product
 import java.util.Locale
-
+import android.widget.ImageView
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 class ProductAdapter(
     private var items: List<Product>,
     private var favouriteIds: Set<Long>,
@@ -81,6 +82,8 @@ class ProductAdapter(
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val cardRoot: MaterialCardView = itemView.findViewById(R.id.cardRoot)
+
+        private val ivProductImage: ImageView = itemView.findViewById(R.id.ivProductImage)
         private val tvName: TextView = itemView.findViewById(R.id.tvName)
         private val tvDesc: TextView = itemView.findViewById(R.id.tvDesc)
         private val tvStandardSize: TextView = itemView.findViewById(R.id.tvStandardSize)
@@ -120,6 +123,14 @@ class ProductAdapter(
             onSavePreset: () -> Unit,
             onAddToCart: () -> Unit
         ) {
+            ProductImageLoader.load(
+                imageView = ivProductImage,
+                productFamily = product.productFamily,
+                rewardEnabled = product.rewardEnabled,
+                imageKey = product.imageKey,
+                customImagePath = product.customImagePath
+            )
+
             tvName.text = product.name
             tvDesc.text = product.description
             tvStandardSize.text = "Standard size • ${buildStandardSizeText(state)}"
@@ -127,6 +138,7 @@ class ProductAdapter(
 
             val isAvailable = product.isActive
             cardRoot.alpha = if (isAvailable) 1f else 0.72f
+            ivProductImage.alpha = if (isAvailable) 1f else 0.72f
             tvUnavailable.visibility = if (isAvailable) View.GONE else View.VISIBLE
 
             tvFavourite.text = if (isFavourite) "♥" else "♡"

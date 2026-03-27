@@ -3,11 +3,13 @@ package uk.ac.dmu.koffeecraft.ui.cart
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import java.util.Locale
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.cart.CartItem
-import java.util.Locale
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 
 class CartAdapter(
     private var items: List<CartItem>,
@@ -33,6 +35,7 @@ class CartAdapter(
 
     class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+        private val ivProductImage: ImageView = itemView.findViewById(R.id.ivProductImage)
         private val tvName: TextView = itemView.findViewById(R.id.tvName)
         private val tvCraftedBadge: TextView = itemView.findViewById(R.id.tvCraftedBadge)
         private val tvSize: TextView = itemView.findViewById(R.id.tvSize)
@@ -50,6 +53,14 @@ class CartAdapter(
                     item.selectedOptionSizeValue != null &&
                     !item.selectedOptionSizeUnit.isNullOrBlank()
             val isCrafted = hasAddOns || hasOptionSelection
+
+            ProductImageLoader.load(
+                imageView = ivProductImage,
+                productFamily = item.product.productFamily,
+                rewardEnabled = item.product.rewardEnabled,
+                imageKey = item.product.imageKey,
+                customImagePath = item.product.customImagePath
+            )
 
             tvName.text = item.product.name
             tvCraftedBadge.visibility = if (isCrafted) View.VISIBLE else View.GONE
