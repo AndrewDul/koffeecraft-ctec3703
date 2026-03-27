@@ -19,7 +19,9 @@ class AdminMenuProductValidatorTest {
                 priceText = "4.50",
                 productFamily = "DRINK",
                 rewardEnabled = false,
-                isNew = true
+                isNew = true,
+                imageKey = null,
+                customImagePath = null
             )
         )
 
@@ -40,7 +42,9 @@ class AdminMenuProductValidatorTest {
                 priceText = "4.00",
                 productFamily = "DRINK",
                 rewardEnabled = false,
-                isNew = true
+                isNew = true,
+                imageKey = null,
+                customImagePath = null
             )
         )
 
@@ -57,7 +61,9 @@ class AdminMenuProductValidatorTest {
                 priceText = "4.20",
                 productFamily = "DRINK",
                 rewardEnabled = false,
-                isNew = true
+                isNew = true,
+                imageKey = null,
+                customImagePath = null
             )
         )
 
@@ -74,7 +80,9 @@ class AdminMenuProductValidatorTest {
                 priceText = "0",
                 productFamily = "DRINK",
                 rewardEnabled = false,
-                isNew = true
+                isNew = true,
+                imageKey = null,
+                customImagePath = null
             )
         )
 
@@ -91,7 +99,9 @@ class AdminMenuProductValidatorTest {
                 priceText = "4.20",
                 productFamily = " ",
                 rewardEnabled = false,
-                isNew = true
+                isNew = true,
+                imageKey = null,
+                customImagePath = null
             )
         )
 
@@ -108,7 +118,9 @@ class AdminMenuProductValidatorTest {
                 priceText = "12.99",
                 productFamily = "MERCH",
                 rewardEnabled = false,
-                isNew = true
+                isNew = true,
+                imageKey = null,
+                customImagePath = null
             )
         )
 

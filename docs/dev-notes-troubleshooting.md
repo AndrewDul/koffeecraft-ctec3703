@@ -1963,3 +1963,44 @@ I noticed that the three admin inbox message type buttons looked too light in th
 I adjusted the unselected styling to make them slightly darker while keeping the selected state unchanged.
 
 
+## 85)I fixed unstable Espresso coverage for the admin product image flow
+
+### Problem
+When I started testing the new admin product image feature, the first Espresso version was unstable. I saw several UI-related failures:
+
+- text replacement failed in the product dialog because some input fields were inside a scrollable dialog and were not fully visible for Espresso
+- drawable comparison on the image preview was unreliable because AppCompat and layered drawables did not give a stable direct drawable equality result
+- matching the `Edit` button after saving a product was ambiguous because many product cards contained the same button id
+- expanded action areas inside admin product cards were difficult to target reliably through a strict end-to-end edit reopen flow
+
+### Cause
+The issue was not with the product image feature itself. The problem came from how Espresso interacts with:
+
+- scrollable dialogs
+- repeated views inside RecyclerView items
+- layered or wrapped drawables
+- dynamically expanded card content
+
+This made a deep UI assertion strategy too brittle for the admin product image feature.
+
+### What I changed
+I stabilised the tests by simplifying and separating the responsibilities:
+
+- I used `scrollTo()` and explicit clicks before text replacement inside the product dialog
+- I removed the fragile direct drawable equality assertion from the preview image check
+- I kept the UI test focused on a stable smoke path:
+    - admin signs in
+    - opens add product
+    - chooses an image from app library
+    - saves the product
+    - confirms the product appears in the admin list
+- I moved the more important persistence and cleanup assertions into instrumented repository tests instead of forcing them through Espresso
+
+### Result
+After this change, the test coverage became much more stable:
+
+- the UI smoke test validates the real admin image selection flow
+- the repository instrumented tests validate persistence and cleanup logic
+- the validator unit test still protects the product form structure
+
+This gave me much stronger coverage with fewer flaky failures.

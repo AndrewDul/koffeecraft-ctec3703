@@ -3910,5 +3910,90 @@ As a result, the admin image workflow is now cleaner, more reliable, and better 
 
 
 
+## Automated test coverage for the product image system
+
+I added automated test coverage for the new product image architecture so the feature is no longer validated only manually. The goal of this testing layer was to protect the main image flows, especially the admin image assignment flow and the local custom image cleanup lifecycle.
+
+### Why I added these tests
+
+The product image feature now includes multiple responsibilities:
+
+- storing built-in app library image references through `imageKey`
+- storing local imported image paths through `customImagePath`
+- replacing custom images safely
+- cleaning up unused local files
+- exposing image selection through the admin UI
+
+Because this feature mixes database state, file lifecycle management, and UI interaction, I split test coverage into layers instead of trying to force everything through one fragile UI test.
+
+### Test strategy
+
+I used three levels of testing:
+
+1. **Unit test coverage**
+  - for form validation changes caused by the new image-aware product form model
+
+2. **Instrumented repository tests**
+  - for persistence and cleanup logic
+  - this is where image file lifecycle can be tested reliably against real app storage and Room behaviour
+
+3. **UI smoke test**
+  - for the admin-facing image selection flow using the app library
+  - this confirms that the feature is reachable and usable from the real interface
+
+### Repository instrumented tests
+
+I added instrumented repository tests for `AdminMenuRepository` to verify the most important image persistence and cleanup rules.
+
+These tests cover:
+
+- creating a product with both `imageKey` and `customImagePath`
+- replacing a custom image with an app library image and deleting the old file
+- replacing one custom image with another and deleting the previous file
+- keeping the existing custom image file when the same path remains in use
+
+This layer is important because file cleanup should not be validated only through UI interactions. The repository layer is where the actual persistence decision and cleanup decision meet.
+
+### UI smoke test
+
+I added a dedicated Espresso smoke test for the admin product image flow using the app library.
+
+The UI test verifies that an admin can:
+
+- sign in
+- open the add product dialog
+- enter product details
+- open the app image library
+- choose a built-in image
+- see the preview and image source metadata update
+- save the product
+- see the saved product appear in the admin list
+
+I intentionally kept the UI test focused on the stable app-library path instead of the phone gallery path, because the gallery feature depends on a system photo picker and is much less suitable for stable Espresso coverage.
+
+### Design decision for UI test scope
+
+I deliberately did not overburden the UI layer with full storage lifecycle assertions. The more advanced custom file cleanup logic is covered in repository instrumented tests, where it is much more reliable.
+
+This means:
+
+- UI tests confirm the feature is usable from the real app
+- repository tests confirm the image persistence and cleanup logic is correct
+
+This split gives stronger coverage with less flakiness.
+
+### Result
+
+This testing layer makes the product image feature safer to evolve. If I later change admin image assignment, image storage behaviour, or update logic, I now have automated checks protecting:
+
+- image selection from the admin interface
+- database persistence of image metadata
+- cleanup of replaced local image files
+- validation compatibility with the extended product form model
+
+### Architectural value
+
+Adding these tests moved the product image system from a manually verified feature to a partially regression-protected feature. This is especially valuable because the image workflow now affects admin tooling, customer-facing visuals, and app storage lifecycle at the same time.
+
 
 
