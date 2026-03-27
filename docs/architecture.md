@@ -3997,3 +3997,117 @@ Adding these tests moved the product image system from a manually verified featu
 
 
 
+## Branded image rollout and unified image framing across KoffeeCraft
+
+I completed the next stage of the product image architecture by replacing temporary placeholder-driven visuals with branded product assets and by standardising how images are framed across the application. The goal of this stage was to make the app feel visually consistent, premium, and production-ready instead of mixing branded images with flat placeholder presentation.
+
+### Branded asset rollout
+
+I added final branded PNG image assets for the current coffee, cake, and reward catalogue and stored them in `drawable-nodpi`. I chose this approach because these files behave as product content rather than scalable icon resources, and I wanted to keep their rendering stable without density-specific duplication.
+
+I aligned the drawable names with the image key system so the resource names remain predictable and easy to map in code. This keeps the visual catalogue, Room data, and admin image library in sync.
+
+### Product image catalog update
+
+I updated `ProductImageCatalog` so the image library no longer points only to generic placeholders. Instead, it now resolves real branded resources for:
+
+- coffee products
+- cake products
+- reward products
+
+I also added dedicated reward-specific entries for:
+
+- `reward_bean_booster`
+- `reward_free_coffee`
+- `reward_free_cake`
+
+This was important because those reward cards represent unique user-facing reward experiences, not only generic product references.
+
+### Reward image identity separation
+
+I intentionally separated the reward visuals for Bean Booster, Free Coffee, and Free Cake from the standard menu product visuals. This gives the rewards screen and home reward preview their own branded identity instead of reusing ordinary product tiles for reward milestones.
+
+I updated both the rewards screen and the customer home reward preview so those features now use the dedicated reward image keys rather than fallback product image keys.
+
+### Automatic image key assignment for existing database records
+
+To avoid manually editing old database content, I introduced a product-name-to-image-key assignment layer through `ProductImageAssignments`. This lets the app infer the correct `imageKey` for known products using their existing product names.
+
+I then used this mapping in the database seeding/open flow so existing products are automatically updated with the correct branded image keys when the database opens.
+
+This decision was important because it allowed the new branded assets to appear for previously stored products without requiring manual data repair.
+
+### Unified image framing system
+
+After rolling out branded assets, I standardised the presentation of images across the app. Previously, several screens used a raw `ImageView` with a background shape. That could create spacing issues, weak borders, and inconsistent cropping.
+
+I replaced those patterns with a shared visual rule:
+
+- a `MaterialCardView` container handles border, rounded corners, and background
+- the inner `ImageView` fills the container with `match_parent`
+- `centerCrop` remains the image scaling rule
+
+This gives every image a cleaner premium frame and ensures the image fills the visual container properly.
+
+### Screens aligned to the new framing pattern
+
+I applied this image framing structure across the relevant customer and admin surfaces, including:
+
+- customer menu cards
+- admin menu cards
+- customer rewards cards
+- reward picker
+- customer home carousel
+- admin dashboard carousel
+- standard favourites
+- saved custom favourites
+- cart
+- product image preview inside the admin product form
+
+This brought the image system to a much more consistent visual state across the full app.
+
+### Rewards layout refinement
+
+When I increased image emphasis on the rewards screen, I found that the previous text layout became unstable because reward cards contain more metadata than standard menu cards. In particular, the reward title and beans/progress line competed for horizontal space.
+
+To solve that, I redesigned the reward card layout so it supports:
+
+- a larger image
+- a title with controlled wrapping
+- a separate beans/progress row
+- a description section underneath
+- a full-width action button
+
+I also increased the bean icon size so the reward metadata feels more deliberate and readable.
+
+### Admin image selection styling improvements
+
+I refined the admin image selection experience so it matches the rest of KoffeeCraft more closely. This included:
+
+- restyling the app image library dialog
+- improving the image tile presentation inside the library
+- updating the product form preview presentation
+- removing the bright default system-blue feeling from the **App library** and **Phone gallery** buttons
+
+I replaced those button styles with colors, borders, and surface tones that match the KoffeeCraft visual system.
+
+### Architectural outcome
+
+This stage transformed the image system from a technically working asset pipeline into a visually integrated branded feature. The application now benefits from:
+
+- branded product visuals instead of generic catalog placeholders
+- reward-specific visual identity for milestone rewards
+- automatic mapping of legacy product records to branded image keys
+- a consistent premium image framing pattern across customer and admin screens
+- improved admin image selection UX aligned with the app theme
+
+### Design result
+
+This change significantly improved the perceived quality of the application. Images now feel intentional, balanced, and consistent across the full flow, and the reward experience in particular now looks more like a finished commercial product rather than a placeholder implementation.
+
+
+
+
+
+
+

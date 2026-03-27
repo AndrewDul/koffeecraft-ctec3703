@@ -153,7 +153,7 @@ class CustomerHomeViewModel(
             ),
             badgeLabel = if (pendingBeansBoosters > 0) "READY" else "REWARD",
             productFamily = "MERCH",
-            imageKey = "reward_beans_1kg"
+            imageKey = "reward_bean_booster"
         )
 
         items += CustomerHomeCarouselItem(
@@ -162,7 +162,7 @@ class CustomerHomeViewModel(
             metaLine = "15 beans",
             badgeLabel = if (beansBalance >= 15) "AVAILABLE" else "REWARD",
             productFamily = "COFFEE",
-            imageKey = "coffee_signature_house"
+            imageKey = "reward_free_coffee"
         )
 
         items += CustomerHomeCarouselItem(
@@ -171,7 +171,7 @@ class CustomerHomeViewModel(
             metaLine = "18 beans",
             badgeLabel = if (beansBalance >= 18) "AVAILABLE" else "REWARD",
             productFamily = "CAKE",
-            imageKey = "cake_cream_slice"
+            imageKey = "reward_free_cake"
         )
 
         rewardProducts.forEach { product ->

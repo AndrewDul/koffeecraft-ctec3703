@@ -105,12 +105,12 @@ class AdminProductImagesEspressoTest {
 
         onView(withId(R.id.btnChooseAppLibrary)).perform(scrollTo(), click())
         onView(isRoot()).perform(UiTestSetup.waitFor(250))
-        onView(withText("House Signature")).perform(click())
+        onView(withText("Espresso")).perform(click())
 
         onView(withId(R.id.tvImageSelectionMeta))
             .check(matches(withText(containsString("App library"))))
         onView(withId(R.id.tvImageSelectionMeta))
-            .check(matches(withText(containsString("House Signature"))))
+            .check(matches(withText(containsString("Espresso"))))
         onView(withId(R.id.ivProductPreview))
             .check(matches(isDisplayed()))
 
@@ -145,7 +145,7 @@ class AdminProductImagesEspressoTest {
         onView(withId(R.id.tvImageSelectionMeta))
             .check(matches(withText(containsString("App library"))))
         onView(withId(R.id.tvImageSelectionMeta))
-            .check(matches(withText(containsString("House Signature"))))
+            .check(matches(withText(containsString("Espresso"))))
         onView(withId(R.id.ivProductPreview))
             .check(matches(isDisplayed()))
     }

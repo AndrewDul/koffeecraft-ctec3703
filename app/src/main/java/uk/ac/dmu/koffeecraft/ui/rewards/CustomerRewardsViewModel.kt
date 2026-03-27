@@ -200,7 +200,7 @@ class CustomerRewardsViewModel(
             actionLabel = if (data.pendingBoosters > 0) "Claim +5 beans" else "Keep collecting beans",
             enabled = data.pendingBoosters > 0,
             productFamily = "MERCH",
-            imageKey = "reward_beans_1kg"
+            imageKey = "reward_bean_booster"
         )
 
         items += RewardUiModel(
@@ -211,7 +211,7 @@ class CustomerRewardsViewModel(
             actionLabel = if (data.availableBeansForNewRewards >= 15) "Choose reward" else "Need more beans",
             enabled = data.availableBeansForNewRewards >= 15,
             productFamily = "COFFEE",
-            imageKey = "coffee_signature_house"
+            imageKey = "reward_free_coffee"
         )
 
         items += RewardUiModel(
@@ -222,7 +222,7 @@ class CustomerRewardsViewModel(
             actionLabel = if (data.availableBeansForNewRewards >= 18) "Choose reward" else "Need more beans",
             enabled = data.availableBeansForNewRewards >= 18,
             productFamily = "CAKE",
-            imageKey = "cake_cream_slice"
+            imageKey = "reward_free_cake"
         )
 
         val rewardCostMap = linkedMapOf(

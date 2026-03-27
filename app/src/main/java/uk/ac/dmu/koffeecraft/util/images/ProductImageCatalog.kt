@@ -24,46 +24,132 @@ object ProductImageCatalog {
 
     private val entries: List<ProductImageCatalogEntry> = listOf(
         ProductImageCatalogEntry(
-            key = "coffee_signature_house",
-            label = "House Signature",
+            key = "coffee_espresso",
+            label = "Espresso",
             category = ProductImageLibraryCategory.COFFEE,
-            drawableResId = R.drawable.kc_image_placeholder_coffee
+            drawableResId = R.drawable.coffee_espresso
         ),
         ProductImageCatalogEntry(
-            key = "coffee_velvet_latte",
-            label = "Velvet Latte",
+            key = "coffee_cappuccino",
+            label = "Cappuccino",
             category = ProductImageLibraryCategory.COFFEE,
-            drawableResId = R.drawable.kc_image_placeholder_coffee_alt
+            drawableResId = R.drawable.coffee_cappuccino
         ),
         ProductImageCatalogEntry(
-            key = "cake_cream_slice",
-            label = "Cream Slice",
-            category = ProductImageLibraryCategory.CAKE,
-            drawableResId = R.drawable.kc_image_placeholder_cake
+            key = "coffee_latte",
+            label = "Latte",
+            category = ProductImageLibraryCategory.COFFEE,
+            drawableResId = R.drawable.coffee_latte
         ),
         ProductImageCatalogEntry(
-            key = "cake_crafted_layer",
-            label = "Crafted Layer",
+            key = "coffee_flat_white",
+            label = "Flat White",
+            category = ProductImageLibraryCategory.COFFEE,
+            drawableResId = R.drawable.coffee_flat_white
+        ),
+        ProductImageCatalogEntry(
+            key = "coffee_pistachio_latte",
+            label = "Pistachio Latte",
+            category = ProductImageLibraryCategory.COFFEE,
+            drawableResId = R.drawable.coffee_pistachio_latte
+        ),
+        ProductImageCatalogEntry(
+            key = "coffee_salted_caramel_mocha",
+            label = "Salted Caramel Mocha",
+            category = ProductImageLibraryCategory.COFFEE,
+            drawableResId = R.drawable.coffee_salted_caramel_mocha
+        ),
+
+        ProductImageCatalogEntry(
+            key = "cake_cheesecake",
+            label = "Cheesecake",
             category = ProductImageLibraryCategory.CAKE,
-            drawableResId = R.drawable.kc_image_placeholder_cake_alt
+            drawableResId = R.drawable.cake_cheesecake
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_chocolate_brownie",
+            label = "Chocolate Brownie",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_chocolate_brownie
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_carrot_cake",
+            label = "Carrot Cake",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_carrot_cake
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_tiramisu",
+            label = "Tiramisu",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_tiramisu
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_victoria_sponge_cake",
+            label = "Victoria Sponge Cake",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_victoria_sponge_cake
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_lemon_drizzle_cake",
+            label = "Lemon Drizzle Cake",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_lemon_drizzle_cake
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_lotus_biscoff_cheesecake",
+            label = "Lotus Biscoff Cheesecake",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_lotus_biscoff_cheesecake
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_red_velvet_slice",
+            label = "Red Velvet Slice",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_red_velvet_slice
+        ),
+        ProductImageCatalogEntry(
+            key = "cake_basque_cheesecake",
+            label = "Basque Cheesecake",
+            category = ProductImageLibraryCategory.CAKE,
+            drawableResId = R.drawable.cake_basque_cheesecake
+        ),
+
+        ProductImageCatalogEntry(
+            key = "reward_bean_booster",
+            label = "5 Bean Booster",
+            category = ProductImageLibraryCategory.REWARD,
+            drawableResId = R.drawable.reward_bean_booster
+        ),
+        ProductImageCatalogEntry(
+            key = "reward_free_coffee",
+            label = "Free Coffee Reward",
+            category = ProductImageLibraryCategory.REWARD,
+            drawableResId = R.drawable.reward_free_coffee
+        ),
+        ProductImageCatalogEntry(
+            key = "reward_free_cake",
+            label = "Free Cake Reward",
+            category = ProductImageLibraryCategory.REWARD,
+            drawableResId = R.drawable.reward_free_cake
         ),
         ProductImageCatalogEntry(
             key = "reward_mug",
-            label = "Reward Mug",
+            label = "KoffeeCraft Mug",
             category = ProductImageLibraryCategory.REWARD,
-            drawableResId = R.drawable.kc_image_placeholder_reward
+            drawableResId = R.drawable.reward_mug
         ),
         ProductImageCatalogEntry(
             key = "reward_teddy",
-            label = "Reward Teddy",
+            label = "KoffeeCraft Teddy Bear",
             category = ProductImageLibraryCategory.REWARD,
-            drawableResId = R.drawable.kc_image_placeholder_reward_alt
+            drawableResId = R.drawable.reward_teddy
         ),
         ProductImageCatalogEntry(
             key = "reward_beans_1kg",
-            label = "Reward Beans",
+            label = "1kg Crafted Coffee Beans",
             category = ProductImageLibraryCategory.REWARD,
-            drawableResId = R.drawable.kc_image_placeholder_reward_beans
+            drawableResId = R.drawable.reward_beans_1kg
         )
     )
 

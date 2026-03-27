@@ -14,26 +14,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="10dp">
 
-        <ImageView
-            android:id="@+id/ivLibraryImage"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:contentDescription="Library image"
-            android:scaleType="centerCrop"
-            android:src="@drawable/kc_image_placeholder_generic" />
+            android:layout_height="124dp"
+            app:cardBackgroundColor="@color/kc_surface_soft"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/kc_border_warm"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/ivLibraryImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Library image"
+                android:scaleType="centerCrop"
+                android:src="@drawable/kc_image_placeholder_generic" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvLibraryLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:text="House Signature"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="Espresso"
+            android:textAlignment="center"
             android:textColor="@color/kc_text_primary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
-
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

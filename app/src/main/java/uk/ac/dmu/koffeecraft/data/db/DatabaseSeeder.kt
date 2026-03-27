@@ -9,6 +9,7 @@ import uk.ac.dmu.koffeecraft.data.dao.AdminDao
 import uk.ac.dmu.koffeecraft.data.dao.ProductDao
 import uk.ac.dmu.koffeecraft.data.entities.Admin
 import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.util.images.ProductImageAssignments
 import uk.ac.dmu.koffeecraft.util.security.PasswordHasher
 
 object DatabaseSeeder {
@@ -24,7 +25,17 @@ object DatabaseSeeder {
                 val database = KoffeeCraftDatabase.getInstanceHolder() ?: return@launch
                 seedAdminIfNeeded(database)
                 seedProductsIfNeeded(database)
+                syncProductImageKeysByName(database)
                 CatalogDefaults.seedMissingCatalogData(database)
+            }
+        }
+
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val database = KoffeeCraftDatabase.getInstanceHolder() ?: return@launch
+                syncProductImageKeysByName(database)
             }
         }
 
@@ -61,7 +72,7 @@ object DatabaseSeeder {
                     productFamily = "COFFEE",
                     description = "Strong and bold espresso shot.",
                     price = 2.20,
-                    imageKey = "coffee_signature_house",
+                    imageKey = "coffee_espresso",
                     rewardEnabled = true
                 ),
                 Product(
@@ -69,7 +80,7 @@ object DatabaseSeeder {
                     productFamily = "COFFEE",
                     description = "Espresso with steamed milk and foam.",
                     price = 3.40,
-                    imageKey = "coffee_velvet_latte",
+                    imageKey = "coffee_cappuccino",
                     rewardEnabled = true
                 ),
                 Product(
@@ -77,7 +88,7 @@ object DatabaseSeeder {
                     productFamily = "COFFEE",
                     description = "Smooth espresso with lots of milk.",
                     price = 3.60,
-                    imageKey = "coffee_signature_house",
+                    imageKey = "coffee_latte",
                     rewardEnabled = true
                 ),
                 Product(
@@ -85,7 +96,7 @@ object DatabaseSeeder {
                     productFamily = "CAKE",
                     description = "Classic creamy cheesecake slice.",
                     price = 4.20,
-                    imageKey = "cake_cream_slice",
+                    imageKey = "cake_cheesecake",
                     rewardEnabled = true
                 ),
                 Product(
@@ -93,7 +104,7 @@ object DatabaseSeeder {
                     productFamily = "CAKE",
                     description = "Rich chocolate brownie.",
                     price = 3.00,
-                    imageKey = "cake_crafted_layer",
+                    imageKey = "cake_chocolate_brownie",
                     rewardEnabled = true
                 ),
                 Product(
@@ -101,7 +112,7 @@ object DatabaseSeeder {
                     productFamily = "CAKE",
                     description = "Moist carrot cake with frosting.",
                     price = 3.80,
-                    imageKey = "cake_cream_slice",
+                    imageKey = "cake_carrot_cake",
                     rewardEnabled = true
                 ),
                 Product(
@@ -134,6 +145,21 @@ object DatabaseSeeder {
             )
 
             productDao.insertAll(products)
+        }
+
+        private suspend fun syncProductImageKeysByName(database: KoffeeCraftDatabase) {
+            val productDao: ProductDao = database.productDao()
+            val allProducts = productDao.getAllOnce()
+
+            allProducts.forEach { product ->
+                val expectedImageKey = ProductImageAssignments.imageKeyForProductName(product.name) ?: return@forEach
+
+                if (product.imageKey != expectedImageKey) {
+                    productDao.update(
+                        product.copy(imageKey = expectedImageKey)
+                    )
+                }
+            }
         }
     }
 }

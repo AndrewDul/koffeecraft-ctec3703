@@ -17,14 +17,23 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <ImageView
-            android:id="@+id/ivAdminHomeCarouselImage"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="128dp"
-            android:background="@drawable/bg_spinner_soft"
-            android:contentDescription="Admin dashboard carousel image"
-            android:scaleType="centerCrop"
-            android:src="@drawable/kc_image_placeholder_generic" />
+            app:cardBackgroundColor="@color/kc_surface_soft"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/kc_border_soft"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/ivAdminHomeCarouselImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Admin dashboard carousel image"
+                android:scaleType="centerCrop"
+                android:src="@drawable/kc_image_placeholder_generic" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvRank"
