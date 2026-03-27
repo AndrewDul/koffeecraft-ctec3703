@@ -11,6 +11,7 @@ import uk.ac.dmu.koffeecraft.data.entities.ProductAddOnCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductAllergenCrossRef
 import uk.ac.dmu.koffeecraft.data.entities.ProductOption
 import uk.ac.dmu.koffeecraft.data.db.CatalogDefaults
+import uk.ac.dmu.koffeecraft.util.images.ProductImageStorage
 class AdminMenuRepository(
     private val db: KoffeeCraftDatabase
 ) {
@@ -71,20 +72,34 @@ class AdminMenuRepository(
         isNew: Boolean,
         imageKey: String?,
         customImagePath: String?
-    ): Product? = db.withTransaction {
-        val updated = existing.copy(
-            name = name,
-            productFamily = productFamily,
-            description = description,
-            price = price,
-            rewardEnabled = rewardEnabled,
-            isNew = isNew,
-            imageKey = imageKey,
-            customImagePath = customImagePath
-        )
+    ): Product? {
+        val previousCustomImagePath = existing.customImagePath
 
-        db.productDao().update(updated)
-        db.productDao().getById(existing.productId)
+        val updatedProduct = db.withTransaction {
+            val updated = existing.copy(
+                name = name,
+                productFamily = productFamily,
+                description = description,
+                price = price,
+                rewardEnabled = rewardEnabled,
+                isNew = isNew,
+                imageKey = imageKey,
+                customImagePath = customImagePath
+            )
+
+            db.productDao().update(updated)
+            db.productDao().getById(existing.productId)
+        }
+
+        val shouldDeletePreviousCustomImage =
+            !previousCustomImagePath.isNullOrBlank() &&
+                    previousCustomImagePath != customImagePath
+
+        if (updatedProduct != null && shouldDeletePreviousCustomImage) {
+            ProductImageStorage.deleteFileAtPath(previousCustomImagePath)
+        }
+
+        return updatedProduct
     }
 
     suspend fun getOptionsForProduct(productId: Long): List<ProductOption> {

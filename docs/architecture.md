@@ -3836,3 +3836,79 @@ I treated the built-in app library as the main permanent image system and the ph
 
 
 
+## Custom image cleanup lifecycle for admin-managed product images
+
+I improved the product image architecture by adding a cleanup lifecycle for locally imported images stored through `customImagePath`. The goal of this change was to prevent unused image files from accumulating inside app storage when the admin changes product images multiple times or closes the dialog without saving.
+
+### Why this change was needed
+
+The app already supported two image sources for products:
+
+- permanent built-in images from the app library using `imageKey`
+- locally imported images from the phone gallery using `customImagePath`
+
+The problem was that locally imported files could remain in storage even when they were no longer used. This could happen in several situations:
+
+- the admin replaced one custom image with another
+- the admin switched from a custom gallery image back to an app library image
+- the admin imported a new gallery image but cancelled the dialog before saving
+- the admin imported multiple gallery images during one edit session before saving
+
+Without cleanup logic, those old files would remain in app storage even though the product no longer referenced them.
+
+### What I changed
+
+I extended `ProductImageStorage` with file deletion support so unused local image files can now be removed safely.
+
+I then updated the admin product editing flow to track three important states during the dialog lifecycle:
+
+- the original saved custom image path
+- the currently selected custom image path
+- whether the save action was actually committed
+
+This made it possible to decide whether a file should be preserved or deleted.
+
+### Cleanup rules I implemented
+
+I added cleanup behaviour for the following cases:
+
+1. **Replacing an existing custom image with a new custom image**
+  - after save, the old local file is deleted
+  - the new file becomes the active `customImagePath`
+
+2. **Switching from a custom image to an app library image**
+  - after save, the old local file is deleted
+  - `customImagePath` is cleared and `imageKey` becomes the active source
+
+3. **Importing multiple gallery images before saving**
+  - previously selected temporary replacement files are deleted immediately
+  - only the latest imported file remains selected
+
+4. **Cancelling the dialog after importing a new gallery image**
+  - the newly imported unsaved file is deleted
+  - the original saved image remains untouched
+
+5. **Closing the dialog without changing the original saved custom image**
+  - nothing is deleted
+  - the existing persisted image remains valid
+
+### Design decision
+
+I intentionally separated the concept of:
+
+- the product’s original persisted custom image
+- the temporary in-dialog custom image selection
+- the final committed result after save
+
+This was important because deleting files too early could break a valid saved image, while deleting files too late would leave storage clutter behind.
+
+### Result
+
+This cleanup lifecycle makes the image system safer and more maintainable. It prevents unused local image files from building up in storage while preserving the correct active image for the product.
+
+As a result, the admin image workflow is now cleaner, more reliable, and better aligned with a production-style resource lifecycle.
+
+
+
+
+

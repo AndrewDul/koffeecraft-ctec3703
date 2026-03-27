@@ -34,4 +34,13 @@ object ProductImageStorage {
             null
         }
     }
+
+    fun deleteFileAtPath(path: String?): Boolean {
+        if (path.isNullOrBlank()) return false
+
+        return runCatching {
+            val file = File(path)
+            file.exists() && file.delete()
+        }.getOrDefault(false)
+    }
 }

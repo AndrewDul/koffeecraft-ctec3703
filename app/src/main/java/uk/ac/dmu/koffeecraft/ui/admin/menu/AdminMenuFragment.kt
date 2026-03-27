@@ -52,6 +52,9 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
     private var productDialogSelectedFamily: String = "COFFEE"
     private var productDialogRewardEnabled: Boolean = false
 
+    private var productDialogOriginalCustomImagePath: String? = null
+    private var productDialogSaveCommitted: Boolean = false
+
     private val phoneGalleryPicker = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -63,10 +66,26 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             return@registerForActivityResult
         }
 
+        val previousSelectedCustomPath = productDialogSelectedCustomImagePath
+        val originalCustomPath = productDialogOriginalCustomImagePath
+
+        if (
+            !previousSelectedCustomPath.isNullOrBlank() &&
+            previousSelectedCustomPath != originalCustomPath &&
+            previousSelectedCustomPath != copiedPath
+        ) {
+            ProductImageStorage.deleteFileAtPath(previousSelectedCustomPath)
+        }
+
         productDialogSelectedImageKey = null
         productDialogSelectedCustomImagePath = copiedPath
         updateProductImagePreview()
-        Toast.makeText(requireContext(), "Image imported from phone gallery.", Toast.LENGTH_SHORT).show()
+
+        Toast.makeText(
+            requireContext(),
+            "Image imported from phone gallery.",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -179,6 +198,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
                     }
 
                     is AdminMenuUiEvent.ProductSaved -> {
+                        productDialogSaveCommitted = true
                         productDialog?.dismiss()
                         Toast.makeText(
                             requireContext(),
@@ -219,6 +239,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             switchRewardEnabled.isChecked = existing.rewardEnabled
             productDialogSelectedImageKey = existing.imageKey
             productDialogSelectedCustomImagePath = existing.customImagePath
+            productDialogOriginalCustomImagePath = existing.customImagePath
 
             val familyButtonId = when (existing.productFamily.uppercase()) {
                 "COFFEE" -> R.id.btnFamilyCoffee
@@ -233,6 +254,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             switchRewardEnabled.isChecked = false
             productDialogSelectedImageKey = null
             productDialogSelectedCustomImagePath = null
+            productDialogOriginalCustomImagePath = null
         }
 
         productDialogPreviewImage = ivProductPreview
@@ -240,6 +262,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         productDialogSelectedFamily = resolveSelectedFamily(toggleProductFamily)
         productDialogRewardEnabled = switchRewardEnabled.isChecked
         updateProductImagePreview()
+        productDialogSaveCommitted = false
 
         val isEdit = existing != null
 
@@ -283,6 +306,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         }
 
         dialog.setOnDismissListener {
+            cleanupDialogUnsavedCustomImageIfNeeded()
             clearProductDialogRefs()
         }
 
@@ -335,6 +359,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         lateinit var pickerDialog: AlertDialog
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         recyclerView.adapter = ProductImageLibraryAdapter(entries) { selected ->
+            cleanupUnsavedReplacementCustomImageIfNeeded()
             productDialogSelectedImageKey = selected.key
             productDialogSelectedCustomImagePath = null
             updateProductImagePreview()
@@ -360,7 +385,25 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
         updateProductImagePreview()
     }
+    private fun cleanupUnsavedReplacementCustomImageIfNeeded() {
+        val currentPath = productDialogSelectedCustomImagePath
+        val originalPath = productDialogOriginalCustomImagePath
 
+        if (!currentPath.isNullOrBlank() && currentPath != originalPath) {
+            ProductImageStorage.deleteFileAtPath(currentPath)
+        }
+    }
+
+    private fun cleanupDialogUnsavedCustomImageIfNeeded() {
+        if (productDialogSaveCommitted) return
+
+        val currentPath = productDialogSelectedCustomImagePath
+        val originalPath = productDialogOriginalCustomImagePath
+
+        if (!currentPath.isNullOrBlank() && currentPath != originalPath) {
+            ProductImageStorage.deleteFileAtPath(currentPath)
+        }
+    }
     private fun updateProductImagePreview() {
         val preview = productDialogPreviewImage ?: return
         ProductImageLoader.load(
@@ -429,7 +472,9 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         productDialogImageMeta = null
         productDialogSelectedImageKey = null
         productDialogSelectedCustomImagePath = null
+        productDialogOriginalCustomImagePath = null
         productDialogSelectedFamily = "COFFEE"
         productDialogRewardEnabled = false
+        productDialogSaveCommitted = false
     }
 }
