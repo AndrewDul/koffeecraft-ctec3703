@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvNotificationBadge: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_KoffeeCraft)
         super.onCreate(savedInstanceState)
 
 

@@ -20,9 +20,9 @@
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -74,9 +74,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:id="@+id/rowPersonalInfo"
@@ -137,9 +137,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:id="@+id/rowChangePassword"
@@ -200,9 +200,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:id="@+id/rowPaymentMethods"
@@ -263,9 +263,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -320,9 +320,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:id="@+id/rowInboxPreferences"
@@ -383,9 +383,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -506,9 +506,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_delete_account_surface"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_delete_account_stroke"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:id="@+id/rowDeleteAccount"
@@ -570,7 +570,7 @@
             app:cornerRadius="28dp"
             app:elevation="0dp"
             app:strokeColor="@color/kc_signout_stroke"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="0dp" />
 
     </LinearLayout>
 </ScrollView>

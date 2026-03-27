@@ -47,9 +47,9 @@
             android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/kc_surface_primary"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <TextView
                 android:id="@+id/tvContent"

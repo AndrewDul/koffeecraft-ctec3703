@@ -349,9 +349,9 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             tvDefault.visibility = if (card.isDefault) View.VISIBLE else View.GONE
             tvSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
 
-            rootCard.strokeWidth = if (isSelected) 2 else 1
-            rootCard.strokeColor = color(
-                if (isSelected) R.color.kc_brand_strong else R.color.kc_border_soft
+            rootCard.strokeWidth = 0
+            rootCard.setCardBackgroundColor(
+                color(if (isSelected) R.color.kc_surface_selected else R.color.kc_surface_panel)
             )
 
             itemView.setOnClickListener {

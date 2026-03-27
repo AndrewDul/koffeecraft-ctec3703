@@ -14,53 +14,45 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/kc_surface_panel"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="1dp"
-        app:strokeColor="@color/kc_border_soft"
-        app:strokeWidth="1dp">
+        app:cardCornerRadius="26dp"
+        app:cardElevation="3dp"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="18dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="18dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="My Orders"
-                android:textColor="@color/kc_text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.ScreenTitle" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:text="Track, review and reorder your favourites."
-                android:textColor="@color/kc_text_secondary"
-                android:textSize="13sp" />
+                style="@style/TextAppearance.KoffeeCraft.ScreenSubtitle" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBrowseMenu"
+                style="@style/Widget.KoffeeCraft.SecondaryButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/bg_secondary_pill_button"
+                android:layout_marginTop="15dp"
                 android:paddingStart="18dp"
-                android:paddingTop="10dp"
+                android:paddingTop="11dp"
                 android:paddingEnd="18dp"
-                android:paddingBottom="10dp"
+                android:paddingBottom="11dp"
                 android:text="Browse menu"
-                android:textAllCaps="false"
-                android:textColor="@color/kc_text_primary"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="28dp"
-                app:elevation="0dp"
-                app:iconPadding="0dp"
-                app:strokeWidth="0dp" />
+                app:iconPadding="0dp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -83,14 +75,13 @@
                 android:background="@drawable/bg_orders_filter_chip_selected"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="All"
                 android:textColor="@color/kc_text_primary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
 
             <TextView
                 android:id="@+id/filterToday"
@@ -100,14 +91,13 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="Today"
                 android:textColor="@color/kc_text_secondary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
 
             <TextView
                 android:id="@+id/filterYesterday"
@@ -117,14 +107,13 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="Yesterday"
                 android:textColor="@color/kc_text_secondary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
 
             <TextView
                 android:id="@+id/filterTwoDaysAgo"
@@ -134,14 +123,13 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="2 days ago"
                 android:textColor="@color/kc_text_secondary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
 
             <TextView
                 android:id="@+id/filterLast7Days"
@@ -151,14 +139,13 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="Last 7 days"
                 android:textColor="@color/kc_text_secondary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
 
             <TextView
                 android:id="@+id/filterLast14Days"
@@ -168,14 +155,13 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="Last 14 days"
                 android:textColor="@color/kc_text_secondary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
 
             <TextView
                 android:id="@+id/filterEarlier"
@@ -185,14 +171,13 @@
                 android:background="@drawable/bg_orders_filter_chip"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingStart="14dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="9dp"
+                android:paddingStart="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="10dp"
                 android:text="Earlier"
                 android:textColor="@color/kc_text_secondary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.FilterChipSmall" />
         </LinearLayout>
     </HorizontalScrollView>
 
@@ -203,8 +188,7 @@
         android:layout_marginTop="18dp"
         android:gravity="center"
         android:text="No orders yet."
-        android:textColor="@color/kc_text_muted"
-        android:textSize="14sp"
+        style="@style/TextAppearance.KoffeeCraft.Body"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -215,6 +199,6 @@
         android:layout_weight="1"
         android:clipToPadding="false"
         android:overScrollMode="never"
-        android:paddingBottom="16dp" />
+        android:paddingBottom="20dp" />
 
 </LinearLayout>

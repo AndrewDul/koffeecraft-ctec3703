@@ -3,111 +3,115 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="kc_shell_background">#F5EBDD</color>
+    <!-- Light theme base -->
+    <color name="kc_shell_background">#C0997F</color>
 
-    <color name="kc_surface_primary">#FFF8F2</color>
-    <color name="kc_surface_secondary">#F8F2EA</color>
-    <color name="kc_surface_tertiary">#F3E8DD</color>
-    <color name="kc_surface_soft">#F7F0E8</color>
-    <color name="kc_surface_overlay">#F7EFE8</color>
-    <color name="kc_surface_panel">#F2E5D8</color>
-    <color name="kc_surface_chip">#EADFD4</color>
-    <color name="kc_surface_selected">#E9D8C7</color>
+    <color name="kc_surface_primary">#F9CFB4</color>
+    <color name="kc_surface_secondary">#F4C5A5</color>
+    <color name="kc_surface_tertiary">#EAB894</color>
+    <color name="kc_surface_soft">#FFF2DE</color>
+    <color name="kc_surface_overlay">#FDE3C7</color>
+    <color name="kc_surface_panel">#F9CFB4</color>
+    <color name="kc_surface_chip">#F3C39F</color>
+    <color name="kc_surface_selected">#EFC09A</color>
 
-    <color name="kc_surface_warning">#F2E4D3</color>
-    <color name="kc_surface_info">#E8DDD4</color>
-    <color name="kc_surface_success">#DFE7D8</color>
-    <color name="kc_surface_error">#F0DCD8</color>
+    <color name="kc_surface_warning">#F6DFC4</color>
+    <color name="kc_surface_info">#F4D6B7</color>
+    <color name="kc_surface_success">#E5D7C6</color>
+    <color name="kc_surface_error">#F2D1C9</color>
 
-    <color name="kc_border_soft">#E3D4C6</color>
-    <color name="kc_border_warm">#DDC9B8</color>
-    <color name="kc_border_muted">#CBB8A4</color>
-    <color name="kc_border_selected">#D4BEAB</color>
-    <color name="kc_border_chip">#D4BFAF</color>
+    <color name="kc_border_soft">#D9AD8E</color>
+    <color name="kc_border_warm">#C89574</color>
+    <color name="kc_border_muted">#B57F5F</color>
+    <color name="kc_border_selected">#D89F79</color>
+    <color name="kc_border_chip">#D5A784</color>
 
-    <color name="kc_text_primary">#2E2018</color>
-    <color name="kc_text_secondary">#6E5A4D</color>
-    <color name="kc_text_muted">#7A6558</color>
-    <color name="kc_text_section">#4D3527</color>
-    <color name="kc_text_inverse">#FFF8F2</color>
+    <color name="kc_text_primary">#3B2518</color>
+    <color name="kc_text_secondary">#684736</color>
+    <color name="kc_text_muted">#87614A</color>
+    <color name="kc_text_section">#4A2E1F</color>
+    <color name="kc_text_inverse">#3B2518</color>
 
-    <color name="kc_icon_primary">#5A4638</color>
-    <color name="kc_icon_secondary">#5B4638</color>
+    <color name="kc_icon_primary">#573829</color>
+    <color name="kc_icon_secondary">#76533F</color>
 
-    <color name="kc_brand_primary">#8B6B4A</color>
-    <color name="kc_brand_strong">#9A7655</color>
-    <color name="kc_brand_soft">#D8C1A8</color>
-    <color name="kc_brand_button">#8A644C</color>
+    <color name="kc_brand_primary">#FFECD0</color>
+    <color name="kc_brand_strong">#F9E0BC</color>
+    <color name="kc_brand_soft">#F6D5AE</color>
+    <color name="kc_brand_button">#FFECD0</color>
 
-    <color name="kc_brand_checked_bg">#7B5A47</color>
-    <color name="kc_brand_checked_stroke">#A67C63</color>
+    <color name="kc_brand_checked_bg">#FFE2B8</color>
+    <color name="kc_brand_checked_stroke">#D5A071</color>
 
-    <color name="kc_text_chip_default">#6E4F3F</color>
-    <color name="kc_text_chip_disabled">#8C776A</color>
-    <color name="kc_action_disabled_bg">#D8C5B6</color>
+    <color name="kc_text_chip_default">#5F3F2F</color>
+    <color name="kc_text_chip_disabled">#8A6957</color>
+    <color name="kc_action_disabled_bg">#DAB79D</color>
 
-    <color name="kc_ripple_soft">#22FFFFFF</color>
+    <color name="kc_ripple_soft">#14FFFFFF</color>
 
-    <color name="kc_success">#5F7F5B</color>
-    <color name="kc_success_text">#36533E</color>
+    <color name="kc_success">#6F8A66</color>
+    <color name="kc_success_text">#35503A</color>
 
-    <color name="kc_danger">#A12727</color>
-    <color name="kc_danger_text">#7B4A42</color>
-    <color name="kc_danger_soft">#B26A5E</color>
+    <color name="kc_danger">#A85F57</color>
+    <color name="kc_danger_text">#7D433D</color>
+    <color name="kc_danger_soft">#C98B83</color>
 
-    <color name="kc_warning_text">#7A5634</color>
-    <color name="kc_info_text">#6A4D3A</color>
-    <color name="kc_neutral_text">#5C473A</color>
+    <color name="kc_warning_text">#835735</color>
+    <color name="kc_info_text">#714B36</color>
+    <color name="kc_neutral_text">#624333</color>
 
-    <color name="kc_dot_active">#5F7F5B</color>
-    <color name="kc_dot_inactive">#CBB8A4</color>
+    <color name="kc_dot_active">#6F8A66</color>
+    <color name="kc_dot_inactive">#D1A88B</color>
 
-    <color name="kc_intro_circle_bg">#F3E8DC</color>
-    <color name="kc_bottom_sheet_bg">#F7EFE8</color>
-    <color name="kc_sheet_handle">#C9B2A1</color>
+    <color name="kc_intro_circle_bg">#EBC09E</color>
+    <color name="kc_bottom_sheet_bg">#F9CFB4</color>
+    <color name="kc_sheet_handle">#B47B56</color>
 
-    <color name="kc_status_crafted_bg">#F0E0C2</color>
-    <color name="kc_status_crafted_stroke">#D2B07B</color>
+    <color name="kc_status_crafted_bg">#F6D9B8</color>
+    <color name="kc_status_crafted_stroke">#D7A16F</color>
 
-    <color name="kc_delete_bg">#F3E6DA</color>
-    <color name="kc_delete_stroke">#E0CDBD</color>
+    <color name="kc_delete_bg">#F2D8CF</color>
+    <color name="kc_delete_stroke">#D0A194</color>
 
-    <color name="kc_status_neutral_bg">#E9DFD6</color>
-    <color name="kc_status_neutral_stroke">#D9CABE</color>
+    <color name="kc_status_neutral_bg">#F1D0B2</color>
+    <color name="kc_status_neutral_stroke">#D5AC8C</color>
 
-    <color name="kc_reward_circle_bg">#F2E8DD</color>
+    <color name="kc_reward_circle_bg">#F6DEC4</color>
 
-    <color name="kc_validation_valid_bg">#DDEEDF</color>
-    <color name="kc_validation_valid_stroke">#5F7F5B</color>
+    <color name="kc_validation_valid_bg">#DDE7DB</color>
+    <color name="kc_validation_valid_stroke">#6F8A66</color>
 
-    <color name="kc_validation_invalid_bg">#F3DDDD</color>
-    <color name="kc_validation_invalid_stroke">#A12727</color>
+    <color name="kc_validation_invalid_bg">#F3DDDA</color>
+    <color name="kc_validation_invalid_stroke">#A85F57</color>
 
-    <color name="kc_divider">#EADFD4</color>
-    <color name="kc_home_background">#6F4E37</color>
+    <color name="kc_divider">#D8AB89</color>
+    <color name="kc_home_background">#C0997F</color>
 
-    <!-- Premium top/bottom bar surfaces -->
-    <color name="kc_top_bar_surface">#E7D7C8</color>
-    <color name="kc_bottom_bar_surface">#E7D7C8</color>
-    <color name="kc_bar_stroke">#D0BEAC</color>
+    <color name="kc_top_bar_surface">#D4A98C</color>
+    <color name="kc_bottom_bar_surface">#D4A98C</color>
+    <color name="kc_bar_stroke">#BE8E6E</color>
 
-    <!-- Bottom nav selected/unselected -->
-    <color name="kc_nav_selected">#6B4A36</color>
-    <color name="kc_nav_unselected">#8B7565</color>
+    <color name="kc_nav_selected">#3F281A</color>
+    <color name="kc_nav_unselected">#7D5944</color>
 
-    <!-- Top bar icon tint -->
-    <color name="kc_top_icon_tint">#563C2E</color>
+    <color name="kc_top_icon_tint">#4E3121</color>
 
-    <!-- Home carousel cards -->
-    <color name="kc_home_carousel_card">#F5ECE3</color>
+    <color name="kc_home_carousel_card">#FFECD0</color>
 
-    <!-- Settings action tones -->
-    <color name="kc_signout_surface">#F2E5DF</color>
-    <color name="kc_signout_stroke">#E2CFC6</color>
-    <color name="kc_signout_text">#765047</color>
+    <color name="kc_signout_surface">#F4D7C6</color>
+    <color name="kc_signout_stroke">#D1A68F</color>
+    <color name="kc_signout_text">#74473E</color>
 
-    <color name="kc_delete_account_surface">#F4DFDA</color>
-    <color name="kc_delete_account_stroke">#E1C0B7</color>
-    <color name="kc_delete_account_text">#8A4F46</color>
-    <color name="kc_delete_account_text_soft">#A56A61</color>
+    <color name="kc_delete_account_surface">#F1D2CA</color>
+    <color name="kc_delete_account_stroke">#D5A59B</color>
+    <color name="kc_delete_account_text">#8A4E47</color>
+    <color name="kc_delete_account_text_soft">#A86961</color>
+    <!-- Dedicated progress colors -->
+    <color name="kc_progress_indicator">#C9966E</color>
+    <color name="kc_progress_track">#E8C9AE</color>
+    <color name="kc_progress_text">#7B573E</color>
+
+    <!-- Dedicated checkout card colors -->
+    <color name="kc_checkout_card_surface">#CDA88B</color>
+    <color name="kc_checkout_card_selected_surface">#E3C3A8</color>
 </resources>

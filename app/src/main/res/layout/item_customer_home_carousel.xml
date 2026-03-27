@@ -3,27 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="290dp"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="12dp"
+    android:layout_marginEnd="14dp"
     app:cardBackgroundColor="@color/kc_home_carousel_card"
-    app:cardCornerRadius="22dp"
-    app:cardElevation="2dp"
-    app:strokeColor="@color/kc_border_soft"
-    app:strokeWidth="1dp">
+    app:cardCornerRadius="24dp"
+    app:cardElevation="3dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="14dp">
+        android:padding="16dp">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="146dp"
+            android:layout_height="152dp"
             app:cardBackgroundColor="@color/kc_surface_soft"
-            app:cardCornerRadius="18dp"
+            app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <ImageView
                 android:id="@+id/ivHomeCarouselImage"
@@ -37,7 +35,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -46,14 +44,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_secondary_pill_button"
-                android:paddingStart="10dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="4dp"
+                android:paddingStart="11dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="11dp"
+                android:paddingBottom="5dp"
                 android:text="NEW"
                 android:textColor="@color/kc_warning_text"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                style="@style/TextAppearance.KoffeeCraft.Badge" />
         </LinearLayout>
 
         <TextView
@@ -62,30 +59,25 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Latte"
-            android:textColor="@color/kc_text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            style="@style/TextAppearance.KoffeeCraft.CardTitleSmall" />
 
         <TextView
             android:id="@+id/tvHomeCarouselSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:text="Smooth espresso with creamy milk and a soft crafted finish."
-            android:textColor="@color/kc_icon_secondary"
-            android:textSize="12sp" />
+            style="@style/TextAppearance.KoffeeCraft.BodySmall" />
 
         <TextView
             android:id="@+id/tvHomeCarouselMeta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="12dp"
             android:text="★ 4.8 • 12 ratings • From £3.60"
-            android:textColor="@color/kc_text_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+            style="@style/TextAppearance.KoffeeCraft.MetaStrong" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -300,8 +300,8 @@ class ProductAdapter(
                 AppCompatResources.getColorStateList(itemView.context, R.color.kc_chip_text_selector)
             )
 
-            chip.chipStrokeWidth = 1.2f * density
-            chip.chipCornerRadius = 16f * density
+            chip.chipStrokeWidth = 0f
+            chip.chipCornerRadius = 18f * density
             chip.minHeight = (42f * density).toInt()
             chip.textStartPadding = 14f * density
             chip.textEndPadding = 14f * density

@@ -20,9 +20,9 @@
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -75,9 +75,9 @@
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/kc_surface_panel"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="1dp"
+                    app:cardElevation="3dp"
                     app:strokeColor="@color/kc_border_soft"
-                    app:strokeWidth="1dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -114,9 +114,9 @@
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/kc_surface_panel"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="1dp"
+                    app:cardElevation="3dp"
                     app:strokeColor="@color/kc_border_soft"
-                    app:strokeWidth="1dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -152,9 +152,9 @@
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/kc_surface_panel"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="1dp"
+                    app:cardElevation="3dp"
                     app:strokeColor="@color/kc_border_soft"
-                    app:strokeWidth="1dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -197,9 +197,9 @@
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/kc_surface_panel"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="1dp"
+                    app:cardElevation="3dp"
                     app:strokeColor="@color/kc_border_soft"
-                    app:strokeWidth="1dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -236,9 +236,9 @@
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/kc_surface_panel"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="1dp"
+                    app:cardElevation="3dp"
                     app:strokeColor="@color/kc_border_soft"
-                    app:strokeWidth="1dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -274,9 +274,9 @@
                     android:layout_weight="1"
                     app:cardBackgroundColor="@color/kc_surface_panel"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="1dp"
+                    app:cardElevation="3dp"
                     app:strokeColor="@color/kc_border_soft"
-                    app:strokeWidth="1dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -322,9 +322,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -544,9 +544,9 @@
             android:layout_marginTop="10dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -868,9 +868,9 @@
             android:visibility="gone"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"

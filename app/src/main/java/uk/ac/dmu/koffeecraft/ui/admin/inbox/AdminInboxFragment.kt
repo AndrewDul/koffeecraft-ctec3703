@@ -225,11 +225,12 @@ class AdminInboxFragment : Fragment(R.layout.fragment_admin_inbox) {
             button.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_brand_strong))
             button.setTextColor(color(R.color.kc_text_inverse))
             button.strokeWidth = 0
+            button.alpha = 1f
         } else {
-            button.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_surface_chip))
+            button.backgroundTintList = ColorStateList.valueOf(color(R.color.kc_surface_secondary))
             button.setTextColor(color(R.color.kc_text_primary))
-            button.strokeWidth = 1
-            button.strokeColor = ColorStateList.valueOf(color(R.color.kc_border_warm))
+            button.strokeWidth = 0
+            button.alpha = 0.96f
         }
     }
 

@@ -15,7 +15,7 @@
         android:paddingStart="16dp"
         android:paddingTop="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="22dp">
+        android:paddingBottom="28dp">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardBeansBalance"
@@ -25,23 +25,21 @@
             android:focusable="true"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Beans balance"
-                    android:textColor="@color/kc_text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                    style="@style/TextAppearance.KoffeeCraft.SectionTitle" />
 
                 <TextView
                     android:id="@+id/tvBeansValue"
@@ -49,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="0 beans"
-                    android:textColor="@color/kc_warning_text"
+                    android:textColor="@color/kc_progress_indicator"
                     android:textSize="28sp"
                     android:textStyle="bold" />
 
@@ -57,19 +55,17 @@
                     android:id="@+id/tvBeansMeta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     android:text="Bean booster progress"
-                    android:textColor="@color/kc_text_muted"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    style="@style/TextAppearance.KoffeeCraft.MetaStrong" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
                     android:id="@+id/progressBeansHome"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    app:indicatorColor="@color/kc_brand_primary"
-                    app:trackColor="@color/kc_surface_chip" />
+                    app:indicatorColor="@color/kc_progress_indicator"
+                    app:trackColor="@color/kc_progress_track" />
 
                 <TextView
                     android:id="@+id/tvBeansProgressValue"
@@ -77,7 +73,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="0/10"
-                    android:textColor="@color/kc_text_secondary"
+                    android:textColor="@color/kc_progress_text"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -92,31 +88,28 @@
             android:focusable="true"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Rewards waiting for you"
-                    android:textColor="@color/kc_text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                    style="@style/TextAppearance.KoffeeCraft.SectionTitle" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="Explore rewards, boosters, and crafted items."
-                    android:textColor="@color/kc_text_secondary"
-                    android:textSize="12sp" />
+                    style="@style/TextAppearance.KoffeeCraft.BodySmall" />
 
                 <TextView
                     android:id="@+id/tvRewardsEmpty"
@@ -146,31 +139,28 @@
             android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="New arrivals"
-                    android:textColor="@color/kc_text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                    style="@style/TextAppearance.KoffeeCraft.SectionTitle" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="Fresh picks marked as NEW by the admin."
-                    android:textColor="@color/kc_text_secondary"
-                    android:textSize="12sp" />
+                    style="@style/TextAppearance.KoffeeCraft.BodySmall"/>
 
                 <TextView
                     android:id="@+id/tvNewArrivalsEmpty"
@@ -200,15 +190,15 @@
             android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -254,15 +244,15 @@
             android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -308,15 +298,15 @@
             android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
             app:cardCornerRadius="22dp"
-            app:cardElevation="1dp"
+            app:cardElevation="3dp"
             app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"

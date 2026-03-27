@@ -27,7 +27,7 @@
         app:cardCornerRadius="30dp"
         app:cardElevation="10dp"
         app:strokeColor="@color/kc_border_soft"
-        app:strokeWidth="1dp"
+        app:strokeWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -175,7 +175,7 @@
                 app:backgroundTint="@color/kc_surface_chip"
                 app:cornerRadius="28dp"
                 app:strokeColor="@color/kc_border_soft"
-                app:strokeWidth="1dp" />
+                app:strokeWidth="0dp" />
 
         </LinearLayout>
 

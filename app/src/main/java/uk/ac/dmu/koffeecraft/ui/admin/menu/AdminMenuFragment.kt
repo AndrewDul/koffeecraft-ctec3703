@@ -29,7 +29,7 @@ import uk.ac.dmu.koffeecraft.data.entities.Product
 import uk.ac.dmu.koffeecraft.util.images.ProductImageCatalog
 import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 import uk.ac.dmu.koffeecraft.util.images.ProductImageStorage
-
+import androidx.core.content.ContextCompat
 class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
 
     private lateinit var viewModel: AdminMenuViewModel
@@ -311,6 +311,8 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         }
 
         dialog.setOnShowListener {
+            styleDialogActionButtons(dialog)
+
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 clearProductDialogErrors()
 
@@ -372,6 +374,7 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
             .create()
 
         pickerDialog.show()
+        styleDialogActionButtons(pickerDialog)
     }
 
     private fun handleSelectionCategoryChanged(family: String, rewardEnabled: Boolean) {
@@ -477,4 +480,16 @@ class AdminMenuFragment : Fragment(R.layout.fragment_admin_menu) {
         productDialogRewardEnabled = false
         productDialogSaveCommitted = false
     }
+    private fun styleDialogActionButtons(dialog: AlertDialog) {
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(
+            ContextCompat.getColor(requireContext(), R.color.kc_text_primary)
+        )
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
+            ContextCompat.getColor(requireContext(), R.color.kc_text_secondary)
+        )
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(
+            ContextCompat.getColor(requireContext(), R.color.kc_text_secondary)
+        )
+    }
+
 }

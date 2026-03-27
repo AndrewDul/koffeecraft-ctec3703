@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/kc_shell_background"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,34 +17,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/kc_surface_panel"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
-            app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:cardCornerRadius="26dp"
+            app:cardElevation="3dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
 
                 <TextView
                     android:id="@+id/tvRewardsTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Rewards"
-                    android:textColor="@color/kc_text_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    style="@style/TextAppearance.KoffeeCraft.ScreenTitle" />
 
                 <TextView
                     android:id="@+id/tvRewardsSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:text="Use your beans to unlock crafted rewards and exclusive extras."
-                    android:textColor="@color/kc_text_secondary"
-                    android:textSize="13sp" />
+                    style="@style/TextAppearance.KoffeeCraft.ScreenSubtitle" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -53,10 +53,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/kc_surface_panel"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="1dp"
-            app:strokeColor="@color/kc_border_soft"
-            app:strokeWidth="1dp">
+            app:cardCornerRadius="26dp"
+            app:cardElevation="3dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -81,18 +80,15 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Your Beans"
-                            android:textColor="@color/kc_text_primary"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
+                            style="@style/TextAppearance.KoffeeCraft.CardTitle" />
 
                         <TextView
                             android:id="@+id/tvBeansSubtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="5dp"
                             android:text="Available now: 0 • Reserved in cart: 0"
-                            android:textColor="@color/kc_icon_secondary"
-                            android:textSize="14sp" />
+                            style="@style/TextAppearance.KoffeeCraft.Body" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -103,8 +99,8 @@
 
                         <ImageView
                             android:id="@+id/ivBeanIcon"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
                             android:adjustViewBounds="true"
                             android:contentDescription="Coffee bean"
                             android:src="@drawable/coffee_bean" />
@@ -116,7 +112,7 @@
                             android:layout_marginStart="10dp"
                             android:maxLines="1"
                             android:text="0"
-                            android:textColor="@color/kc_text_primary"
+                            android:textColor="@color/kc_progress_indicator"
                             android:textSize="28sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -129,8 +125,8 @@
                     android:layout_marginTop="16dp"
                     android:max="10"
                     android:progress="0"
-                    app:indicatorColor="@color/kc_brand_primary"
-                    app:trackColor="@color/kc_surface_chip" />
+                    app:indicatorColor="@color/kc_progress_indicator"
+                    app:trackColor="@color/kc_progress_track" />
 
                 <TextView
                     android:id="@+id/tvBeansProgress"
@@ -139,7 +135,7 @@
                     android:layout_marginTop="8dp"
                     android:gravity="center"
                     android:text="0/10"
-                    android:textColor="@color/kc_text_secondary"
+                    android:textColor="@color/kc_progress_text"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -151,8 +147,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Rewards are added to your cart at £0.00. Beans are only deducted when you complete checkout."
-            android:textColor="@color/kc_icon_secondary"
-            android:textSize="13sp" />
+            style="@style/TextAppearance.KoffeeCraft.BodySmall" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvRewards"

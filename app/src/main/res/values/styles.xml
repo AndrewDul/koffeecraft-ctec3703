@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TextAppearance.KoffeeCraft" parent="">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.Logo" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">21sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.ScreenTitle" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">26sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.ScreenSubtitle" parent="TextAppearance.KoffeeCraft">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/kc_text_secondary</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.SectionTitle" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:letterSpacing">0.005</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.CardTitle" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">19sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:letterSpacing">0.005</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.CardTitleSmall" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.Body" parent="TextAppearance.KoffeeCraft">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/kc_icon_secondary</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.BodySmall" parent="TextAppearance.KoffeeCraft">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/kc_text_secondary</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.Meta" parent="TextAppearance.KoffeeCraft">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/kc_text_muted</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.MetaStrong" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/kc_text_muted</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.FilterChip" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.FilterChipSmall" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.ValueLarge" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:letterSpacing">0.005</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.Price" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.PriceAccent" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/kc_brand_button</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.ActionText" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/kc_text_section</item>
+    </style>
+
+    <style name="TextAppearance.KoffeeCraft.Badge" parent="TextAppearance.KoffeeCraft">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="Widget.KoffeeCraft.PrimaryButton" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/kc_text_inverse</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="cornerRadius">28dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="backgroundTint">@color/kc_brand_button</item>
+    </style>
+
+    <style name="Widget.KoffeeCraft.SecondaryButton" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/kc_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="cornerRadius">28dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="backgroundTint">@color/kc_surface_secondary</item>
+    </style>
+
+</resources>
