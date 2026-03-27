@@ -1,6 +1,6 @@
 # KoffeeCraft
 
-KoffeeCraft is my premium Android coffee shop application. I built it as a full mobile project with two role-based experiences: **Customer** and **Admin**. It is not just a simple ordering screen. It includes product browsing, customisation, cart and checkout, rewards, saved payment methods, notifications, favourites, feedback, admin tools, account access control, and internal management flows.
+KoffeeCraft is my Android coffee shop application. I built it as a full mobile project with two role-based sides: **Customer** and **Admin**. The app includes menu browsing, product customisation, cart and checkout, rewards, saved payment methods, notifications, favourites, feedback, admin tools, account access control, and internal management features.
 
 **A mini screenshot gallery is available at the end of this README, after the author section.**
 
@@ -8,20 +8,19 @@ KoffeeCraft is my premium Android coffee shop application. I built it as a full 
 
 ## About the App
 
-KoffeeCraft is a local-first Android app inspired by a premium modern coffee shop experience.  
-My goal was to build something that looks polished, feels practical on mobile, and also gives me a serious portfolio project that shows both customer-facing features and admin-side management tools.
+KoffeeCraft is a local-first Android app inspired by a modern coffee shop experience.  
+I wanted to build a project that looks clean, works well on mobile, and demonstrates both customer features and admin management tools in one application.
 
-I focused on:
-- clean mobile UI
-- realistic app flows
+Main areas I focused on:
+- mobile UI design
+- realistic user flows
 - persistent local data
 - customer and admin roles
-- product setup and configuration
+- product configuration
 - order handling
-- rewards and engagement features
-- practical testing
-- structured documentation
-
+- rewards features
+- testing
+- project documentation
 ---
 
 ## What the App Can Do
@@ -420,17 +419,40 @@ De Montfort University
 
 ---
 
-## Mini Gallery
+## Gallery
 
-> I keep the mini gallery at the end of this README.  
-> Put these screenshots in `docs/screenshots/` and keep the same filenames used below.
+
 
 <table>
   <tr>
     <td align="center">
-      <img src="docs/screenshots/customer_dasboard.png" width="180" alt="Customer Dashboard 1"><br>
+      <img src="docs/screenshots/launcher.png" width="180" alt="Launcher"><br>
+      <sub>Launcher</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/welcome.png" width="180" alt="Welcome Screen"><br>
+      <sub>Welcome Screen</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/login.png" width="180" alt="Login"><br>
+      <sub>Login</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/register1.png" width="180" alt="Register Step 1"><br>
+      <sub>Register Step 1</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/register2.png" width="180" alt="Register Step 2"><br>
+      <sub>Register Step 2</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/customer_dasboard.png" width="180" alt="Customer Dashboard"><br>
       <sub>Customer Dashboard</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="docs/screenshots/customer_dashboard2.png" width="180" alt="Customer Dashboard 2"><br>
       <sub>Customer Dashboard 2</sub>
@@ -439,29 +461,61 @@ De Montfort University
       <img src="docs/screenshots/customer_menu.png" width="180" alt="Customer Menu"><br>
       <sub>Customer Menu</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center">
       <img src="docs/screenshots/customer_menu2.png" width="180" alt="Customer Menu 2"><br>
       <sub>Customer Menu 2</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/cart.png" width="180" alt="Cart"><br>
+      <sub>Cart</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/checkout.png" width="180" alt="Checkout"><br>
+      <sub>Checkout</sub>
     </td>
     <td align="center">
       <img src="docs/screenshots/customer_rewards.png" width="180" alt="Customer Rewards"><br>
       <sub>Customer Rewards</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="docs/screenshots/customer_rewards2.png" width="180" alt="Customer Rewards 2"><br>
       <sub>Customer Rewards 2</sub>
     </td>
+    <td align="center">
+      <img src="docs/screenshots/myorders.png" width="180" alt="My Orders"><br>
+      <sub>My Orders</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/orderstatus.png" width="180" alt="Order Status"><br>
+      <sub>Order Status</sub>
+    </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="docs/screenshots/customer_settings.png" width="180" alt="Customer Settings"><br>
-      <sub>Customer Settings</sub>
+      <img src="docs/screenshots/customernotifications.png" width="180" alt="Customer Notifications"><br>
+      <sub>Customer Notifications</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/checkout.png" width="180" alt="Checkout"><br>
-      <sub>Checkout</sub>
+      <img src="docs/screenshots/customerinbox.png" width="180" alt="Customer Inbox"><br>
+      <sub>Customer Inbox</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/favourites.png" width="180" alt="Favourites"><br>
+      <sub>Favourites</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/feedback.png" width="180" alt="Leave Feedback"><br>
+      <sub>Leave Feedback</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/customer_settings.png" width="180" alt="Customer Settings"><br>
+      <sub>Customer Settings</sub>
     </td>
     <td align="center">
       <img src="docs/screenshots/admin_dashboard.png" width="180" alt="Admin Dashboard"><br>
@@ -474,12 +528,12 @@ De Montfort University
       <sub>Admin Menu Control</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/admin_feedback.png" width="180" alt="Admin Feedback"><br>
-      <sub>Feedback Insights</sub>
+      <img src="docs/screenshots/product_manage.png" width="180" alt="Product Details"><br>
+      <sub>Product Details</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/admin_settings.png" width="180" alt="Admin Settings"><br>
-      <sub>Admin Settings</sub>
+      <img src="docs/screenshots/admin_image_library.png" width="180" alt="Product Image Library"><br>
+      <sub>Product Image Library</sub>
     </td>
   </tr>
   <tr>
@@ -488,12 +542,26 @@ De Montfort University
       <sub>Campaign Studio</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/admin_image_library.png" width="180" alt="Admin Image Library"><br>
-      <sub>Product Image Library</sub>
+      <img src="docs/screenshots/adminordercontrol.png" width="180" alt="Orders Control"><br>
+      <sub>Orders Control</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/product_manage.png" width="180" alt="Product Details"><br>
-      <sub>Product Details</sub>
+      <img src="docs/screenshots/admindirectmessage.png" width="180" alt="Direct Message Centre"><br>
+      <sub>Direct Message Centre</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/adminnotifications.png" width="180" alt="Admin Notifications"><br>
+      <sub>Admin Notifications</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/admin_feedback.png" width="180" alt="Feedback Insights"><br>
+      <sub>Feedback Insights</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/admin_settings.png" width="180" alt="Admin Settings"><br>
+      <sub>Admin Settings</sub>
     </td>
   </tr>
 </table>
