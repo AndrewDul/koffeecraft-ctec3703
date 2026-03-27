@@ -1,0 +1,12 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/kc_image_placeholder_generic" />
+    <item
+        android:left="30dp"
+        android:top="30dp"
+        android:right="30dp"
+        android:bottom="30dp">
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/coffee_bean" />
+    </item>
+</layer-list>

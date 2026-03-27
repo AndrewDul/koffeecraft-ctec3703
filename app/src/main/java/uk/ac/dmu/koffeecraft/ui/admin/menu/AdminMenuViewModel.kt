@@ -129,7 +129,9 @@ class AdminMenuViewModel(
                     description = normalizedDescription,
                     price = validatedPrice,
                     rewardEnabled = formData.rewardEnabled,
-                    isNew = formData.isNew
+                    isNew = formData.isNew,
+                    imageKey = formData.imageKey,
+                    customImagePath = formData.customImagePath
                 )
             } else {
                 repository.updateProduct(
@@ -139,7 +141,9 @@ class AdminMenuViewModel(
                     description = normalizedDescription,
                     price = validatedPrice,
                     rewardEnabled = formData.rewardEnabled,
-                    isNew = formData.isNew
+                    isNew = formData.isNew,
+                    imageKey = formData.imageKey,
+                    customImagePath = formData.customImagePath
                 )
             }
 

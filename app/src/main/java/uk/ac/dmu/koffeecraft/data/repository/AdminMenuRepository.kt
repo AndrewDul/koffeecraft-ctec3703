@@ -34,7 +34,9 @@ class AdminMenuRepository(
         description: String,
         price: Double,
         rewardEnabled: Boolean,
-        isNew: Boolean
+        isNew: Boolean,
+        imageKey: String?,
+        customImagePath: String?
     ): Product? = db.withTransaction {
         val insertedId = db.productDao().insert(
             Product(
@@ -44,7 +46,8 @@ class AdminMenuRepository(
                 price = price,
                 isActive = true,
                 isNew = isNew,
-                imageKey = null,
+                imageKey = imageKey,
+                customImagePath = customImagePath,
                 rewardEnabled = rewardEnabled
             )
         )
@@ -65,7 +68,9 @@ class AdminMenuRepository(
         description: String,
         price: Double,
         rewardEnabled: Boolean,
-        isNew: Boolean
+        isNew: Boolean,
+        imageKey: String?,
+        customImagePath: String?
     ): Product? = db.withTransaction {
         val updated = existing.copy(
             name = name,
@@ -73,7 +78,9 @@ class AdminMenuRepository(
             description = description,
             price = price,
             rewardEnabled = rewardEnabled,
-            isNew = isNew
+            isNew = isNew,
+            imageKey = imageKey,
+            customImagePath = customImagePath
         )
 
         db.productDao().update(updated)

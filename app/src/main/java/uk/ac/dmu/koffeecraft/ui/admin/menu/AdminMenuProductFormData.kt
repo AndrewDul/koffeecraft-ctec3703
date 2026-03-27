@@ -6,5 +6,7 @@ data class AdminMenuProductFormData(
     val priceText: String,
     val productFamily: String,
     val rewardEnabled: Boolean,
-    val isNew: Boolean
+    val isNew: Boolean,
+    val imageKey: String?,
+    val customImagePath: String?
 )

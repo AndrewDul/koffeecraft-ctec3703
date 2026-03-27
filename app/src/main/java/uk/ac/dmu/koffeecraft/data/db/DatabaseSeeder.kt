@@ -61,6 +61,7 @@ object DatabaseSeeder {
                     productFamily = "COFFEE",
                     description = "Strong and bold espresso shot.",
                     price = 2.20,
+                    imageKey = "coffee_signature_house",
                     rewardEnabled = true
                 ),
                 Product(
@@ -68,6 +69,7 @@ object DatabaseSeeder {
                     productFamily = "COFFEE",
                     description = "Espresso with steamed milk and foam.",
                     price = 3.40,
+                    imageKey = "coffee_velvet_latte",
                     rewardEnabled = true
                 ),
                 Product(
@@ -75,6 +77,7 @@ object DatabaseSeeder {
                     productFamily = "COFFEE",
                     description = "Smooth espresso with lots of milk.",
                     price = 3.60,
+                    imageKey = "coffee_signature_house",
                     rewardEnabled = true
                 ),
                 Product(
@@ -82,6 +85,7 @@ object DatabaseSeeder {
                     productFamily = "CAKE",
                     description = "Classic creamy cheesecake slice.",
                     price = 4.20,
+                    imageKey = "cake_cream_slice",
                     rewardEnabled = true
                 ),
                 Product(
@@ -89,6 +93,7 @@ object DatabaseSeeder {
                     productFamily = "CAKE",
                     description = "Rich chocolate brownie.",
                     price = 3.00,
+                    imageKey = "cake_crafted_layer",
                     rewardEnabled = true
                 ),
                 Product(
@@ -96,6 +101,7 @@ object DatabaseSeeder {
                     productFamily = "CAKE",
                     description = "Moist carrot cake with frosting.",
                     price = 3.80,
+                    imageKey = "cake_cream_slice",
                     rewardEnabled = true
                 ),
                 Product(

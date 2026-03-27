@@ -1422,6 +1422,11 @@ object DatabaseMigrations {
         }
     }
 
+    private val MIGRATION_20_21 = object : Migration(20, 21) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            addColumnIfMissing(db, "products", "customImagePath", "TEXT")
+        }
+    }
     val ALL = arrayOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -1441,7 +1446,8 @@ object DatabaseMigrations {
         MIGRATION_16_17,
         MIGRATION_17_18,
         MIGRATION_18_19,
-        MIGRATION_19_20
+        MIGRATION_19_20,
+        MIGRATION_20_21
     )
 
 }

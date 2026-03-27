@@ -121,6 +121,83 @@
                 android:textColor="@color/kc_text_secondary"
                 android:textSize="12sp" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Product image"
+                android:textColor="@color/kc_text_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Choose a permanent image from the app library, or import one from the phone gallery for this device."
+                android:textColor="@color/kc_text_secondary"
+                android:textSize="12sp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/kc_surface_secondary"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/kc_border_soft"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/ivProductPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Product preview image"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/kc_image_placeholder_generic" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnChooseAppLibrary"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="App library"
+                    android:textAllCaps="false"
+                    app:backgroundTint="@color/kc_surface_tertiary"
+                    app:cornerRadius="22dp"
+                    app:strokeColor="@color/kc_border_warm"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnChoosePhoneGallery"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Phone gallery"
+                    android:textAllCaps="false"
+                    app:backgroundTint="@color/kc_surface_tertiary"
+                    app:cornerRadius="22dp"
+                    app:strokeColor="@color/kc_border_warm"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvImageSelectionMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="No custom image selected yet."
+                android:textColor="@color/kc_text_muted"
+                android:textSize="12sp" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDescription"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

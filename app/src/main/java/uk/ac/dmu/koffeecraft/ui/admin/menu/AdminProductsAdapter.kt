@@ -12,6 +12,7 @@ import com.google.android.material.button.MaterialButton
 import java.util.Locale
 import uk.ac.dmu.koffeecraft.R
 import uk.ac.dmu.koffeecraft.data.entities.Product
+import uk.ac.dmu.koffeecraft.util.images.ProductImageLoader
 
 class AdminProductsAdapter(
     private var items: List<Product>,
@@ -125,11 +126,12 @@ class AdminProductsAdapter(
         }
 
         private fun bindCollapsedContent(product: Product) {
-            ivImage.setImageResource(
-                when {
-                    product.isCoffee -> R.drawable.coffee_bean
-                    else -> android.R.drawable.ic_menu_gallery
-                }
+            ProductImageLoader.load(
+                imageView = ivImage,
+                productFamily = product.productFamily,
+                rewardEnabled = product.rewardEnabled,
+                imageKey = product.imageKey,
+                customImagePath = product.customImagePath
             )
 
             tvName.text = product.name

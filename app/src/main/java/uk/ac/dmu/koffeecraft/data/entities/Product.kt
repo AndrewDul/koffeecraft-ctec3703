@@ -20,6 +20,7 @@ data class Product(
 
     val isNew: Boolean = false,
     val imageKey: String? = null,
+    val customImagePath: String? = null,
 
     @ColumnInfo(defaultValue = "0")
     val rewardEnabled: Boolean = false

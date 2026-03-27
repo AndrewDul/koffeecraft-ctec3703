@@ -3602,3 +3602,108 @@ This change did not modify the password validation rules or admin account creati
 
 
 
+## Product image architecture for admin-managed menu and rewards
+
+I introduced a dedicated product image architecture to support premium visual presentation across the admin and customer experience. The goal of this change was to let the admin assign images to products and rewards in a way that is stable, scalable, and safe for the project structure.
+
+### What I changed
+
+I extended the `Product` entity by keeping the existing `imageKey` approach for permanent built-in images and adding a new optional `customImagePath` field for locally imported images selected from the phone gallery. This created a dual-source image model:
+
+- `imageKey` for permanent project images stored inside the app
+- `customImagePath` for locally imported images copied into app storage
+
+I also added a new Room migration from database version `20` to `21` so the new field could be introduced without breaking the database structure.
+
+### Why I changed it this way
+
+I did not use the phone gallery as the only source of truth because imported images from the gallery are local to a device and are not transferred through GitHub. I also did not try to save runtime images into `drawable`, because Android resources are static and cannot be modified by the installed app at runtime.
+
+Because of that, I designed the image system around two clear layers:
+
+1. **Permanent app library**
+  - safe for GitHub and project delivery
+  - available on every installation
+  - ideal for official product and reward visuals
+
+2. **Optional phone gallery import**
+  - useful for admin-side custom testing or device-specific overrides
+  - copied into app-specific storage so the selected file remains stable for that installation
+
+This approach keeps the project reliable while still allowing a more advanced admin workflow.
+
+### App library image catalog
+
+I created a central image catalog in `ProductImageCatalog.kt` to define the images that belong to the built-in app library. Instead of relying on physical folder navigation, I grouped image entries in code and attached each one to a business category:
+
+- `COFFEE`
+- `CAKE`
+- `REWARD`
+
+Each catalog entry contains:
+- a stable `key`
+- a display `label`
+- a `category`
+- a `drawableResId`
+
+This means the admin interface can filter images based on the type of product being edited, while still keeping the source images permanent and version-controlled inside the project.
+
+### Shared image loading
+
+I added `ProductImageLoader.kt` as a shared image resolution layer. This utility decides how a product image should be displayed:
+
+- if `customImagePath` exists and the file is available, it loads the local image
+- otherwise it falls back to the built-in image from `imageKey`
+- if neither exists, it uses a category-aware premium placeholder
+
+This gave me one consistent image loading strategy that can later be reused in customer menu cards, rewards, pickers, dashboards, and any future visual product surfaces.
+
+### Local storage for phone gallery import
+
+I added `ProductImageStorage.kt` to handle imports from the phone gallery. When the admin selects an image through the Android photo picker, the app copies the chosen file into app-specific storage and stores the copied file path in `customImagePath`.
+
+This was important because storing only a temporary gallery reference would be less stable. Copying the file into app storage makes the image safer for repeated use on that installation.
+
+### Admin product form improvements
+
+I upgraded the admin product form so image selection is now part of the normal product editing flow. The form now includes:
+
+- a large product image preview
+- an **App library** action
+- a **Phone gallery** action
+- metadata text showing where the current image comes from
+
+I also added an image library selection dialog with its own adapter so the admin can pick a permanent built-in image visually instead of typing or guessing keys.
+
+### Seed data alignment
+
+I updated seeded products in `DatabaseSeeder.kt` so default menu items and reward items now start with image keys already assigned. This gives the project immediate visual consistency even before adding final production artwork.
+
+### UI consistency and premium fallback states
+
+I added a full set of premium placeholder drawables for:
+- generic product state
+- coffee
+- cake
+- reward
+- alternative reward and category variants
+
+This ensures the interface still looks polished even before final branded product images are added.
+
+### What this architecture gives the project
+
+This change gave me:
+
+- a stable image system that works with GitHub and project delivery
+- a visual admin workflow for assigning images to products and rewards
+- a clean separation between permanent built-in assets and optional local imports
+- a reusable image resolution layer for future customer-facing screens
+- a safer database structure for scaling product visuals later
+
+### Design decision summary
+
+I intentionally treated app library images as the main permanent solution and phone gallery images as an optional override. This keeps the project academically safe, technically correct, and visually strong while still demonstrating a more advanced admin capability.
+
+
+
+
